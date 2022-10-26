@@ -15,7 +15,7 @@ SET(INCLUDE_DIRS
 
 add_executable(crn main.cpp)
 
-target_link_libraries(crn ${CryptoPP_LIBRARIES} ${AzioMQ_LIBRARIES})
+target_link_libraries(crn ${CryptoPP_LIBRARIES} ${AzioMQ_LIBRARIES} ${ZeroMQ_LIBRARIES})
 target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
 
 install(TARGETS crn RUNTIME DESTINATION bin)
