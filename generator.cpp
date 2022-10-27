@@ -9,6 +9,7 @@
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/dsa.h>
 #include <cryptopp/files.h>
+#include <cryptopp/hex.h>
 #include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
 #include <db_cxx.h>
@@ -35,6 +36,9 @@ struct group{
                 (CryptoPP::Name::SubgroupOrder(), _q)
                 (CryptoPP::Name::SubgroupGenerator(), _g);
         }
+        CryptoPP::ModularArithmetic Gp() const { return CryptoPP::ModularArithmetic(_p);}
+        CryptoPP::ModularArithmetic Gp1() const { return CryptoPP::ModularArithmetic(_p -1);}
+
 };
 
 CryptoPP::ModularArithmetic G(const CryptoPP::Integer& p){ return CryptoPP::ModularArithmetic(p); }
@@ -68,7 +72,7 @@ struct participant_public: virtual group{
         /**
          * Calculates $y^{r}$
          */
-        inline CryptoPP::Integer raise(CryptoPP::Integer r){
+        inline CryptoPP::Integer raise(CryptoPP::Integer r) const {
             return G(_p).Exponentiate(_y, r);
         }
 };
@@ -104,7 +108,7 @@ struct participant_private: virtual group{
         /**
          * Calculates $r^{x}$
          */
-        inline CryptoPP::Integer raise_x(CryptoPP::Integer r){
+        inline CryptoPP::Integer raise_x(CryptoPP::Integer r) const {
             return G(_p).Exponentiate(r, _x);
         }
 };
@@ -137,6 +141,69 @@ struct key_pair: participant_public, participant_private{
         participant_private::save(name);
     }
 };
+
+
+struct genesis_block{
+    inline genesis_block(CryptoPP::AutoSeededRandomPool& rng, const participant_public& p, const participant_private& m): _public(p), _master(m), _r(rng, 1, _public.p()), _rho(rng, 1, _public.p()) {}
+    genesis_block(const genesis_block&) = default;
+
+    std::string hash() const;
+    CryptoPP::Integer active() const;
+    std::pair<CryptoPP::Integer, CryptoPP::Integer> passive() const;
+    std::string checksum() const;
+
+    private:
+        participant_public  _public;
+        participant_private _master;
+        CryptoPP::Integer   _r, _rho;
+};
+
+std::string genesis_block::hash() const{
+    std::vector<CryptoPP::byte> y;
+    y.resize(_public.y().MinEncodedSize());
+    _public.y().Encode(&y[0], y.size());
+    CryptoPP::SHA512 hash;
+    CryptoPP::byte digest[CryptoPP::SHA512::DIGESTSIZE];
+    hash.CalculateDigest(digest, y.data(), y.size());
+    CryptoPP::HexEncoder encoder;
+    std::string output;
+    encoder.Attach(new CryptoPP::StringSink(output));
+    encoder.Put(digest, sizeof(digest));
+    encoder.MessageEnd();
+    return output;
+}
+
+CryptoPP::Integer genesis_block::active() const{
+    return _public.Gp().Exponentiate(_public.g(), _r);
+}
+
+std::pair<CryptoPP::Integer, CryptoPP::Integer> genesis_block::passive() const{
+    auto Gp = _public.Gp();
+    auto Gp1 = _public.Gp1();
+    return std::make_pair(
+        Gp.Exponentiate(_public.raise(_rho), _r),
+        Gp.Multiply( Gp1.MultiplicativeInverse(_rho), _master.raise_x(_public.y()) )
+    );
+}
+
+std::string genesis_block::checksum() const{
+    auto Gp = _public.Gp();
+    CryptoPP::Integer h = Gp.Exponentiate(_master.raise_x(_public.y()), _r);
+
+    std::vector<CryptoPP::byte> y;
+    y.resize(h.MinEncodedSize());
+    h.Encode(&y[0], y.size());
+    CryptoPP::SHA512 hash;
+    CryptoPP::byte digest[CryptoPP::SHA512::DIGESTSIZE];
+    hash.CalculateDigest(digest, y.data(), y.size());
+    CryptoPP::HexEncoder encoder;
+    std::string output;
+    encoder.Attach(new CryptoPP::StringSink(output));
+    encoder.Put(digest, sizeof(digest));
+    encoder.MessageEnd();
+    return output;
+}
+
 
 
 int main(int argc, char** argv) {
