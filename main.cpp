@@ -1,25 +1,26 @@
 #include <iostream>
-#include <azmq/socket.hpp>
-#include <boost/asio.hpp>
 #include <array>
+#include <string>
+#include <zmq.hpp>
 #include "crn.h"
 
-namespace asio = boost::asio;
-
 int main(int argc, char** argv) {
-    asio::io_service ios;
-    azmq::sub_socket subscriber(ios);
-    subscriber.connect("tcp://192.168.55.112:5556");
-    subscriber.connect("tcp://192.168.55.201:7721");
-    subscriber.set_option(azmq::socket::subscribe("NASDAQ"));
+    zmq::context_t context (2);
+    zmq::socket_t socket (context, zmq::socket_type::rep);
+    socket.bind ("tcp://*:5555");
+    while (true) {
+        zmq::message_t request;
 
-    azmq::pub_socket publisher(ios);
-    publisher.bind("ipc://nasdaq-feed");
+        //  Wait for next request from client
+        auto res = socket.recv(request, zmq::recv_flags::none);
+        if(res){
+            std::cout << "Received " << request << std::endl;
+        }
 
-    std::array<char, 256> buf;
-    for (;;) {
-        auto size = subscriber.receive(asio::buffer(buf));
-        publisher.send(asio::buffer(buf));
+        //  Send reply back to client
+        zmq::message_t reply (5);
+        memcpy(reply.data (), "World", 5);
+        socket.send (reply, zmq::send_flags::none);
     }
     return 0;
 }
