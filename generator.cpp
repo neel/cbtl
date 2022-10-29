@@ -110,14 +110,15 @@ int main(int argc, char** argv) {
             const crn::genesis_block& block = *i;
             nlohmann::json json = block;
             std::string json_str = json.dump();
-            Dbt key((void*) block.hash().data(), block.hash().size());
-            Dbt value((void*) json_str.data(), block.hash().size());
+            std::string block_id = block.hash();
+            Dbt key((void*) block_id.c_str(), block_id.size());
+            Dbt value((void*) json_str.c_str(), json_str.size());
             int ret = db.put(NULL, &key, &value, DB_NOOVERWRITE);
             if (ret == DB_KEYEXIST) {
                 // TODO failure
                 std::cout << "failed " << __LINE__ << std::endl;
             }else{
-                std::cout << "written " << block.hash() << std::endl;
+                std::cout << "written " << block_id << std::endl;
             }
         }
         db.sync(0);

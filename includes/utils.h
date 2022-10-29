@@ -11,7 +11,9 @@ namespace crn{
 namespace utils{
 
 std::string eHex(const CryptoPP::Integer& value);
+CryptoPP::Integer dHex(const std::string& str);
 std::string SHA512(const CryptoPP::Integer& value);
+CryptoPP::Integer sha512(const CryptoPP::Integer& value);
 
 }
 }

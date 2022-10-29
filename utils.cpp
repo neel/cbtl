@@ -18,6 +18,19 @@ std::string crn::utils::eHex(const CryptoPP::Integer& value){
     return output;
 }
 
+CryptoPP::Integer crn::utils::dHex(const std::string& str){
+    CryptoPP::HexDecoder decoder;
+    decoder.Put( (CryptoPP::byte*) str.data(), str.size() );
+    decoder.MessageEnd();
+    std::vector<CryptoPP::byte> bytes;
+    bytes.resize(decoder.MaxRetrievable());
+    decoder.Get(&bytes[0], bytes.size());
+    CryptoPP::Integer value;
+    value.Decode(&bytes[0], bytes.size());
+    return value;
+}
+
+
 std::string crn::utils::SHA512(const CryptoPP::Integer& value){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize());
@@ -31,4 +44,16 @@ std::string crn::utils::SHA512(const CryptoPP::Integer& value){
     encoder.Put(digest, sizeof(digest));
     encoder.MessageEnd();
     return output;
+}
+
+CryptoPP::Integer crn::utils::sha512(const CryptoPP::Integer& value){
+    std::vector<CryptoPP::byte> bytes;
+    bytes.resize(value.MinEncodedSize());
+    value.Encode(&bytes[0], bytes.size());
+    CryptoPP::SHA512 hash;
+    CryptoPP::byte digest[CryptoPP::SHA512::DIGESTSIZE];
+    hash.CalculateDigest(digest, bytes.data(), bytes.size());
+    CryptoPP::Integer ret;
+    ret.Decode(&bytes[0], bytes.size());
+    return ret;
 }

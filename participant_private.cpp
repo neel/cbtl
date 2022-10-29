@@ -28,7 +28,6 @@ unsigned long crn::participant_private::load(const std::string& path){
     queue.MessageEnd();
     _secret.Load(queue);
     init();
-    std::cout << len << " " << _x << std::endl;
     return len;
 }
 

@@ -27,7 +27,6 @@ unsigned long crn::participant_public::load(const std::string& path){
     queue.MessageEnd();
     _public.Load(queue);
     init();
-    std::cout << len << " " << _y << std::endl;
     return len;
 }
 
