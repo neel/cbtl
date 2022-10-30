@@ -22,14 +22,14 @@ SET(SOURCES
     genesis_block.cpp
 )
 
-add_executable(crn-server main.cpp)
+add_executable(crn-server ${SOURCES} main.cpp)
 add_executable(crn-client client.cpp)
 add_executable(crn-gen ${SOURCES} generator.cpp)
 add_executable(crn-manager ${SOURCES} manager.cpp)
 
-target_link_libraries(crn-server ${CryptoPP_LIBRARIES} ${ZeroMQ_LIBRARIES})
+target_link_libraries(crn-server ${CryptoPP_LIBRARIES} ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 target_link_libraries(crn-client ${CryptoPP_LIBRARIES} ${ZeroMQ_LIBRARIES})
-target_link_libraries(crn-gen ${CryptoPP_LIBRARIES} ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(crn-gen    ${CryptoPP_LIBRARIES} ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 target_link_libraries(crn-manager ${CryptoPP_LIBRARIES} ${ZeroMQ_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 
 target_include_directories(crn-server  PUBLIC ${INCLUDE_DIRS})
