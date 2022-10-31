@@ -15,6 +15,8 @@
 #include <db_cxx.h>
 
 int main(int argc, char** argv) {
+    CryptoPP::AutoSeededRandomPool rng;
+
     boost::program_options::options_description desc("CLI Frontend for the Trusted Server");
     desc.add_options()
         ("help,h", "prints this help message")
@@ -65,7 +67,20 @@ int main(int argc, char** argv) {
                     if( crn::utils::sha512(keys.private_key().raise_x(token)) != last_checksum ){
                         std::cout << "bad request: " << last_checksum << std::endl;
                     }else{
+                        // Send Challenge
+                        CryptoPP::Integer active_random = crn::utils::dHex(json["active"][0].get<std::string>());
+                        CryptoPP::Integer rho = keys.random(rng, true), rho_inverse = keys.Gp1().MultiplicativeInverse(rho);
+                        CryptoPP::Integer c1 = keys.Gp().Multiply( token, keys.Gp().Exponentiate(active_random, rho) );
+                        CryptoPP::Integer c2 = keys.Gp().Exponentiate( token, rho_inverse );
+                        CryptoPP::Integer c3 = keys.Gp().Exponentiate(active_random, rho);
 
+                        nlohmann::json challenge = {
+                            {"c1", crn::utils::eHex(c1)},
+                            {"c2", crn::utils::eHex(c2)},
+                            {"c3", crn::utils::eHex(c3)}
+                        };
+                        std::string challenge_str = challenge.dump();
+                        // send challenge
                     }
                 }
                 db.sync(0);
