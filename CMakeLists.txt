@@ -14,12 +14,13 @@ SET(INCLUDE_DIRS
 )
 
 SET(SOURCES
-    group.cpp
-    participant_private.cpp
-    participant_public.cpp
-    key_pair.cpp
-    utils.cpp
-    genesis_block.cpp
+    sources/group.cpp
+    sources/participant_private.cpp
+    sources/participant_public.cpp
+    sources/key_pair.cpp
+    sources/utils.cpp
+    sources/genesis_block.cpp
+    sources/block.cpp
 )
 
 add_executable(crn-server ${SOURCES} main.cpp)
