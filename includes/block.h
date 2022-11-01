@@ -127,11 +127,9 @@ struct access{
 
     inline const parts::active& active() const { return _active; }
     inline const parts::passive& passive() const { return _passive; }
+    inline const addresses& address() const { return _address; }
 
     static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p, const CryptoPP::Integer& active_request);
-
-    friend void from_json(const nlohmann::json& j, access& a);
-    friend void to_json(nlohmann::json& j, const access& a);
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
         access(const parts::active& active, const parts::passive& passive, const addresses& addr);
