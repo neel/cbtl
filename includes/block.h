@@ -130,6 +130,7 @@ struct access{
     inline const parts::active& active() const { return _active; }
     inline const parts::passive& passive() const { return _passive; }
     inline const addresses& address() const { return _address; }
+    inline bool is_genesis() const { return _address.active() == _address.passive(); }
 
     static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p, const CryptoPP::Integer& active_request);
     protected:

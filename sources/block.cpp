@@ -72,7 +72,11 @@ std::string crn::blocks::parts::passive::prev(const crn::group& G, const CryptoP
 
 
 crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive): _active(active), _passive(passive){
-    _id = crn::utils::SHA512(crn::utils::eHex(_active) + " " + crn::utils::eHex(_passive));
+    if(_active == _passive){
+        _id = crn::utils::SHA512(crn::utils::eHex(_active));
+    }else{
+        _id = crn::utils::SHA512(crn::utils::eHex(_active) + " " + crn::utils::eHex(_passive));
+    }
 }
 
 crn::blocks::access::params crn::blocks::access::params::genesis(CryptoPP::Integer w, CryptoPP::Integer y){
@@ -94,15 +98,19 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     blocks::parts::active::params active_params   {p.active.y,  p.w, p.active.token};
     blocks::parts::passive::params passive_params {p.passive.y, p.w, p.passive.token};
 
-    CryptoPP::Integer hash         = crn::utils::sha512(active_request);
-    CryptoPP::Integer addr_active  = G.Gp().Multiply(p.active.id, hash);
-    CryptoPP::Integer addr_passive = G.Gp().Multiply(p.passive.id, crn::utils::sha512(p.passive.token));
-    addresses addr(addr_active, addr_passive);
-
     auto active  = parts::active::construct(rng, G, active_params);
     auto passive = parts::passive::construct(rng, G, passive_params);
 
-    return access(active, passive, addr);
+    if(p.active.id == 0 && p.passive.id == 0){
+        addresses addr(p.active.y, p.passive.y);
+        return access(active, passive, addr);
+    }else{
+        CryptoPP::Integer hash         = crn::utils::sha512(active_request);
+        CryptoPP::Integer addr_active  = G.Gp().Multiply(p.active.id, hash);
+        CryptoPP::Integer addr_passive = G.Gp().Multiply(p.passive.id, crn::utils::sha512(p.passive.token));
+        addresses addr(addr_active, addr_passive);
+        return access(active, passive, addr);
+    }
 }
 
 
