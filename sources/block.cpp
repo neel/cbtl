@@ -75,6 +75,18 @@ crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const
     _id = crn::utils::SHA512(crn::utils::eHex(_active) + " " + crn::utils::eHex(_passive));
 }
 
+crn::blocks::access::params crn::blocks::access::params::genesis(CryptoPP::Integer w, CryptoPP::Integer y){
+    crn::blocks::access::params params;
+    params.w             = w;
+    params.active.id     = 0;
+    params.active.token  = 0;
+    params.active.y      = y;
+    params.passive.id    = 0;
+    params.passive.token = 0;
+    params.passive.y     = y;
+    return params;
+}
+
 
 crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr): _active(active), _passive(passive), _address(addr){}
 

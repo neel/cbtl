@@ -95,9 +95,15 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
         req_str.reserve(bytes_transferred);
         std::copy_n(_data.cbegin(), bytes_transferred, std::back_inserter(req_str));
         nlohmann::json req_json = nlohmann::json::parse(req_str);
-        if(_head.type == (std::uint8_t) crn::packets::type::request){
+        crn::packets::type type = static_cast<crn::packets::type>(_head.type);
+
+
+        if(type == crn::packets::type::request){
           crn::packets::request req = req_json;
+          std::cout << req_json.dump(4) << std::endl;
         }
+
+
         do_read();
       }
       void write_handler(){

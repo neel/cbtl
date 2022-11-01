@@ -20,9 +20,9 @@ struct db{
 
     protected:
         void open();
+        void close();
         void commit();
         void abort();
-        void close();
 
     private:
         Db* _blocks;

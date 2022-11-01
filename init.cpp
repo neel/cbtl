@@ -18,7 +18,9 @@
 
 #include "key_pair.h"
 #include "utils.h"
-#include "genesis_block.h"
+#include "db.h"
+#include "block.h"
+#include "blocks_io.h"
 
 constexpr static const std::uint32_t key_size = 1024;
 
@@ -64,7 +66,9 @@ int main(int argc, char** argv) {
     view << crn::utils::eHex(phi);
     view.close();
 
-    std::vector<crn::genesis_block> genesis_blocks;
+    crn::group G = trusted_server;
+
+    std::vector<crn::blocks::access> genesis_blocks;
 
     for(std::uint32_t i = 0; i < managers; ++i){
         std::string name = manager+"-"+boost::lexical_cast<std::string>(i);
@@ -73,7 +77,9 @@ int main(int argc, char** argv) {
         std::ofstream access(name+".access");
         access << crn::utils::eHex( key.public_key().raise({trusted_server.x(), theta}));
         access.close();
-        crn::genesis_block genesis(rng, key.public_key(), trusted_server.private_key());
+
+        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.private_key().x(), key.public_key().y());
+        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.public_key().y());
         genesis_blocks.push_back(genesis);
     }
 
@@ -87,7 +93,9 @@ int main(int argc, char** argv) {
         std::ofstream view(name+".view");
         view << crn::utils::eHex( key.public_key().raise({trusted_server.x(), phi}));
         view.close();
-        crn::genesis_block genesis(rng, key.public_key(), trusted_server.private_key());
+
+        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.private_key().x(), key.public_key().y());
+        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.public_key().y());
         genesis_blocks.push_back(genesis);
     }
 
@@ -95,33 +103,22 @@ int main(int argc, char** argv) {
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
         crn::key_pair key(rng, trusted_server.public_key());
         key.save(name);
-        crn::genesis_block genesis(rng, key.public_key(), trusted_server.private_key());
+
+        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.private_key().x(), key.public_key().y());
+        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.public_key().y());
         genesis_blocks.push_back(genesis);
     }
 
     // TODO Distribute those keys
 
+    crn::db db;
+
     // { Create Key Value Data base
-    Db db(NULL, 0);
+    // Db db(NULL, 0);
     try{
-        db.open(NULL /* Transaction pointer */,  "blockchain.db", NULL /*Optional logical database name*/ , DB_BTREE, DB_CREATE, 0); // File mode (using defaults)
-        for(std::vector<crn::genesis_block>::const_iterator i = genesis_blocks.cbegin(); i != genesis_blocks.cend(); ++i){
-            const crn::genesis_block& block = *i;
-            nlohmann::json json = block;
-            std::string json_str = json.dump();
-            std::string block_id = block.hash();
-            Dbt key((void*) block_id.c_str(), block_id.size());
-            Dbt value((void*) json_str.c_str(), json_str.size());
-            int ret = db.put(NULL, &key, &value, DB_NOOVERWRITE);
-            if (ret == DB_KEYEXIST) {
-                // TODO failure
-                std::cout << "failed " << __LINE__ << std::endl;
-            }else{
-                std::cout << "written " << block_id << std::endl;
-            }
+        for(const crn::blocks::access& block: genesis_blocks){
+            std::cout << std::boolalpha << db.add(block) << std::endl;
         }
-        db.sync(0);
-        db.close(0);
     }catch(DbException& e){
         std::cout << e.what() << std::endl;
     }catch(std::exception& e){

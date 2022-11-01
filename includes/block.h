@@ -107,6 +107,8 @@ struct access{
         };
         CryptoPP::Integer  w;
         participants_token active, passive;
+
+        static params genesis(CryptoPP::Integer  w, CryptoPP::Integer y);
     };
     class addresses{
         friend struct access;
