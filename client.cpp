@@ -1,27 +1,29 @@
 #include <iostream>
 #include <array>
 #include <string>
-#include <zmq.hpp>
-#include "crn.h"
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
+#include "packets.h"
 
 int main(int argc, char** argv) {
-    zmq::context_t context (1);
-    zmq::socket_t socket (context, zmq::socket_type::req);
+    boost::asio::io_context io_context;
+    boost::asio::ip::tcp::resolver resolver(io_context);
+    boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve("127.0.0.1", "9887");
+    boost::asio::ip::tcp::socket socket(io_context);
+    boost::asio::connect(socket, endpoints);
 
-    std::cout << "Connecting to hello world server..." << std::endl;
-    socket.connect ("tcp://localhost:5555");
+    crn::packets::request request;
+    request.last = "xyz";
+    request.token = 4545;
 
-    //  Do 10 requests, waiting each time for a response
-    for (int request_nbr = 0; request_nbr != 10; request_nbr++) {
-        zmq::message_t request (5);
-        memcpy (request.data (), "Hello", 5);
-        std::cout << "Sending Hello " << request_nbr << "..." << std::endl;
-        socket.send (request, zmq::send_flags::none);
+    crn::packets::envelop<crn::packets::request> envelop(crn::packets::type::request, request);
+    std::vector<std::uint8_t> dbuffer;
+    envelop.copy(std::back_inserter(dbuffer));
 
-        //  Get the reply.
-        zmq::message_t reply;
-        socket.recv (reply, zmq::recv_flags::none);
-        std::cout << "Received World " << request_nbr << std::endl;
-    }
+    std::copy(dbuffer.cbegin(), dbuffer.cend(), std::ostream_iterator<char>(std::cout));
+
+    boost::asio::write(socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
+
+
     return 0;
 }
