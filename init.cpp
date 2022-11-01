@@ -114,9 +114,9 @@ int main(int argc, char** argv) {
     crn::db db;
 
     // { Create Key Value Data base
-    // Db db(NULL, 0);
     try{
         for(const crn::blocks::access& block: genesis_blocks){
+            std::cout << block.address().id() << std::endl;
             std::cout << std::boolalpha << db.add(block) << std::endl;
         }
     }catch(DbException& e){

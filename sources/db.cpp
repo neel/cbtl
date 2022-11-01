@@ -5,29 +5,21 @@
 #include "blocks_io.h"
 
 crn::db::db(): _env(0), _opened(false) {
-    _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
-    _blocks = new Db(&_env, 0);
-    _index  = new Db(&_env, 0);
+    // _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
 }
 
 crn::db::~db(){
     close();
-    if(_blocks != 0x0){
-        delete _blocks;
-        _blocks = 0x0;
-    }
-    if(_index != 0x0){
-        delete _index;
-        _index = 0x0;
-    }
 }
 
 
 void crn::db::open(){
-    _env.txn_begin(NULL, &_transaction, 0);
-    _blocks->open(_transaction, "storage.db", "blocks" , DB_BTREE, DB_CREATE, 0);
-    _index->open (_transaction, "storage.db", "indexes", DB_BTREE, DB_CREATE, 0);
-    _opened = true;
+    _blocks = new Db(NULL, 0);
+    _index  = new Db(NULL, 0);
+    // _env.txn_begin(NULL, &_transaction, 0);
+    _blocks->open(NULL, "storage.db", "blocks" , DB_BTREE, DB_CREATE, 0);
+    _index->open (NULL, "storage.db", "indexes", DB_BTREE, DB_CREATE, 0);
+    // _opened = true;
 }
 
 void crn::db::close(){
@@ -37,6 +29,14 @@ void crn::db::close(){
         _index->sync(0);
         _index->close(0);
         _opened = false;
+    }
+    if(_blocks != 0x0){
+        delete _blocks;
+        _blocks = 0x0;
+    }
+    if(_index != 0x0){
+        delete _index;
+        _index = 0x0;
     }
 }
 
@@ -62,31 +62,36 @@ bool crn::db::add(const crn::blocks::access& block){
     nlohmann::json json = block;
     std::string block_str = json.dump();
 
-    int r_block, r_addr_active, r_addr_passive;
+    int r_block = 0, r_addr_active = 0, r_addr_passive = 0;
 
     Dbt id((void*) block_id.c_str(), block_id.size());
     {
         Dbt value((void*) block_str.c_str(), block_str.size());
-        r_block = _blocks->put(_transaction, &id, &value, DB_NOOVERWRITE);
-    }{
-        std::string active_address = crn::utils::eHex(block.address().active());
-        Dbt key((void*) active_address.c_str(), active_address.size());
-        r_addr_active = _index->put(_transaction, &key, &id, DB_NOOVERWRITE);
-    }{
-        std::string passive_address = crn::utils::eHex(block.address().passive());
-        Dbt key((void*) passive_address.c_str(), passive_address.size());
-        r_addr_passive = _index->put(_transaction, &key, &id, DB_NOOVERWRITE);
+        r_block = _blocks->put(NULL, &id, &value, DB_NOOVERWRITE);
+        std::cout << "r_block: " << r_block << std::endl;
     }
-
-    commit();
+    if(!block.is_genesis()){
+        {
+            std::string active_address = crn::utils::eHex(block.address().active());
+            Dbt key((void*) active_address.c_str(), active_address.size());
+            r_addr_active = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
+            std::cout << "r_addr_active: " << r_addr_active << std::endl;
+        }{
+            std::string passive_address = crn::utils::eHex(block.address().passive());
+            Dbt key((void*) passive_address.c_str(), passive_address.size());
+            r_addr_passive = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
+            std::cout << "r_addr_passive: " << r_addr_passive << std::endl;
+        }
+    }
+    close();
     return r_block == 0 && r_addr_active == 0 && r_addr_passive == 0;
 }
 
 bool crn::db::exists(const std::string& id){
     open();
     Dbt key((void*) id.c_str(), id.size());
-    int ret = _blocks->exists(_transaction, &key, 0);
-    commit();
+    int ret = _blocks->exists(NULL, &key, 0);
+    close();
     return ret != DB_NOTFOUND;
 }
 
@@ -94,8 +99,8 @@ bool crn::db::search(const CryptoPP::Integer& address){
     open();
     std::string addr = crn::utils::eHex(address);
     Dbt key((void*) addr.c_str(), addr.size());
-    int ret = _blocks->exists(_transaction, &key, 0);
-    commit();
+    int ret = _blocks->exists(NULL, &key, 0);
+    close();
 
     return ret != DB_NOTFOUND;
 }
