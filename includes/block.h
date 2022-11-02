@@ -131,6 +131,7 @@ struct access{
     inline const parts::passive& passive() const { return _passive; }
     inline const addresses& address() const { return _address; }
     inline bool is_genesis() const { return _address.active() == _address.passive(); }
+    inline static std::strng genesis_id(const CryptoPP::Integer& y) { return crn::utils::SHA512(crn::utils::eHex(y)); }
 
     static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p, const CryptoPP::Integer& active_request);
     protected:

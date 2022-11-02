@@ -18,6 +18,8 @@ struct db{
     bool exists(const std::string& id);
     bool search(const CryptoPP::Integer& address);
 
+    crn::blocks::access fetch(const std::string& block_id);
+
     protected:
         void open();
         void close();

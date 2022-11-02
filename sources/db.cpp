@@ -95,6 +95,23 @@ bool crn::db::exists(const std::string& id){
     return ret != DB_NOTFOUND;
 }
 
+crn::blocks::access crn::db::fetch(const std::string& block_id){
+    open();
+    crn::blocks::access* block;
+    Dbt id((void*) block_id.c_str(), block_id.size()), value;
+    int ret = _blocks->get(NULL, &id, &value, 0);
+    if(ret == DB_NOTFOUND){
+        // TODO throw
+    }else{
+        std::string json_str((const char*) value.get_data(), value.get_size());
+        nlohmann::json json = nlohmann::json::parse(json_str);
+        *block = json;
+    }
+    close();
+    return *block;
+}
+
+
 bool crn::db::search(const CryptoPP::Integer& address){
     open();
     std::string addr = crn::utils::eHex(address);
