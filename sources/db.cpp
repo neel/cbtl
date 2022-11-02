@@ -3,6 +3,7 @@
 
 #include "db.h"
 #include "blocks_io.h"
+#include <exception>
 
 crn::db::db(): _env(0), _opened(false) {
     // _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
@@ -54,7 +55,7 @@ void crn::db::abort(){
 
 
 bool crn::db::add(const crn::blocks::access& block){
-    std::string block_id = block.address().id();
+    std::string block_id = block.address().hash();
     // if(exists(block_id)){
     //     return false;
     // }
@@ -97,18 +98,17 @@ bool crn::db::exists(const std::string& id){
 
 crn::blocks::access crn::db::fetch(const std::string& block_id){
     open();
-    crn::blocks::access* block;
     Dbt id((void*) block_id.c_str(), block_id.size()), value;
     int ret = _blocks->get(NULL, &id, &value, 0);
     if(ret == DB_NOTFOUND){
-        // TODO throw
+        throw std::out_of_range("block "+ block_id + " not found");
     }else{
         std::string json_str((const char*) value.get_data(), value.get_size());
         nlohmann::json json = nlohmann::json::parse(json_str);
-        *block = json;
+        crn::blocks::access block = json;
+        close();
+        return block;
     }
-    close();
-    return *block;
 }
 
 

@@ -46,6 +46,7 @@ namespace nlohmann {
     template <>
     struct adl_serializer<crn::blocks::access::addresses> {
         static crn::blocks::access::addresses from_json(const json& j) {
+            auto id      = crn::utils::dHex(j["id"].get<std::string>());
             auto active  = crn::utils::dHex(j["active"].get<std::string>());
             auto passive = crn::utils::dHex(j["passive"].get<std::string>());
             return crn::blocks::access::addresses(active, passive);
@@ -53,6 +54,7 @@ namespace nlohmann {
 
         static void to_json(json& j, const crn::blocks::access::addresses& a) {
             j = nlohmann::json {
+                {"id",      crn::utils::eHex(a.id())},
                 {"active",  crn::utils::eHex(a.active())},
                 {"passive", crn::utils::eHex(a.passive())}
             };

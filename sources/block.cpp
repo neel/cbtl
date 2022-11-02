@@ -73,11 +73,16 @@ std::string crn::blocks::parts::passive::prev(const crn::group& G, const CryptoP
 
 crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive): _active(active), _passive(passive){
     if(_active == _passive){
-        _id = crn::utils::SHA512(crn::utils::eHex(_active));
+        _id = crn::utils::sha512(_active);
     }else{
-        _id = crn::utils::SHA512(crn::utils::eHex(_active) + " " + crn::utils::eHex(_passive));
+        _id = crn::utils::sha512(crn::utils::eHex(_active) + " " + crn::utils::eHex(_passive));
     }
 }
+
+std::string crn::blocks::access::addresses::hash() const{
+    return crn::utils::eHex(_id);
+}
+
 
 crn::blocks::access::params crn::blocks::access::params::genesis(CryptoPP::Integer w, CryptoPP::Integer y){
     crn::blocks::access::params params;

@@ -15,6 +15,7 @@ CryptoPP::Integer dHex(const std::string& str);
 std::string SHA512(const CryptoPP::Integer& value);
 std::string SHA512(const std::string& value);
 CryptoPP::Integer sha512(const CryptoPP::Integer& value);
+CryptoPP::Integer sha512(const std::string& value);
 
 }
 }

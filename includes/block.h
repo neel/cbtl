@@ -115,7 +115,7 @@ struct access{
 
         CryptoPP::Integer _active;
         CryptoPP::Integer _passive;
-        std::string       _id;
+        CryptoPP::Integer _id;
 
         friend class nlohmann::adl_serializer<crn::blocks::access::addresses>;
         addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive);
@@ -124,14 +124,15 @@ struct access{
         public:
             inline const CryptoPP::Integer& active() const { return _active; }
             inline const CryptoPP::Integer& passive() const { return _passive; }
-            inline const std::string id() const { return _id; }
+            inline const CryptoPP::Integer id() const { return _id; }
+            std::string hash() const;
     };
 
     inline const parts::active& active() const { return _active; }
     inline const parts::passive& passive() const { return _passive; }
     inline const addresses& address() const { return _address; }
     inline bool is_genesis() const { return _address.active() == _address.passive(); }
-    inline static std::strng genesis_id(const CryptoPP::Integer& y) { return crn::utils::SHA512(crn::utils::eHex(y)); }
+    inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::eHex(crn::utils::sha512(y)); }
 
     static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p, const CryptoPP::Integer& active_request);
     protected:

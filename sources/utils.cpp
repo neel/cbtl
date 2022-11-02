@@ -71,3 +71,15 @@ CryptoPP::Integer crn::utils::sha512(const CryptoPP::Integer& value){
     ret.Decode(&bytes[0], bytes.size());
     return ret;
 }
+
+CryptoPP::Integer crn::utils::sha512(const std::string& value){
+    std::vector<CryptoPP::byte> bytes;
+    std::copy(value.begin(), value.end(), std::back_inserter(bytes));
+    CryptoPP::SHA512 hash;
+    CryptoPP::byte digest[CryptoPP::SHA512::DIGESTSIZE];
+    hash.CalculateDigest(digest, bytes.data(), bytes.size());
+    CryptoPP::Integer ret;
+    ret.Decode(&bytes[0], bytes.size());
+    return ret;
+}
+
