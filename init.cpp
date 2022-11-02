@@ -19,7 +19,7 @@
 #include "keys.h"
 #include "utils.h"
 #include "db.h"
-#include "block.h"
+#include "blocks.h"
 #include "blocks_io.h"
 
 constexpr static const std::uint32_t key_size = 1024;

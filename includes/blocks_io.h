@@ -5,7 +5,7 @@
 #define BLOCKS_IO_H
 
 #include <nlohmann/json.hpp>
-#include "block.h"
+#include "blocks.h"
 #include "utils.h"
 
 namespace nlohmann {

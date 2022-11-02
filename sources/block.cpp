@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "block.h"
+#include "blocks.h"
 #include "utils.h"
 #include "packets.h"
 
