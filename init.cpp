@@ -70,7 +70,9 @@ int main(int argc, char** argv) {
     auto Gp = G.Gp();
     auto Gp1 = G.Gp1();
 
-    std::vector<crn::blocks::access> genesis_blocks;
+    crn::db db;
+
+    // std::vector<crn::blocks::access> genesis_blocks;
 
     for(std::uint32_t i = 0; i < managers; ++i){
         std::string name = manager+"-"+boost::lexical_cast<std::string>(i);
@@ -84,8 +86,11 @@ int main(int argc, char** argv) {
         std::cout << "manager" << std::endl;
         crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
         crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
+        std::cout << genesis.address().hash() << std::endl;
+        std::cout << (nlohmann::json) genesis << std::endl;
         std::cout << std::endl;
-        genesis_blocks.push_back(genesis);
+        // genesis_blocks.push_back(genesis);
+        db.add(genesis);
     }
 
     for(std::uint32_t i = 0; i < supers; ++i){
@@ -104,7 +109,8 @@ int main(int argc, char** argv) {
         crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
         crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
         std::cout << std::endl;
-        genesis_blocks.push_back(genesis);
+        // genesis_blocks.push_back(genesis);
+        db.add(genesis);
     }
 
     for(std::uint32_t i = 0; i < patients; ++i){
@@ -117,24 +123,25 @@ int main(int argc, char** argv) {
         crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
         crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
         std::cout << std::endl;
-        genesis_blocks.push_back(genesis);
+        // genesis_blocks.push_back(genesis);
+        db.add(genesis);
     }
 
     // TODO Distribute those keys
 
-    crn::db db;
+    // crn::db db;
 
     // { Create Key Value Data base
-    try{
-        for(const crn::blocks::access& block: genesis_blocks){
-            std::cout << block.address().hash() << std::endl;
-            std::cout << std::boolalpha << db.add(block) << std::endl;
-        }
-    }catch(DbException& e){
-        std::cout << e.what() << std::endl;
-    }catch(std::exception& e){
-        std::cout << e.what() << std::endl;
-    }
+    // try{
+    //     for(const crn::blocks::access& block: genesis_blocks){
+    //         std::cout << block.address().hash() << std::endl;
+    //         std::cout << std::boolalpha << db.add(block) << std::endl;
+    //     }
+    // }catch(DbException& e){
+    //     std::cout << e.what() << std::endl;
+    // }catch(std::exception& e){
+    //     std::cout << e.what() << std::endl;
+    // }
     //}
 
     return 0;

@@ -76,6 +76,7 @@ CryptoPP::Integer crn::identity::user::request(std::string& id) const{
     crn::blocks::access block = _db.fetch(id);
     std::cout << "last_id: " << id << std::endl;
     std::cout << "block.forward: " << block.active().forward() << std::endl;
+    std::cout << (nlohmann::json) block << std::endl;
     return Gp.Exponentiate( block.active().forward(), pri().x() );
 }
 

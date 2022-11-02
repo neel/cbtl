@@ -6,7 +6,7 @@
 #include <exception>
 
 crn::db::db(): _env(0), _opened(false) {
-    // _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
+    _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
 }
 
 crn::db::~db(){
@@ -15,11 +15,11 @@ crn::db::~db(){
 
 
 void crn::db::open(){
-    _blocks = new Db(NULL, 0);
-    _index  = new Db(NULL, 0);
+    _blocks = new Db(&_env, 0);
+    _index  = new Db(&_env, 0);
     // _env.txn_begin(NULL, &_transaction, 0);
-    _blocks->open(NULL, "storage.db", "blocks" , DB_BTREE, DB_CREATE, 0);
-    _index->open (NULL, "storage.db", "indexes", DB_BTREE, DB_CREATE, 0);
+    _blocks->open(NULL, "storage.db", "blocks" , DB_BTREE, DB_CREATE | DB_AUTO_COMMIT, 0);
+    _index->open (NULL, "storage.db", "indexes", DB_BTREE, DB_CREATE | DB_AUTO_COMMIT, 0);
     // _opened = true;
 }
 
