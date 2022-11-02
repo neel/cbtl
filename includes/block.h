@@ -12,6 +12,11 @@
 #include "utils.h"
 
 namespace crn{
+
+namespace packets{
+    struct challenge;
+};
+
 namespace blocks{
 
 namespace parts{
@@ -43,6 +48,9 @@ struct active{
 
     static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t);
     static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p);
+
+    bool verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& w) const;
+    crn::packets::challenge challenge(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& rho) const;
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::parts::active>;

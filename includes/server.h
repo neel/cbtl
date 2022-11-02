@@ -17,6 +17,8 @@
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/io_service.hpp>
 #include "session.h"
+#include "keys.h"
+#include "db.h"
 
 namespace crn{
 
@@ -27,13 +29,15 @@ class server: public boost::enable_shared_from_this<server>, private boost::nonc
     typedef boost::asio::basic_stream_socket<boost::asio::ip::tcp> socket_type;
 #endif
   private:
-    boost::asio::io_service& _io;
-    boost::asio::ip::tcp::acceptor _acceptor;
-    socket_type _socket;
-    boost::asio::signal_set _signals;
+    boost::asio::io_service&        _io;
+    boost::asio::ip::tcp::acceptor  _acceptor;
+    socket_type                     _socket;
+    boost::asio::signal_set         _signals;
+    crn::db&                        _db;
+    crn::identity::user&            _master;
   public:
-    inline server(boost::asio::io_service& io, std::uint32_t port): server(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
-    inline server(boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM) {
+    inline server(crn::db& db, crn::identity::user& master, boost::asio::io_service& io, std::uint32_t port): server(db, master, io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
+    inline server(crn::db& db, crn::identity::user& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM), _db(db), _master(master) {
         boost::system::error_code ec;
         _acceptor.open(endpoint.protocol(), ec);
         if(ec) throw std::runtime_error((boost::format("Failed to open acceptor %1%") % ec.message()).str());
@@ -65,7 +69,7 @@ class server: public boost::enable_shared_from_this<server>, private boost::nonc
             // TODO failed to accept
           std::cout << "on_accept: " << ec.message() << std::endl;
         }else{
-            auto conn = session::create(std::move(_socket));
+            auto conn = session::create(_db, _master, std::move(_socket));
             conn->run();
         }
         accept();

@@ -3,16 +3,18 @@
 
 #include "block.h"
 #include "utils.h"
+#include "packets.h"
 
 crn::blocks::parts::active::active(const CryptoPP::Integer& forward, const CryptoPP::Integer& backward, const CryptoPP::Integer& checksum): _forward(forward), _backward(backward), _checksum(checksum) {}
 
 crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t){
+    std::cout << " y: " << y << std::endl;
     auto random   = G.random(rng, false);
-    auto forward  = G.Gp().Exponentiate(G.g(), random);
-    auto checksum = G.Gp().Exponentiate(y, w);
-         checksum = G.Gp().Exponentiate(checksum, random);
+    auto forward  = G.Gp().Exponentiate(G.g(), random); std::cout << " forward: " << forward << std::endl;
+    auto checksum = G.Gp().Exponentiate(y, random);  std::cout << " expected token: " << checksum << std::endl;
+         checksum = G.Gp().Exponentiate(checksum, w);
     auto hash     = crn::utils::sha512(checksum);
-    crn::blocks::parts::active part(forward, t, checksum);
+    crn::blocks::parts::active part(forward, t, hash);
     return part;
 }
 
@@ -35,6 +37,25 @@ std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP
     auto addr = G.Gp().Divide(id, hash);
     return crn::utils::eHex(addr);
 }
+
+bool crn::blocks::parts::active::verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& w) const{
+    auto Gp = G.Gp();
+    auto hash = crn::utils::sha512(Gp.Exponentiate(token, w));
+    std::cout << "_checksum: " << _checksum << std::endl;
+    std::cout << "hash: " << hash << std::endl;
+    return _checksum == hash;
+}
+
+crn::packets::challenge crn::blocks::parts::active::challenge(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& rho) const{
+    auto Gp = G.Gp(), Gp1 = G.Gp1();
+    auto rho_inv = Gp1.MultiplicativeInverse(rho);
+    crn::packets::challenge c;
+    c.c1 = Gp.Multiply( token, Gp.Exponentiate(_forward, rho) );
+    c.c2 = Gp.Exponentiate(token, rho_inv);
+    c.c3 = _forward;
+    return c;
+}
+
 
 
 crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t){

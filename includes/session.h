@@ -23,6 +23,9 @@
 #include <boost/asio/placeholders.hpp>
 #include <arpa/inet.h>
 #include "packets.h"
+#include "db.h"
+#include "keys.h"
+#include "blocks_io.h"
 
 namespace crn{
 
@@ -36,17 +39,20 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
 #endif
 
   private:
-    socket_type _socket;
-    boost::posix_time::ptime _time;
-    boost::array<std::uint8_t, sizeof(crn::packets::header)> _header;
-    boost::array<char, 4096> _data;
-    crn::packets::header _head;
+    using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
+    socket_type                     _socket;
+    boost::posix_time::ptime        _time;
+    buffer_type                     _header;
+    boost::array<char, 4096>        _data;
+    crn::packets::header            _head;
+    crn::db&                        _db;
+    crn::identity::user&            _master;
   public:
     typedef boost::shared_ptr<session> pointer;
-    static pointer create(socket_type socket) { return pointer(new session(std::move(socket))); }
+    static pointer create(crn::db& db, crn::identity::user& master, socket_type socket) { return pointer(new session(db, master, std::move(socket))); }
     ~session() {}
   private:
-    explicit session(socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()) { }
+    explicit session(crn::db& db, crn::identity::user& master, socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()), _db(db), _master(master) { }
     public:
       void run(){
           do_read();
@@ -101,6 +107,27 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
         if(type == crn::packets::type::request){
           crn::packets::request req = req_json;
           std::cout << req_json.dump(4) << std::endl;
+          // TODO fetch req.last
+          crn::db db;
+          crn::blocks::access access = db.fetch(req.last);
+          std::cout << "access block: " << (nlohmann::json) access << std::endl;
+          // TODO verify
+          bool verified = access.active().verify(_master.pub().G(), req.token, _master.pri().x());
+          if(verified){
+            // TODO construct challenge
+            CryptoPP::AutoSeededRandomPool rng;
+            crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, _master.pub().G().random(rng, true));
+            // TODO send challenge
+            crn::packets::envelop<crn::packets::challenge> envelop(crn::packets::type::challenge, challenge);
+            std::vector<std::uint8_t> dbuffer;
+            envelop.copy(std::back_inserter(dbuffer));
+            boost::asio::write(_socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
+            std::cout << envelop.serialize() << std::endl;
+          }else{
+            std::cout << "failed to verify" << std::endl;
+          }
+          // TODO mark the session as challengED
+          // TODO wait for response
         }
 
 

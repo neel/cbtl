@@ -16,7 +16,7 @@
 #include <boost/lexical_cast.hpp>
 #include <db_cxx.h>
 
-#include "key_pair.h"
+#include "keys.h"
 #include "utils.h"
 #include "db.h"
 #include "block.h"
@@ -57,55 +57,66 @@ int main(int argc, char** argv) {
 
     CryptoPP::AutoSeededRandomPool rng;
 
-    crn::key_pair trusted_server(rng, key_size);
+    crn::identity::keys::pair trusted_server(rng, key_size);
     trusted_server.save(master);
 
-    CryptoPP::Integer theta = trusted_server.public_key().random(rng, false), phi = trusted_server.public_key().random(rng, false);
+    CryptoPP::Integer theta = trusted_server.pub().random(rng, false), phi = trusted_server.pub().random(rng, false);
 
     std::ofstream view(master+".view");
     view << crn::utils::eHex(phi);
     view.close();
 
-    crn::group G = trusted_server;
+    crn::group G = trusted_server.pub();
+    auto Gp = G.Gp();
+    auto Gp1 = G.Gp1();
 
     std::vector<crn::blocks::access> genesis_blocks;
 
     for(std::uint32_t i = 0; i < managers; ++i){
         std::string name = manager+"-"+boost::lexical_cast<std::string>(i);
-        crn::key_pair key(rng, trusted_server.public_key());
+        crn::identity::keys::pair key(rng, trusted_server.pri());
+        key.init();
+        std::cout << key.pub().y() << std::endl;
         key.save(name);
         std::ofstream access(name+".access");
-        access << crn::utils::eHex( key.public_key().raise({trusted_server.x(), theta}));
+        access << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), theta) );
         access.close();
-
-        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.private_key().x(), key.public_key().y());
-        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.public_key().y());
+        std::cout << "manager" << std::endl;
+        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
+        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
+        std::cout << std::endl;
         genesis_blocks.push_back(genesis);
     }
 
     for(std::uint32_t i = 0; i < supers; ++i){
         std::string name = super+"-"+boost::lexical_cast<std::string>(i);
-        crn::key_pair key(rng, trusted_server.public_key());
+        crn::identity::keys::pair key(rng, trusted_server.pri());
+        key.init();
+        std::cout << key.pub().y() << std::endl;
         key.save(name);
         std::ofstream access(name+".access");
-        access << crn::utils::eHex( key.public_key().raise({trusted_server.x(), theta}));
+        access << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), theta) );
         access.close();
         std::ofstream view(name+".view");
-        view << crn::utils::eHex( key.public_key().raise({trusted_server.x(), phi}));
+        view << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), phi) );
         view.close();
-
-        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.private_key().x(), key.public_key().y());
-        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.public_key().y());
+        std::cout << "super" << std::endl;
+        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
+        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
+        std::cout << std::endl;
         genesis_blocks.push_back(genesis);
     }
 
     for(std::uint32_t i = 0; i < patients; ++i){
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
-        crn::key_pair key(rng, trusted_server.public_key());
+        crn::identity::keys::pair key(rng, trusted_server.pri());
+        key.init();
+        std::cout << key.pub().y() << std::endl;
         key.save(name);
-
-        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.private_key().x(), key.public_key().y());
-        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.public_key().y());
+        std::cout << "patient" << std::endl;
+        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
+        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
+        std::cout << std::endl;
         genesis_blocks.push_back(genesis);
     }
 
