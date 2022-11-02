@@ -71,25 +71,16 @@ int main(int argc, char** argv) {
     auto Gp1 = G.Gp1();
 
     crn::db db;
-
-    // std::vector<crn::blocks::access> genesis_blocks;
-
     for(std::uint32_t i = 0; i < managers; ++i){
         std::string name = manager+"-"+boost::lexical_cast<std::string>(i);
         crn::identity::keys::pair key(rng, trusted_server.pri());
         key.init();
-        std::cout << key.pub().y() << std::endl;
         key.save(name);
         std::ofstream access(name+".access");
         access << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), theta) );
         access.close();
-        std::cout << "manager" << std::endl;
         crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
         crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
-        std::cout << genesis.address().hash() << std::endl;
-        std::cout << (nlohmann::json) genesis << std::endl;
-        std::cout << std::endl;
-        // genesis_blocks.push_back(genesis);
         db.add(genesis);
     }
 
@@ -97,7 +88,6 @@ int main(int argc, char** argv) {
         std::string name = super+"-"+boost::lexical_cast<std::string>(i);
         crn::identity::keys::pair key(rng, trusted_server.pri());
         key.init();
-        std::cout << key.pub().y() << std::endl;
         key.save(name);
         std::ofstream access(name+".access");
         access << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), theta) );
@@ -105,11 +95,8 @@ int main(int argc, char** argv) {
         std::ofstream view(name+".view");
         view << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), phi) );
         view.close();
-        std::cout << "super" << std::endl;
         crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
         crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
-        std::cout << std::endl;
-        // genesis_blocks.push_back(genesis);
         db.add(genesis);
     }
 
@@ -117,32 +104,13 @@ int main(int argc, char** argv) {
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
         crn::identity::keys::pair key(rng, trusted_server.pri());
         key.init();
-        std::cout << key.pub().y() << std::endl;
         key.save(name);
-        std::cout << "patient" << std::endl;
         crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
         crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
-        std::cout << std::endl;
-        // genesis_blocks.push_back(genesis);
         db.add(genesis);
     }
 
     // TODO Distribute those keys
-
-    // crn::db db;
-
-    // { Create Key Value Data base
-    // try{
-    //     for(const crn::blocks::access& block: genesis_blocks){
-    //         std::cout << block.address().hash() << std::endl;
-    //         std::cout << std::boolalpha << db.add(block) << std::endl;
-    //     }
-    // }catch(DbException& e){
-    //     std::cout << e.what() << std::endl;
-    // }catch(std::exception& e){
-    //     std::cout << e.what() << std::endl;
-    // }
-    //}
 
     return 0;
 }

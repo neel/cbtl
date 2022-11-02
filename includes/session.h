@@ -106,11 +106,10 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
 
         if(type == crn::packets::type::request){
           crn::packets::request req = req_json;
-          std::cout << req_json.dump(4) << std::endl;
+          std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
           // TODO fetch req.last
           crn::db db;
           crn::blocks::access access = db.fetch(req.last);
-          std::cout << "access block: " << (nlohmann::json) access << std::endl;
           // TODO verify
           bool verified = access.active().verify(_master.pub().G(), req.token, _master.pri().x());
           if(verified){
@@ -122,7 +121,9 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
             std::vector<std::uint8_t> dbuffer;
             envelop.copy(std::back_inserter(dbuffer));
             boost::asio::write(_socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
-            std::cout << envelop.serialize() << std::endl;
+
+            nlohmann::json challenge_json = challenge;
+            std::cout << ">> " << std::endl << challenge_json.dump(4) << std::endl;
           }else{
             std::cout << "failed to verify" << std::endl;
           }

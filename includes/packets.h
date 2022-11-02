@@ -61,6 +61,7 @@ struct envelop{
         nlohmann::json data = _data;
         return data.dump();
     }
+    const DataT& data() const { return _data; }
     template <typename IteratorT>
     void copy(IteratorT begin){
         std::uint8_t* h = reinterpret_cast<std::uint8_t*>(&_head);

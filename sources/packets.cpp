@@ -19,7 +19,7 @@ void crn::packets::from_json(const nlohmann::json& j, request& q){
 void crn::packets::to_json(nlohmann::json& j, const challenge& c){
     j = nlohmann::json {
         {"c1", crn::utils::eHex(c.c1)},
-        {"c1", crn::utils::eHex(c.c2)},
+        {"c2", crn::utils::eHex(c.c2)},
         {"c3", crn::utils::eHex(c.c3)},
     };
 }

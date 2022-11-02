@@ -69,7 +69,6 @@ bool crn::db::add(const crn::blocks::access& block){
     {
         Dbt value((void*) block_str.c_str(), block_str.size());
         r_block = _blocks->put(NULL, &id, &value, DB_NOOVERWRITE);
-        std::cout << "r_block: " << r_block << std::endl;
     }
     if(!block.is_genesis()){
         {
