@@ -60,16 +60,16 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
     if(type == crn::packets::type::request){
         crn::packets::request req = req_json;
         std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
-        // TODO fetch req.last
+        // fetch req.last
         crn::storage db;
         crn::blocks::access access = db.fetch(req.last);
-        // TODO verify
+        // verify
         bool verified = access.active().verify(_master.pub().G(), req.token, _master.pri().x());
         if(verified){
-            // TODO construct challenge
+            // construct challenge
             CryptoPP::AutoSeededRandomPool rng;
             crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, _master.pub().G().random(rng, true));
-            // TODO send challenge
+            // send challenge
             crn::packets::envelop<crn::packets::challenge> envelop(crn::packets::type::challenge, challenge);
             std::vector<std::uint8_t> dbuffer;
             envelop.copy(std::back_inserter(dbuffer));

@@ -49,9 +49,30 @@ int main(int argc, char** argv) {
     std::vector<std::uint8_t> dbuffer;
     envelop.copy(std::back_inserter(dbuffer));
     boost::asio::write(socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
-
     nlohmann::json request_json = request;
     std::cout << ">> " << std::endl << request_json.dump(4) << std::endl;
+    dbuffer.clear();
+
+    using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
+
+    boost::system::error_code error;
+    buffer_type buff;
+    std::size_t len = socket.read_some(boost::asio::buffer(buff), error);
+    if(!error){
+        assert(len == buff.size());
+        crn::packets::header header;
+        std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
+        header.size = ntohl(header.size);
+        std::cout << "expecting data " << header.size << std::endl;
+
+        boost::array<char, 4096> data;
+        len = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(header.size), error);
+        std::string challenge_str;
+        challenge_str.reserve(header.size);
+        std::copy_n(data.cbegin(), header.size, std::back_inserter(challenge_str));
+        nlohmann::json challenge_json = nlohmann::json::parse(challenge_str);
+        std::cout << "<< " << std::endl << challenge_json.dump(4) << std::endl;
+    }
 
     return 0;
 }
