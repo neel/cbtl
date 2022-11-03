@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef CRN_UTILS_H
+#define CRN_UTILS_H
 
 #include <string>
 #include <cryptopp/integer.h>
@@ -20,4 +20,4 @@ CryptoPP::Integer sha512(const std::string& value);
 }
 }
 
-#endif // UTILS_H
+#endif // CRN_UTILS_H

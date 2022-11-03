@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef BLOCK_H
-#define BLOCK_H
+#ifndef CRN_BLOCKS_H
+#define CRN_BLOCKS_H
 
 #include <cryptopp/integer.h>
 #include <cryptopp/osrng.h>
@@ -155,4 +155,4 @@ struct access{
 }
 }
 
-#endif // BLOCK_H
+#endif // CRN_BLOCKS_H

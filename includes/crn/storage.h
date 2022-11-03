@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Neel Basu <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef DB_H
-#define DB_H
+#ifndef CRN_STORAGE_H
+#define CRN_STORAGE_H
 
 #include <string>
 #include <db_cxx.h>
@@ -36,4 +36,4 @@ struct storage{
 
 }
 
-#endif // DB_H
+#endif // CRN_STORAGE_H

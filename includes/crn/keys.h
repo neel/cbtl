@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef KEYS_H
-#define KEYS_H
+#ifndef CRN_KEYS_H
+#define CRN_KEYS_H
 
 #include "crn/group.h"
 #include <cryptopp/dsa.h>
@@ -114,4 +114,4 @@ struct user: keys::pair{
 }
 }
 
-#endif // KEYS_H
+#endif // CRN_KEYS_H

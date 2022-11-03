@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Neel Basu <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef CRN_SESSION_H
+#define CRN_SESSION_H
 
 #include <iostream>
 #include <boost/enable_shared_from_this.hpp>
@@ -142,4 +142,4 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
 
 }
 
-#endif // SESSION_H
+#endif // CRN_SESSION_H

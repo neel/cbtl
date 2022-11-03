@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef GROUP_H
-#define GROUP_H
+#ifndef CRN_GROUP_H
+#define CRN_GROUP_H
 
 #include <cryptopp/integer.h>
 #include <cryptopp/modarith.h>
@@ -35,4 +35,4 @@ inline CryptoPP::ModularArithmetic G(const CryptoPP::Integer& p){ return CryptoP
 
 }
 
-#endif // GROUP_H
+#endif // CRN_GROUP_H

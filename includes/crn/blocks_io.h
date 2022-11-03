@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef BLOCKS_IO_H
-#define BLOCKS_IO_H
+#ifndef CRN_BLOCKS_IO_H
+#define CRN_BLOCKS_IO_H
 
 #include <nlohmann/json.hpp>
 #include "crn/blocks.h"
@@ -79,4 +79,4 @@ namespace nlohmann {
     };
 }
 
-#endif // BLOCKS_IO_H
+#endif // CRN_BLOCKS_IO_H

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Neel Basu <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef CRN_SERVER_H
+#define CRN_SERVER_H
 
 #include <iostream>
 #include <boost/enable_shared_from_this.hpp>
@@ -79,4 +79,4 @@ class server: public boost::enable_shared_from_this<server>, private boost::nonc
 
 }
 
-#endif // SERVER_H
+#endif // CRN_SERVER_H

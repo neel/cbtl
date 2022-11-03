@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef PACKETS_H
-#define PACKETS_H
+#ifndef CRN_PACKETS_H
+#define CRN_PACKETS_H
 
 #include <iostream>
 #include <cstdint>
@@ -74,4 +74,4 @@ struct envelop{
 }
 
 
-#endif // PACKETS_H
+#endif // CRN_PACKETS_H
