@@ -1,7 +1,7 @@
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
-#include "db.h"
+#include "storage.h"
 #include "server.h"
 #include "keys.h"
 
@@ -25,7 +25,7 @@ int main(int argc, char** argv){
     std::string public_key = map["public"].as<std::string>(),
                 secret_key = map["secret"].as<std::string>();
 
-    crn::db db;
+    crn::storage db;
 
     crn::identity::user master(db, secret_key, public_key);
     master.init();

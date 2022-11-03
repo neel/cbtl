@@ -23,7 +23,7 @@
 #include <boost/asio/placeholders.hpp>
 #include <arpa/inet.h>
 #include "packets.h"
-#include "db.h"
+#include "storage.h"
 #include "keys.h"
 #include "blocks_io.h"
 
@@ -45,14 +45,14 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     buffer_type                     _header;
     boost::array<char, 4096>        _data;
     crn::packets::header            _head;
-    crn::db&                        _db;
+    crn::storage&                        _db;
     crn::identity::user&            _master;
   public:
     typedef boost::shared_ptr<session> pointer;
-    static pointer create(crn::db& db, crn::identity::user& master, socket_type socket) { return pointer(new session(db, master, std::move(socket))); }
+    static pointer create(crn::storage& db, crn::identity::user& master, socket_type socket) { return pointer(new session(db, master, std::move(socket))); }
     ~session() {}
   private:
-    explicit session(crn::db& db, crn::identity::user& master, socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()), _db(db), _master(master) { }
+    explicit session(crn::storage& db, crn::identity::user& master, socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()), _db(db), _master(master) { }
     public:
       void run(){
           do_read();
@@ -108,7 +108,7 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
           crn::packets::request req = req_json;
           std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
           // TODO fetch req.last
-          crn::db db;
+          crn::storage db;
           crn::blocks::access access = db.fetch(req.last);
           // TODO verify
           bool verified = access.active().verify(_master.pub().G(), req.token, _master.pri().x());

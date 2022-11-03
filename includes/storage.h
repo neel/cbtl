@@ -10,9 +10,9 @@
 
 namespace crn{
 
-struct db{
-    db();
-    ~db();
+struct storage{
+    storage();
+    ~storage();
 
     bool add(const crn::blocks::access& block);
     bool exists(const std::string& id);

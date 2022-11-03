@@ -7,7 +7,7 @@
 #include "group.h"
 #include <cryptopp/dsa.h>
 #include <cryptopp/files.h>
-#include "db.h"
+#include "storage.h"
 #include "packets.h"
 
 namespace crn{
@@ -101,13 +101,13 @@ struct pair{
 
 struct user: keys::pair{
     template <typename... Args>
-    user(crn::db& db, Args... args): keys::pair(args...), _db(db) {}
+    user(crn::storage& db, Args... args): keys::pair(args...), _db(db) {}
 
     std::string last_id() const;
     CryptoPP::Integer request(std::string& id) const;
     crn::packets::request request() const;
     private:
-        crn::db& _db;
+        crn::storage& _db;
 
 };
 

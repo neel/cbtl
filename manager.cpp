@@ -3,10 +3,9 @@
 #include <string>
 #include "utils.h"
 #include <boost/program_options.hpp>
-#include <db_cxx.h>
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
-#include "db.h"
+#include "storage.h"
 #include "packets.h"
 #include "keys.h"
 
@@ -32,7 +31,7 @@ int main(int argc, char** argv) {
                 secret_key = map["secret"].as<std::string>(),
                 access_key = map["access"].as<std::string>();
 
-    crn::db db;
+    crn::storage db;
 
     crn::identity::user user(db, secret_key, public_key);
     user.init();

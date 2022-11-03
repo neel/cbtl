@@ -18,7 +18,7 @@
 
 #include "keys.h"
 #include "utils.h"
-#include "db.h"
+#include "storage.h"
 #include "blocks.h"
 #include "blocks_io.h"
 
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     auto Gp = G.Gp();
     auto Gp1 = G.Gp1();
 
-    crn::db db;
+    crn::storage db;
     for(std::uint32_t i = 0; i < managers; ++i){
         std::string name = manager+"-"+boost::lexical_cast<std::string>(i);
         crn::identity::keys::pair key(rng, trusted_server.pri());

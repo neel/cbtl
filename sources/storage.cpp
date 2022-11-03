@@ -1,20 +1,20 @@
 // SPDX-FileCopyrightText: 2022 Neel Basu <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "db.h"
+#include "storage.h"
 #include "blocks_io.h"
 #include <exception>
 
-crn::db::db(): _env(0), _opened(false) {
+crn::storage::storage(): _env(0), _opened(false) {
     _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
 }
 
-crn::db::~db(){
+crn::storage::~storage(){
     close();
 }
 
 
-void crn::db::open(){
+void crn::storage::open(){
     _blocks = new Db(&_env, 0);
     _index  = new Db(&_env, 0);
     // _env.txn_begin(NULL, &_transaction, 0);
@@ -23,7 +23,7 @@ void crn::db::open(){
     // _opened = true;
 }
 
-void crn::db::close(){
+void crn::storage::close(){
     if(_opened){
         _blocks->sync(0);
         _blocks->close(0);
@@ -41,20 +41,20 @@ void crn::db::close(){
     }
 }
 
-void crn::db::commit(){
+void crn::storage::commit(){
     _transaction->commit(DB_TXN_SYNC);
     close();
     _transaction = 0x0;
 }
 
-void crn::db::abort(){
+void crn::storage::abort(){
     _transaction->abort();
     close();
     _transaction = 0x0;
 }
 
 
-bool crn::db::add(const crn::blocks::access& block){
+bool crn::storage::add(const crn::blocks::access& block){
     std::string block_id = block.address().hash();
     // if(exists(block_id)){
     //     return false;
@@ -87,7 +87,7 @@ bool crn::db::add(const crn::blocks::access& block){
     return r_block == 0 && r_addr_active == 0 && r_addr_passive == 0;
 }
 
-bool crn::db::exists(const std::string& id){
+bool crn::storage::exists(const std::string& id){
     open();
     Dbt key((void*) id.c_str(), id.size());
     int ret = _blocks->exists(NULL, &key, 0);
@@ -95,7 +95,7 @@ bool crn::db::exists(const std::string& id){
     return ret != DB_NOTFOUND;
 }
 
-crn::blocks::access crn::db::fetch(const std::string& block_id){
+crn::blocks::access crn::storage::fetch(const std::string& block_id){
     open();
     Dbt id((void*) block_id.c_str(), block_id.size()), value;
     int ret = _blocks->get(NULL, &id, &value, 0);
@@ -111,7 +111,7 @@ crn::blocks::access crn::db::fetch(const std::string& block_id){
 }
 
 
-bool crn::db::search(const CryptoPP::Integer& address){
+bool crn::storage::search(const CryptoPP::Integer& address){
     open();
     std::string addr = crn::utils::eHex(address);
     Dbt key((void*) addr.c_str(), addr.size());

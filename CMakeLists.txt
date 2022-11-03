@@ -16,7 +16,7 @@ SET(SOURCES
     sources/group.cpp
     sources/utils.cpp
     sources/block.cpp
-    sources/db.cpp
+    sources/storage.cpp
     sources/server.cpp
     sources/session.cpp
     sources/packets.cpp

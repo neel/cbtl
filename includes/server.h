@@ -18,7 +18,7 @@
 #include <boost/asio/io_service.hpp>
 #include "session.h"
 #include "keys.h"
-#include "db.h"
+#include "storage.h"
 
 namespace crn{
 
@@ -33,11 +33,11 @@ class server: public boost::enable_shared_from_this<server>, private boost::nonc
     boost::asio::ip::tcp::acceptor  _acceptor;
     socket_type                     _socket;
     boost::asio::signal_set         _signals;
-    crn::db&                        _db;
+    crn::storage&                        _db;
     crn::identity::user&            _master;
   public:
-    inline server(crn::db& db, crn::identity::user& master, boost::asio::io_service& io, std::uint32_t port): server(db, master, io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
-    inline server(crn::db& db, crn::identity::user& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM), _db(db), _master(master) {
+    inline server(crn::storage& db, crn::identity::user& master, boost::asio::io_service& io, std::uint32_t port): server(db, master, io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
+    inline server(crn::storage& db, crn::identity::user& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM), _db(db), _master(master) {
         boost::system::error_code ec;
         _acceptor.open(endpoint.protocol(), ec);
         if(ec) throw std::runtime_error((boost::format("Failed to open acceptor %1%") % ec.message()).str());
