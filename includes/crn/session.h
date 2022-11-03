@@ -32,6 +32,14 @@ namespace crn{
 
 
 class session: public boost::enable_shared_from_this<session>, private boost::noncopyable{
+  struct challenge_data{
+    bool challenged;
+    CryptoPP::Integer forward;
+    CryptoPP::Integer rho;
+
+    inline challenge_data(): challenged(false) {}
+  };
+
 #if (BOOST_VERSION / 1000 >=1 && BOOST_VERSION / 100 % 1000 >= 70)
     typedef boost::asio::basic_stream_socket<boost::asio::ip::tcp, boost::asio::io_context::executor_type> socket_type;
 #else
@@ -45,8 +53,9 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     buffer_type                     _header;
     boost::array<char, 4096>        _data;
     crn::packets::header            _head;
-    crn::storage&                        _db;
+    crn::storage&                   _db;
     crn::identity::user&            _master;
+    challenge_data                  _challenge_data;
   public:
     typedef boost::shared_ptr<session> pointer;
     static pointer create(crn::storage& db, crn::identity::user& master, socket_type socket);

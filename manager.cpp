@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
     user.init();
 
     crn::group G = user.pub();
+    auto Gp = G.Gp(), Gp1 = G.Gp1();
 
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::resolver resolver(io_context);
@@ -45,14 +46,15 @@ int main(int argc, char** argv) {
     boost::asio::connect(socket, endpoints);
 
     crn::packets::request request = user.request();
-    crn::packets::envelop<crn::packets::request> envelop(crn::packets::type::request, request);
-    std::vector<std::uint8_t> dbuffer;
-    envelop.copy(std::back_inserter(dbuffer));
-    boost::asio::write(socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
     nlohmann::json request_json = request;
     std::cout << ">> " << std::endl << request_json.dump(4) << std::endl;
-    dbuffer.clear();
-
+    {
+        crn::packets::envelop<crn::packets::request> envelop(crn::packets::type::request, request);
+        std::vector<std::uint8_t> dbuffer;
+        envelop.copy(std::back_inserter(dbuffer));
+        boost::asio::write(socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
+        dbuffer.clear();
+    }
     using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
 
     boost::system::error_code error;
@@ -74,8 +76,21 @@ int main(int argc, char** argv) {
         std::cout << "<< " << std::endl << challenge_json.dump(4) << std::endl;
         crn::packets::challenge challenge = challenge_json;
 
-        // TODO construct response for the challenge
-        // TODO send the challenge
+        // construct response for the challenge
+        CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(user.pri().x());
+        challenge.c1 = Gp.Exponentiate(challenge.c1, x_inv);
+        challenge.c2 = Gp.Exponentiate(challenge.c2, x_inv);
+        challenge.c3 = Gp.Exponentiate(challenge.c3, x_inv);
+
+        // send the challenge
+        nlohmann::json response_json = challenge;
+        std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+        {
+            crn::packets::envelop<crn::packets::response> envelop(crn::packets::type::response, challenge);
+            std::vector<std::uint8_t> dbuffer;
+            envelop.copy(std::back_inserter(dbuffer));
+            boost::asio::write(socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
+        }
     }
 
     return 0;

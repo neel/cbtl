@@ -55,11 +55,10 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
     std::copy_n(_data.cbegin(), bytes_transferred, std::back_inserter(req_str));
     nlohmann::json req_json = nlohmann::json::parse(req_str);
     crn::packets::type type = static_cast<crn::packets::type>(_head.type);
-
+    std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
 
     if(type == crn::packets::type::request){
         crn::packets::request req = req_json;
-        std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
         // fetch req.last
         crn::storage db;
         crn::blocks::access access = db.fetch(req.last);
@@ -68,7 +67,11 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         if(verified){
             // construct challenge
             CryptoPP::AutoSeededRandomPool rng;
-            crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, _master.pub().G().random(rng, true));
+            CryptoPP::Integer rho = _master.pub().G().random(rng, true);
+            crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho);
+            _challenge_data.challenged = true;
+            _challenge_data.forward    = access.active().forward();
+            _challenge_data.rho        = rho;
             // send challenge
             crn::packets::envelop<crn::packets::challenge> envelop(crn::packets::type::challenge, challenge);
             std::vector<std::uint8_t> dbuffer;
@@ -80,8 +83,13 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         }else{
             std::cout << "failed to verify" << std::endl;
         }
-        // TODO mark the session as challengED
-        // TODO wait for response
+    }else if(type == crn::packets::type::response && _challenge_data.challenged){
+        crn::packets::response response = req_json;
+        // TODO verify challenge response
+        auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
+        auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
+        auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
+        // TODO compare c2_d with c2
     }
 
 
