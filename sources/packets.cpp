@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "packets.h"
-#include "utils.h"
+#include "crn/packets.h"
+#include "crn/utils.h"
 
 void crn::packets::to_json(nlohmann::json& j, const request& q){
     j = nlohmann::json {

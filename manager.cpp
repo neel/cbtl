@@ -1,13 +1,13 @@
 #include <iostream>
 #include <array>
 #include <string>
-#include "utils.h"
+#include "crn/utils.h"
 #include <boost/program_options.hpp>
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
-#include "storage.h"
-#include "packets.h"
-#include "keys.h"
+#include "crn/storage.h"
+#include "crn/packets.h"
+#include "crn/keys.h"
 
 int main(int argc, char** argv) {
     boost::program_options::options_description desc("CLI Frontend for Data Managers");

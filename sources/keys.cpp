@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "keys.h"
-#include "blocks_io.h"
+#include "crn/keys.h"
+#include "crn/blocks_io.h"
 
 crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::private_key& other): private_key(rng, other.params()) { }
 crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rng, std::uint32_t key_size){

@@ -1,9 +1,9 @@
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
-#include "storage.h"
-#include "server.h"
-#include "keys.h"
+#include "crn/storage.h"
+#include "crn/server.h"
+#include "crn/keys.h"
 
 int main(int argc, char** argv){
     boost::program_options::options_description desc("CLI Frontend for Data Managers");

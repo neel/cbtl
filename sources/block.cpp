@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "blocks.h"
-#include "utils.h"
-#include "packets.h"
+#include "crn/blocks.h"
+#include "crn/utils.h"
+#include "crn/packets.h"
 
 crn::blocks::parts::active::active(const CryptoPP::Integer& forward, const CryptoPP::Integer& backward, const CryptoPP::Integer& checksum): _forward(forward), _backward(backward), _checksum(checksum) {}
 

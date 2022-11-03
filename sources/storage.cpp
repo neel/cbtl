@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Neel Basu <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "storage.h"
-#include "blocks_io.h"
+#include "crn/storage.h"
+#include "crn/blocks_io.h"
 #include <exception>
 
 crn::storage::storage(): _env(0), _opened(false) {

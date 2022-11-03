@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "utils.h"
+#include "crn/utils.h"
 #include <cryptopp/hex.h>
 #include <cryptopp/sha.h>
 
