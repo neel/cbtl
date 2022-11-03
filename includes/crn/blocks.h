@@ -7,11 +7,13 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/osrng.h>
 #include <nlohmann/json.hpp>
-
 #include "crn/group.h"
 #include "crn/utils.h"
+#include "crn/keys.h"
 
 namespace crn{
+
+struct storage;
 
 namespace packets{
     struct challenge;
@@ -79,6 +81,7 @@ struct passive{
     inline CryptoPP::Integer forward() const { return _forward; }
     inline CryptoPP::Integer cipher() const { return _cipher; }
 
+    CryptoPP::Integer token(const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const;
     /**
      * @brief Calculate the next block's $c_{u}$ using the current block's id and passive user's secret.
      */
@@ -150,6 +153,12 @@ struct access{
         parts::active     _active;
         parts::passive    _passive;
         addresses         _address;
+};
+
+access genesis(crn::storage& db, const crn::identity::keys::public_key& pub);
+struct last{
+    static access active (crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& pri);
+    static access passive(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& secret);
 };
 
 }

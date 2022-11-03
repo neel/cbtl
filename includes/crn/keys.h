@@ -7,10 +7,12 @@
 #include "crn/group.h"
 #include <cryptopp/dsa.h>
 #include <cryptopp/files.h>
-#include "crn/storage.h"
 #include "crn/packets.h"
 
 namespace crn{
+
+struct storage;
+
 namespace identity{
 namespace keys{
 

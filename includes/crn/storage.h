@@ -6,7 +6,8 @@
 
 #include <string>
 #include <db_cxx.h>
-#include "crn/blocks.h"
+#include "crn/blocks_fwd.h"
+#include <cryptopp/integer.h>
 
 namespace crn{
 

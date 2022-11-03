@@ -4,6 +4,8 @@
 #include "crn/blocks.h"
 #include "crn/utils.h"
 #include "crn/packets.h"
+#include "crn/keys.h"
+#include "crn/storage.h"
 
 crn::blocks::parts::active::active(const CryptoPP::Integer& forward, const CryptoPP::Integer& backward, const CryptoPP::Integer& checksum): _forward(forward), _backward(backward), _checksum(checksum) {}
 
@@ -73,10 +75,14 @@ crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::Aut
 
 crn::blocks::parts::passive::passive(const CryptoPP::Integer& forward, const CryptoPP::Integer& backward, const CryptoPP::Integer& cipher): _forward(forward), _backward(backward), _cipher(cipher){}
 
-std::string crn::blocks::parts::passive::next(const crn::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const{
+CryptoPP::Integer crn::blocks::parts::passive::token(const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const{
     auto rho_inv = G.Gp().Divide(_cipher, G.Gp().Exponentiate(y, secret) );
-    auto link    = G.Gp().Exponentiate(_forward, rho_inv);
-    auto hash    = crn::utils::sha512(link);
+    return G.Gp().Exponentiate(_forward, rho_inv);
+}
+
+
+std::string crn::blocks::parts::passive::next(const crn::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const{
+    auto hash = crn::utils::sha512(token(G, y, secret));
     auto addr = G.Gp().Multiply(id, hash);
     return crn::utils::eHex(addr);
 }
@@ -137,5 +143,33 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     }
 }
 
+crn::blocks::access crn::blocks::genesis(crn::storage& db, const crn::identity::keys::public_key& pub){
+    return db.fetch(pub.genesis_id());
+}
 
+crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& pri){
+    crn::blocks::access last = crn::blocks::genesis(db, pub);
+    while(true){
+        std::string block_id = last.active().next(pub.G(), last.address().id(), pri.x());
+        if(db.exists(block_id)){
+            last = db.fetch(block_id);
+        }else{
+            break;
+        }
+    }
 
+    return last;
+}
+
+crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& secret){
+    crn::blocks::access last = crn::blocks::genesis(db, pub);
+    while(true){
+        std::string block_id = last.passive().next(pub.G(), last.address().id(), pub.y(), secret.x());
+        if(db.exists(block_id)){
+            last = db.fetch(block_id);
+        }else{
+            break;
+        }
+    }
+    return last;
+}

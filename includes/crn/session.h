@@ -35,6 +35,7 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
   struct challenge_data{
     CryptoPP::Integer last;
     CryptoPP::Integer y;
+    CryptoPP::Integer token;
     bool challenged;
     CryptoPP::Integer forward;
     CryptoPP::Integer rho;

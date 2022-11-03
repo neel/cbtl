@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "crn/keys.h"
+#include "crn/storage.h"
 #include "crn/blocks_io.h"
 
 crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::private_key& other): private_key(rng, other.params()) { }

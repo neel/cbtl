@@ -69,6 +69,7 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
             CryptoPP::AutoSeededRandomPool rng;
             CryptoPP::Integer rho = _master.pub().G().random(rng, true);
             crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho);
+            _challenge_data.token      = req.token;
             _challenge_data.y          = req.y;
             _challenge_data.last       = access.address().id();
             _challenge_data.challenged = true;
@@ -108,10 +109,21 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
                 params.active.token = response.c3;
                 params.active.y     = _challenge_data.y;
                 // TODO get the last passive block
-                // crn::blocks::access::construct();
+                crn::identity::keys::public_key passive("patient-0.pub");
+                passive.init();
+                crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive, _master.pri());
+
+                params.passive.id    = last_passive.address().id();
+                params.passive.y     = passive.y();
+                params.passive.token = last_passive.passive().token(passive.G(), passive.y(), _master.pri().x());
+
+                CryptoPP::AutoSeededRandomPool rng;
+                crn::blocks::access block = crn::blocks::access::construct(rng, _master.pub().G(), params, _challenge_data.token);
+                std::cout << "written new block: " << block.address().hash() << std::endl;
+
+                _db.add(block);
             }
         }
-        // TODO compare c2_d with c2
     }
 
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "crn/storage.h"
+#include "crn/blocks.h"
 #include "crn/blocks_io.h"
 #include <exception>
 #include <boost/filesystem.hpp>
