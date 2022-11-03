@@ -15,7 +15,7 @@ SET(INCLUDE_DIRS
 SET(SOURCES
     sources/group.cpp
     sources/utils.cpp
-    sources/block.cpp
+    sources/blocks.cpp
     sources/storage.cpp
     sources/server.cpp
     sources/session.cpp
