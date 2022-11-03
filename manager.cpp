@@ -72,6 +72,10 @@ int main(int argc, char** argv) {
         std::copy_n(data.cbegin(), header.size, std::back_inserter(challenge_str));
         nlohmann::json challenge_json = nlohmann::json::parse(challenge_str);
         std::cout << "<< " << std::endl << challenge_json.dump(4) << std::endl;
+        crn::packets::challenge challenge = challenge_json;
+
+        // TODO construct response for the challenge
+        // TODO send the challenge
     }
 
     return 0;
