@@ -4,11 +4,11 @@
 #ifndef KEYS_H
 #define KEYS_H
 
-#include "group.h"
+#include "crn/group.h"
 #include <cryptopp/dsa.h>
 #include <cryptopp/files.h>
-#include "storage.h"
-#include "packets.h"
+#include "crn/storage.h"
+#include "crn/packets.h"
 
 namespace crn{
 namespace identity{

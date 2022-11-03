@@ -5,8 +5,8 @@
 #define BLOCKS_IO_H
 
 #include <nlohmann/json.hpp>
-#include "blocks.h"
-#include "utils.h"
+#include "crn/blocks.h"
+#include "crn/utils.h"
 
 namespace nlohmann {
     template <>

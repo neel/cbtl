@@ -8,8 +8,8 @@
 #include <cryptopp/osrng.h>
 #include <nlohmann/json.hpp>
 
-#include "group.h"
-#include "utils.h"
+#include "crn/group.h"
+#include "crn/utils.h"
 
 namespace crn{
 

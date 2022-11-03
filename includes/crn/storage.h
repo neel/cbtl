@@ -6,7 +6,7 @@
 
 #include <string>
 #include <db_cxx.h>
-#include "blocks.h"
+#include "crn/blocks.h"
 
 namespace crn{
 

@@ -22,10 +22,10 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/asio/placeholders.hpp>
 #include <arpa/inet.h>
-#include "packets.h"
-#include "storage.h"
-#include "keys.h"
-#include "blocks_io.h"
+#include "crn/packets.h"
+#include "crn/storage.h"
+#include "crn/keys.h"
+#include "crn/blocks_io.h"
 
 namespace crn{
 

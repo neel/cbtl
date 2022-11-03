@@ -16,9 +16,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/io_service.hpp>
-#include "session.h"
-#include "keys.h"
-#include "storage.h"
+#include "crn/session.h"
+#include "crn/keys.h"
+#include "crn/storage.h"
 
 namespace crn{
 
