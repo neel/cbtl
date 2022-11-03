@@ -23,18 +23,25 @@ SET(SOURCES
     sources/keys.cpp
 )
 
-add_executable(crn-init    ${SOURCES} init.cpp)
-add_executable(crn-manager ${SOURCES} manager.cpp)
-add_executable(crn-server  ${SOURCES} main.cpp)
+add_library(crn SHARED ${SOURCES})
 
-target_link_libraries(crn-server     ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(crn-init       ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(crn-manager    ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+add_executable(crn-init    init.cpp)
+add_executable(crn-manager manager.cpp)
+add_executable(crn-server  main.cpp)
 
-target_include_directories(crn-server     PUBLIC ${INCLUDE_DIRS})
-target_include_directories(crn-init       PUBLIC ${INCLUDE_DIRS})
-target_include_directories(crn-manager    PUBLIC ${INCLUDE_DIRS})
+target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 
+target_link_libraries(crn-server     crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(crn-init       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(crn-manager    crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+
+target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
+
+# target_include_directories(crn-server     PUBLIC ${INCLUDE_DIRS})
+# target_include_directories(crn-init       PUBLIC ${INCLUDE_DIRS})
+# target_include_directories(crn-manager    PUBLIC ${INCLUDE_DIRS})
+
+install(TARGETS crn         RUNTIME DESTINATION lib)
 install(TARGETS crn-server  RUNTIME DESTINATION bin)
 install(TARGETS crn-init    RUNTIME DESTINATION bin)
 install(TARGETS crn-manager RUNTIME DESTINATION bin)
