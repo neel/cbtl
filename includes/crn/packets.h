@@ -30,6 +30,7 @@ struct header{
 
 struct request{
     std::string last;
+    CryptoPP::Integer y;
     CryptoPP::Integer token;
 };
 

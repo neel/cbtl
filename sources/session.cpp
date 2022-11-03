@@ -63,12 +63,13 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         crn::storage db;
         crn::blocks::access access = db.fetch(req.last);
         // verify
-        bool verified = access.active().verify(_master.pub().G(), req.token, _master.pri().x());
+        bool verified = access.active().verify(_master.pub().G(), req.token, req.y, _master.pri().x());
         if(verified){
             // construct challenge
             CryptoPP::AutoSeededRandomPool rng;
             CryptoPP::Integer rho = _master.pub().G().random(rng, true);
             crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho);
+            _challenge_data.y          = req.y;
             _challenge_data.last       = access.address().id();
             _challenge_data.challenged = true;
             _challenge_data.forward    = access.active().forward();
@@ -105,7 +106,8 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
                 crn::blocks::access::params params;
                 params.active.id    = _challenge_data.last;
                 params.active.token = response.c3;
-                // params.active.y     = // How to know which public key to use ? How to verify the users claim about the public key ?
+                params.active.y     = _challenge_data.y;
+                // TODO get the last passive block
                 // crn::blocks::access::construct();
             }
         }

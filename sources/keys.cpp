@@ -79,6 +79,7 @@ CryptoPP::Integer crn::identity::user::request(std::string& id) const{
 
 crn::packets::request crn::identity::user::request() const{
     crn::packets::request req;
+    req.y = pub().y();
     req.token = request(req.last);
     return req;
 }

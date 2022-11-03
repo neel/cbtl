@@ -6,12 +6,14 @@
 
 void crn::packets::to_json(nlohmann::json& j, const request& q){
     j = nlohmann::json {
-        {"last", q.last},
+        {"y",     crn::utils::eHex(q.y)},
+        {"last",  q.last},
         {"token", crn::utils::eHex(q.token)}
     };
 }
 
 void crn::packets::from_json(const nlohmann::json& j, request& q){
+    q.y     = crn::utils::dHex(j["y"].get<std::string>());
     q.last  = j["last"].get<std::string>();
     q.token = crn::utils::dHex(j["token"].get<std::string>());
 }

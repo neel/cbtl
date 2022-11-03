@@ -12,6 +12,7 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoS
     auto forward  = G.Gp().Exponentiate(G.g(), random);
     auto checksum = G.Gp().Exponentiate(y, random);
          checksum = G.Gp().Exponentiate(checksum, w);
+         checksum = G.Gp().Multiply(checksum, y);
     auto hash     = crn::utils::sha512(checksum);
     crn::blocks::parts::active part(forward, t, hash);
     return part;
@@ -37,9 +38,9 @@ std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP
     return crn::utils::eHex(addr);
 }
 
-bool crn::blocks::parts::active::verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& w) const{
+bool crn::blocks::parts::active::verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& y, const CryptoPP::Integer& w) const{
     auto Gp = G.Gp();
-    auto hash = crn::utils::sha512(Gp.Exponentiate(token, w));
+    auto hash = crn::utils::sha512(Gp.Multiply(Gp.Exponentiate(token, w), y));
     return _checksum == hash;
 }
 
