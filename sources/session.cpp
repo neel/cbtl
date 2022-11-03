@@ -69,6 +69,7 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
             CryptoPP::AutoSeededRandomPool rng;
             CryptoPP::Integer rho = _master.pub().G().random(rng, true);
             crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho);
+            _challenge_data.last       = access.address().id();
             _challenge_data.challenged = true;
             _challenge_data.forward    = access.active().forward();
             _challenge_data.rho        = rho;
@@ -89,6 +90,25 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
         auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
         auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
+        if(c2_d != response.c2){
+            std::cout << "Error matching c2" << std::endl;
+            // TODO abort
+        }else{
+            auto alpha = Gp.Exponentiate(Gp.Divide(response.c1, _challenge_data.forward), rho_inv);
+            auto beta  = Gp.Multiply(response.c3, Gp.Divide(response.c2, c2_d));
+
+            if(alpha != beta || beta != response.c3 || alpha != response.c3){
+                std::cout << "Verification failed" << std::endl;
+                // TODO abort
+            }else{
+                std::cout << "Verification Successful" << std::endl;
+                crn::blocks::access::params params;
+                params.active.id    = _challenge_data.last;
+                params.active.token = response.c3;
+                // params.active.y     = // How to know which public key to use ? How to verify the users claim about the public key ?
+                // crn::blocks::access::construct();
+            }
+        }
         // TODO compare c2_d with c2
     }
 
