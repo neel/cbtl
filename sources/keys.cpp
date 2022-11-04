@@ -4,6 +4,8 @@
 #include "crn/keys.h"
 #include "crn/storage.h"
 #include "crn/blocks_io.h"
+#include "crn/packets.h"
+#include "crn/group.h"
 
 crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::private_key& other): private_key(rng, other.params()) { }
 crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rng, std::uint32_t key_size){
@@ -20,6 +22,24 @@ crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rn
         success = init();
     }
 }
+crn::identity::keys::private_key::private_key(const nlohmann::json& json, bool){
+    _p = crn::utils::dHex(json["p"].get<std::string>());
+    _q = crn::utils::dHex(json["q"].get<std::string>());
+    _g = crn::utils::dHex(json["g"].get<std::string>());
+    _x = crn::utils::dHex(json["x"].get<std::string>());
+}
+
+nlohmann::json crn::identity::keys::private_key::json() const{
+    return nlohmann::json {
+        {"p", crn::utils::eHex(_p)},
+        {"q", crn::utils::eHex(_q)},
+        {"g", crn::utils::eHex(_g)},
+        {"x", crn::utils::eHex(_x)}
+    };
+}
+
+
+
 bool crn::identity::keys::private_key::initialize() {
     _key.GetValue("PrivateExponent", _x);
     CryptoPP::Integer x_inverse = Gp1().MultiplicativeInverse(_x);
@@ -38,6 +58,22 @@ bool crn::identity::keys::public_key::initialize() {
 std::string crn::identity::keys::public_key::genesis_id() const{
     return crn::utils::eHex(crn::utils::sha512(_y));
 }
+crn::identity::keys::public_key::public_key(const nlohmann::json& json, bool){
+    _p = crn::utils::dHex(json["p"].get<std::string>());
+    _q = crn::utils::dHex(json["q"].get<std::string>());
+    _g = crn::utils::dHex(json["g"].get<std::string>());
+    _y = crn::utils::dHex(json["y"].get<std::string>());
+}
+
+nlohmann::json crn::identity::keys::public_key::json() const{
+    return nlohmann::json {
+        {"p", crn::utils::eHex(_p)},
+        {"q", crn::utils::eHex(_q)},
+        {"g", crn::utils::eHex(_g)},
+        {"y", crn::utils::eHex(_y)}
+    };
+}
+
 
 
 crn::identity::keys::pair::pair(CryptoPP::AutoSeededRandomPool& rng, std::uint32_t key_size): _private(rng, key_size), _public(_private)  { }
@@ -56,33 +92,11 @@ void crn::identity::keys::pair::save(const std::string& name) const{
 
 /// ----- identity
 
-// std::string crn::identity::user::last_id() const{
-//     std::string last;
-//     std::string block_id = pub().genesis_id();
-//     while(true){
-//         if(_db.exists(block_id)){
-//             last  = block_id;
-//             crn::blocks::access block = _db.fetch(block_id);
-//             block_id = block.active().next(pub().G(), block.address().id(), pri().x());
-//         }else{
-//             break;
-//         }
-//     }
-//     return last;
-// }
-//
-// CryptoPP::Integer crn::identity::user::request(std::string& id) const{
-//     auto Gp = pub().G().Gp();
-//     id = last_id();
-//     crn::blocks::access block = _db.fetch(id);
-//     return Gp.Exponentiate( block.active().forward(), pri().x() );
-// }
-
 crn::packets::request crn::identity::user::request() const{
     crn::blocks::access last = crn::blocks::last::active(_db, pub(), pri());
     crn::packets::request req;
-    req.last = last.address().hash();
-    req.y = pub().y();
+    req.y     = pub().y();
+    req.last  = last.address().hash();
     req.token = pub().Gp().Exponentiate( last.active().forward(), pri().x() );
     return req;
 }

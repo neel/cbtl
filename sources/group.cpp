@@ -3,6 +3,7 @@
 
 #include "crn/group.h"
 #include <cryptopp/argnames.h>
+#include "crn/utils.h"
 
 CryptoPP::AlgorithmParameters crn::group::params() const {
     return CryptoPP::MakeParameters
@@ -25,4 +26,17 @@ CryptoPP::Integer crn::group::random(CryptoPP::AutoSeededRandomPool& rng, bool i
     }
 
     return r;
+}
+
+void crn::to_json(nlohmann::json& j, const crn::group& grp){
+    j = nlohmann::json {
+        {"p", crn::utils::eHex(grp.p())},
+        {"q", crn::utils::eHex(grp.q())},
+        {"g", crn::utils::eHex(grp.g())}
+    };
+}
+void crn::from_json(const nlohmann::json& j, crn::group& grp){
+    grp._p = crn::utils::dHex(j["p"].get<std::string>());
+    grp._q = crn::utils::dHex(j["q"].get<std::string>());
+    grp._g = crn::utils::dHex(j["g"].get<std::string>());
 }

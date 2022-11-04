@@ -79,8 +79,8 @@ int main(int argc, char** argv) {
         std::ofstream access(name+".access");
         access << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), theta) );
         access.close();
-        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
-        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
+        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
         db.add(genesis);
     }
 
@@ -95,8 +95,8 @@ int main(int argc, char** argv) {
         std::ofstream view(name+".view");
         view << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), phi) );
         view.close();
-        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
-        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
+        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
         db.add(genesis);
     }
 
@@ -105,8 +105,8 @@ int main(int argc, char** argv) {
         crn::identity::keys::pair key(rng, trusted_server.pri());
         key.init();
         key.save(name);
-        crn::blocks::access::params params = crn::blocks::access::params::genesis(trusted_server.pri().x(), key.pub().y());
-        crn::blocks::access genesis = crn::blocks::access::construct(rng, G, params, key.pub().y());
+        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
         db.add(genesis);
     }
 

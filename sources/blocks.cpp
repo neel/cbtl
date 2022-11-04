@@ -9,19 +9,26 @@
 
 crn::blocks::parts::active::active(const CryptoPP::Integer& forward, const CryptoPP::Integer& backward, const CryptoPP::Integer& checksum): _forward(forward), _backward(backward), _checksum(checksum) {}
 
+
+
 crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t){
+    auto g  = G.g();
+    auto Gp = G.Gp();
+
     auto random   = G.random(rng, false);
-    auto forward  = G.Gp().Exponentiate(G.g(), random);
-    auto token    = G.Gp().Exponentiate(y, random);
-    auto token_w  = G.Gp().Exponentiate(token, w);
-    auto checksum = G.Gp().Multiply(token_w, y);
+    auto forward  = Gp.Exponentiate(g, random);
+    auto token    = Gp.Exponentiate(y, random);
+    auto token_w  = Gp.Exponentiate(token, w);
+    auto checksum = Gp.Multiply(token_w, y);
     auto hash     = crn::utils::sha512(checksum);
     crn::blocks::parts::active part(forward, t, hash);
     return part;
 }
-
-crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const crn::blocks::parts::active::params& p){
-    return crn::blocks::parts::active::construct(rng, G, p.y, p.w, p.token);
+crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master, const CryptoPP::Integer& token) {
+    return construct(rng, pub.G(), pub.y(), master.x(), token);
+}
+crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::identity::keys::private_key& master){
+    return crn::blocks::parts::active::construct(rng, p.pub(), master, p.token());
 }
 
 
@@ -39,6 +46,11 @@ std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP
     auto addr = G.Gp().Divide(id, hash);
     return crn::utils::eHex(addr);
 }
+
+bool crn::blocks::parts::active::verify(const CryptoPP::Integer& token, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master) const{
+    return verify(pub.G(), token, pub.y(), master.x());
+}
+
 
 bool crn::blocks::parts::active::verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& y, const CryptoPP::Integer& w) const{
     auto Gp = G.Gp();
@@ -69,9 +81,11 @@ crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::Aut
     auto cipher   = G.Gp().Multiply(rho_inv, G.Gp().Exponentiate(y, w));
     return crn::blocks::parts::passive(forward, backward, cipher);
 }
-
-crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const crn::blocks::parts::passive::params& p){
-    return crn::blocks::parts::passive::construct(rng, G, p.y, p.w, p.token);
+crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master, const CryptoPP::Integer& t) {
+    return construct(rng, pub.G(), pub.y(), master.x(), t);
+}
+crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::identity::keys::private_key& master){
+    return crn::blocks::parts::passive::construct(rng, p.pub(), master, p.token());
 }
 
 
@@ -111,38 +125,85 @@ std::string crn::blocks::access::addresses::hash() const{
 }
 
 
-crn::blocks::access::params crn::blocks::access::params::genesis(CryptoPP::Integer w, CryptoPP::Integer y){
-    crn::blocks::access::params params;
-    params.w             = w;
-    params.active.id     = 0;
-    params.active.token  = 0;
-    params.active.y      = y;
-    params.passive.id    = 0;
-    params.passive.token = 0;
-    params.passive.y     = y;
-    return params;
+
+
+crn::blocks::params::active::active(const CryptoPP::Integer& id, const crn::identity::keys::public_key& pub, const CryptoPP::Integer& token): _id(id), _pub(pub), _token(token) {
+    if(id.IsZero()){
+        throw std::invalid_argument("last block id cannot be 0 unless it is a genesis block (in that case use genesis function to construct instead of using this constructor)");
+    }
+    if(token.IsZero()){
+        throw std::invalid_argument("token id cannot be 0 unless it is a genesis block (in that case use genesis function to construct instead of using this constructor)");
+    }
+}
+crn::blocks::params::active::active(const crn::identity::keys::public_key& pub): _id(CryptoPP::Integer::Zero()), _pub(pub), _token(CryptoPP::Integer::Zero()) {}
+crn::blocks::params::active crn::blocks::params::active::genesis(const crn::identity::keys::public_key& pub){ return crn::blocks::params::active(pub); }
+bool crn::blocks::params::active::genesis() const{ return _token.IsZero(); }
+CryptoPP::Integer crn::blocks::params::active::address(const CryptoPP::Integer& request) const{
+    return _pub.Gp().Multiply(_id, crn::utils::sha512(request));
+}
+
+
+
+crn::blocks::params::passive::passive(const CryptoPP::Integer& id, const crn::identity::keys::public_key& pub, const CryptoPP::Integer& token): _id(id), _pub(pub), _token(token) {
+    if(id.IsZero()){
+        throw std::invalid_argument("last block id cannot be 0 unless it is a genesis block (in that case use genesis function to construct instead of using this constructor)");
+    }
+    if(token.IsZero()){
+        throw std::invalid_argument("token id cannot be 0 unless it is a genesis block (in that case use genesis function to construct instead of using this constructor)");
+    }
+}
+crn::blocks::params::passive::passive(const crn::identity::keys::public_key& pub): _id(CryptoPP::Integer::Zero()), _pub(pub), _token(CryptoPP::Integer::Zero()) {}
+crn::blocks::params::passive crn::blocks::params::passive::genesis(const crn::identity::keys::public_key& pub){ return crn::blocks::params::passive(pub); }
+bool crn::blocks::params::passive::genesis() const{ return _token.IsZero(); }
+CryptoPP::Integer crn::blocks::params::passive::address() const{
+    return _pub.Gp().Multiply(_id, crn::utils::sha512(_token));
+}
+crn::blocks::params::passive crn::blocks::params::passive::construct(const crn::blocks::access& last, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& pri){
+    auto secret  = pub.Gp().Exponentiate(pub.y(), pri.x());
+    auto rho_inv = pub.Gp().Divide(last.passive().cipher(), secret);
+    auto token   = pub.Gp().Exponentiate(last.passive().forward(), rho_inv);
+    return crn::blocks::params::passive(last.address().id(), pub, token);
+}
+
+
+
+crn::blocks::params::params(const params::active& active, const params::passive& passive, const crn::identity::keys::private_key& master): _active(active), _passive(passive), _master(master) { }
+crn::blocks::params::params(const params::active& active, const crn::blocks::access& passive_last, const crn::identity::keys::public_key& passive_pub, const crn::identity::keys::private_key& master): params(active, params::passive::construct(passive_last, passive_pub, master), master) { }
+
+crn::blocks::params crn::blocks::params::genesis(const crn::identity::keys::private_key& master, const crn::identity::keys::public_key& pub){
+    return crn::blocks::params(crn::blocks::params::active::genesis(pub), crn::blocks::params::passive::genesis(pub), master);
 }
 
 
 crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr): _active(active), _passive(passive), _address(addr){}
 
-crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const crn::blocks::access::params& p, const CryptoPP::Integer& active_request) {
-    blocks::parts::active::params active_params   {p.active.y,  p.w, p.active.token};
-    blocks::parts::passive::params passive_params {p.passive.y, p.w, p.passive.token};
+crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::identity::keys::private_key& master){
+    if(p._active.genesis() == p._passive.genesis() && p._active.genesis()){
+        auto active  = parts::active::construct(rng, p._active, master);
+        auto passive = parts::passive::construct(rng, p._passive, master);
 
-    auto active  = parts::active::construct(rng, G, active_params);
-    auto passive = parts::passive::construct(rng, G, passive_params);
-
-    if(p.active.id == 0 && p.passive.id == 0){
-        addresses addr(p.active.y, p.passive.y);
+        addresses addr(p._active.pub().y(), p._passive.pub().y());
         return access(active, passive, addr);
     }else{
-        CryptoPP::Integer hash         = crn::utils::sha512(active_request);
-        CryptoPP::Integer addr_active  = G.Gp().Multiply(p.active.id, hash);
-        CryptoPP::Integer addr_passive = G.Gp().Multiply(p.passive.id, crn::utils::sha512(p.passive.token));
-        addresses addr(addr_active, addr_passive);
-        return access(active, passive, addr);
+        throw std::invalid_argument("p is not genesis parameters");
     }
+}
+
+crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::identity::keys::private_key& master, const CryptoPP::Integer& active_request) {
+    auto active  = parts::active::construct(rng, p._active, master);
+    auto passive = parts::passive::construct(rng, p._passive, master);
+
+    if(active_request.IsZero()){
+        throw std::invalid_argument("active_request must not be zero unless it is a genesis block (use genesis function in that case)");
+    }
+    if(p._active.genesis() == p._passive.genesis() && p._active.genesis()){
+        throw std::invalid_argument("genesis parms not accepted (use genesis function)");
+    }
+
+    CryptoPP::Integer addr_active  = p._active.address(active_request);
+    CryptoPP::Integer addr_passive = p._passive.address();
+    addresses addr(addr_active, addr_passive);
+    return access(active, passive, addr);
 }
 
 crn::blocks::access crn::blocks::genesis(crn::storage& db, const crn::identity::keys::public_key& pub){

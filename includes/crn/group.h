@@ -7,8 +7,14 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/modarith.h>
 #include <cryptopp/osrng.h>
+#include <nlohmann/json.hpp>
 
 namespace crn{
+
+struct group;
+
+void to_json(nlohmann::json& j, const group& grp);
+void from_json(const nlohmann::json& j, group& grp);
 
 /**
  * @brief the algebric group
@@ -28,6 +34,8 @@ struct group{
         inline CryptoPP::ModularArithmetic Gp() const { return CryptoPP::ModularArithmetic(_p);}
         inline CryptoPP::ModularArithmetic Gp1() const { return CryptoPP::ModularArithmetic(_p -1);}
         CryptoPP::Integer random(CryptoPP::AutoSeededRandomPool& rng, bool invertible = true) const;
+
+    friend void from_json(const nlohmann::json&, group&);
 
 };
 

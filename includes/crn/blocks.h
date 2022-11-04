@@ -17,9 +17,61 @@ struct storage;
 
 namespace packets{
     struct challenge;
-};
+}
 
 namespace blocks{
+
+struct access;
+
+struct params{
+    struct active{
+        active(const CryptoPP::Integer& id, const crn::identity::keys::public_key& pub, const CryptoPP::Integer& token);
+        bool genesis() const;
+        CryptoPP::Integer address(const CryptoPP::Integer& request) const;
+
+        static active genesis(const crn::identity::keys::public_key& pub);
+
+        inline const CryptoPP::Integer& id() const { return _id; }
+        inline const crn::identity::keys::public_key& pub() const { return _pub; }
+        inline const CryptoPP::Integer& token() const { return _token; }
+        protected:
+            active(const crn::identity::keys::public_key& pub);
+        private:
+            CryptoPP::Integer _id;
+            crn::identity::keys::public_key _pub;
+            CryptoPP::Integer _token;    ///< $ g^{\pi_{u}^{-1}r_{u}^{(0)}} $
+    };
+    struct passive{
+        passive(const CryptoPP::Integer& id, const crn::identity::keys::public_key& pub, const CryptoPP::Integer& token);
+        bool genesis() const;
+        CryptoPP::Integer address() const;
+
+        static passive genesis(const crn::identity::keys::public_key& pub);
+        static passive construct(const crn::blocks::access& last, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& pri);
+
+        inline const CryptoPP::Integer& id() const { return _id; }
+        inline const crn::identity::keys::public_key& pub() const { return _pub; }
+        inline const CryptoPP::Integer& token() const { return _token; }
+        protected:
+            passive(const crn::identity::keys::public_key& pub);
+        private:
+            CryptoPP::Integer _id;
+            crn::identity::keys::public_key _pub;
+            CryptoPP::Integer _token;    ///< $ g^{\pi_{v}r_{v}^{(0)}} $
+    };
+
+    active  _active;
+    passive _passive;
+    crn::identity::keys::private_key  _master;
+
+    params(const params::active& active, const params::passive& passive, const crn::identity::keys::private_key& master);
+    params(const params::active& active, const crn::blocks::access& passive_last, const crn::identity::keys::public_key& passive_pub, const crn::identity::keys::private_key& master);
+
+    // inline const active& active() const { return _active; }
+    // inline const passive& passive() const { return _passive; }
+
+    static params genesis(const crn::identity::keys::private_key& master, const crn::identity::keys::public_key& passive_pub);
+};
 
 namespace parts{
 
@@ -27,12 +79,6 @@ struct active;
 struct passive;
 
 struct active{
-    struct params{
-        CryptoPP::Integer y;        ///< $ g^{\pi_{u}} $
-        CryptoPP::Integer w;        ///< $ w $
-        CryptoPP::Integer token;    ///< $ g^{\pi_{u}^{-1}r_{u}^{(0)}} $
-    };
-
     active() = delete;
     active(const active& other) = default;
     inline CryptoPP::Integer backward() const { return _backward; }
@@ -48,9 +94,11 @@ struct active{
      */
     std::string prev(const crn::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const;
 
+    static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master, const CryptoPP::Integer& token);
     static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t);
-    static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p);
+    static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::identity::keys::private_key& master);
 
+    bool verify(const CryptoPP::Integer& token, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master) const;
     bool verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& y, const CryptoPP::Integer& w) const;
     crn::packets::challenge challenge(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& rho) const;
 
@@ -69,12 +117,6 @@ struct active{
 };
 
 struct passive{
-    struct params{
-        CryptoPP::Integer y;        ///< $ g^{\pi_{v}} $
-        CryptoPP::Integer w;        ///< $ w $
-        CryptoPP::Integer token;    ///< $ g^{\pi_{v}r_{v}^{(0)}} $
-    };
-
     passive() = delete;
     passive(const passive& other) = default;
     inline CryptoPP::Integer backward() const { return _backward; }
@@ -96,7 +138,8 @@ struct passive{
      * y is the public key of the passive user
      */
     static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t);
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master, const CryptoPP::Integer& t);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::identity::keys::private_key& master);
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::parts::passive>;
@@ -110,17 +153,6 @@ struct passive{
 }
 
 struct access{
-    struct params{
-        struct participants_token{
-            CryptoPP::Integer id;
-            CryptoPP::Integer y;
-            CryptoPP::Integer token;
-        };
-        CryptoPP::Integer  w;
-        participants_token active, passive;
-
-        static params genesis(CryptoPP::Integer  w, CryptoPP::Integer y);
-    };
     class addresses{
         friend struct access;
 
@@ -145,7 +177,8 @@ struct access{
     inline bool is_genesis() const { return _address.active() == _address.passive(); }
     inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::eHex(crn::utils::sha512(y)); }
 
-    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const params& p, const CryptoPP::Integer& active_request);
+    static access genesis(CryptoPP::AutoSeededRandomPool& rng, const params& p, const crn::identity::keys::private_key& master);
+    static access construct(CryptoPP::AutoSeededRandomPool& rng, const params& p, const crn::identity::keys::private_key& master, const CryptoPP::Integer& active_request);
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
         access(const parts::active& active, const parts::passive& passive, const addresses& addr);

@@ -7,9 +7,13 @@
 #include "crn/group.h"
 #include <cryptopp/dsa.h>
 #include <cryptopp/files.h>
-#include "crn/packets.h"
+#include <nlohmann/json.hpp>
 
 namespace crn{
+
+namespace packets{
+    struct request;
+}
 
 struct storage;
 
@@ -50,14 +54,19 @@ struct dsa: group{
         KeyT _key;
 };
 
+struct private_key;
+
 struct private_key: dsa<CryptoPP::DSA::PrivateKey, private_key>{
     using base_type = dsa<CryptoPP::DSA::PrivateKey, private_key>;
 
     inline explicit private_key(const std::string& path): base_type(path) {}
+    explicit private_key(const nlohmann::json& json, bool);
     private_key(CryptoPP::AutoSeededRandomPool& rng, std::uint32_t key_size);
     private_key(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::AlgorithmParameters& params);
     private_key(CryptoPP::AutoSeededRandomPool& rng, const private_key& other);
     private_key(const private_key& other) = default;
+
+    nlohmann::json json() const;
 
     bool initialize();
     inline const CryptoPP::Integer& x() const {return _x;}
@@ -65,12 +74,21 @@ struct private_key: dsa<CryptoPP::DSA::PrivateKey, private_key>{
         CryptoPP::Integer _x;
 };
 
+
 struct public_key: dsa<CryptoPP::DSA::PublicKey, public_key>{
     using base_type = dsa<CryptoPP::DSA::PublicKey, public_key>;
 
     inline explicit public_key(const std::string& path): base_type(path) {}
+    explicit public_key(const nlohmann::json& json, bool);
     public_key(const private_key& pk);
     public_key(const public_key& other) = default;
+    inline public_key(const CryptoPP::Integer& y, const crn::group& other){
+        CryptoPP::AlgorithmParameters p = other.params() (CryptoPP::Name::PublicElement(), y);
+        _key.AssignFrom(p);
+        init();
+    }
+
+    nlohmann::json json() const;
 
     bool initialize();
     const CryptoPP::Integer& y() const {return _y;}
@@ -105,8 +123,6 @@ struct user: keys::pair{
     template <typename... Args>
     user(crn::storage& db, Args... args): keys::pair(args...), _db(db) {}
 
-    // std::string last_id() const;
-    // CryptoPP::Integer request(std::string& id) const;
     crn::packets::request request() const;
     private:
         crn::storage& _db;

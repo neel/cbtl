@@ -63,7 +63,8 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         crn::storage db;
         crn::blocks::access access = db.fetch(req.last);
         // verify
-        bool verified = access.active().verify(_master.pub().G(), req.token, req.y, _master.pri().x());
+        crn::identity::keys::public_key pub(req.y, _master.pub());
+        bool verified = access.active().verify(req.token, pub, _master.pri());
         if(verified){
             // construct challenge
             CryptoPP::AutoSeededRandomPool rng;
@@ -108,18 +109,10 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
                 crn::identity::keys::public_key passive("patient-0.pub");
                 passive.init();
                 crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive, _master.pri());
-
-                crn::blocks::access::params params;
-                params.active.id     = _challenge_data.last;
-                params.active.token  = response.c3;
-                params.active.y      = _challenge_data.y;
-                params.passive.id    = last_passive.address().id();
-                params.passive.y     = passive.y();
-                params.passive.token = last_passive.passive().token(passive.G(), passive.y(), _master.pri().x());
-                params.w             = _master.pri().x();
-
+                crn::identity::keys::public_key pub(_challenge_data.y, _master.pub());
+                crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive, _master.pri());
                 CryptoPP::AutoSeededRandomPool rng;
-                crn::blocks::access block = crn::blocks::access::construct(rng, _master.pub().G(), params, _challenge_data.token);
+                crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token);
                 std::cout << "written new block: " << block.address().hash() << std::endl;
 
                 _db.add(block);
