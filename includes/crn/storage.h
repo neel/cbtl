@@ -21,7 +21,7 @@ struct storage{
 
     std::string id(const std::string& addr);
 
-    crn::blocks::access fetch(const std::string& key, bool index = false);
+    crn::blocks::access fetch(const std::string& block_id);
 
     protected:
         void open();

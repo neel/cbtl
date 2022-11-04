@@ -150,9 +150,10 @@ crn::blocks::access crn::blocks::genesis(crn::storage& db, const crn::identity::
 crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& pri){
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
-        std::string block_id = last.active().next(pub.G(), last.address().id(), pri.x());
-        if(db.exists(block_id, true)){
-            last = db.fetch(block_id, true);
+        std::string address = last.active().next(pub.G(), last.address().id(), pri.x());
+        if(db.exists(address, true)){
+            std::string block_id = db.id(address);
+            last = db.fetch(block_id);
         }else{
             break;
         }
@@ -164,9 +165,10 @@ crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::ident
 crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& secret){
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
-        std::string block_id = last.passive().next(pub.G(), last.address().id(), pub.y(), secret.x());
-        if(db.exists(block_id, true)){
-            last = db.fetch(block_id, true);
+        std::string address = last.passive().next(pub.G(), last.address().id(), pub.y(), secret.x());
+        if(db.exists(address, true)){
+            std::string block_id = db.id(address);
+            last = db.fetch(block_id);
         }else{
             break;
         }

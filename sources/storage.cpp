@@ -110,16 +110,14 @@ std::string crn::storage::id(const std::string& addr){
         throw std::out_of_range("address "+ addr + " not found");
     }else{
         std::string id((const char*) value.get_data(), value.get_size());
-        std::cout << "index to id " << id << std::endl;
         close();
         return id;
     }
 }
 
 
-crn::blocks::access crn::storage::fetch(const std::string& key, bool index){
+crn::blocks::access crn::storage::fetch(const std::string& block_id){
     open();
-    std::string block_id = index ? id(key) : key;
     Dbt id((void*) block_id.c_str(), block_id.size()), value;
     int ret = _blocks->get(NULL, &id, &value, 0);
     if(ret == DB_NOTFOUND){
