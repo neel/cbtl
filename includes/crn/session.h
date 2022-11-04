@@ -25,7 +25,7 @@
 #include "crn/packets.h"
 #include "crn/storage.h"
 #include "crn/keys.h"
-#include "crn/blocks_io.h"
+#include "crn/blocks/io.h"
 
 namespace crn{
 

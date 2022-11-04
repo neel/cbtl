@@ -3,9 +3,10 @@
 
 #include "crn/keys.h"
 #include "crn/storage.h"
-#include "crn/blocks_io.h"
+#include "crn/blocks/io.h"
 #include "crn/packets.h"
 #include "crn/group.h"
+#include <cryptopp/argnames.h>
 
 crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::private_key& other): private_key(rng, other.params()) { }
 crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rng, std::uint32_t key_size){
@@ -23,10 +24,17 @@ crn::identity::keys::private_key::private_key(CryptoPP::AutoSeededRandomPool& rn
     }
 }
 crn::identity::keys::private_key::private_key(const nlohmann::json& json, bool){
-    _p = crn::utils::dHex(json["p"].get<std::string>());
-    _q = crn::utils::dHex(json["q"].get<std::string>());
-    _g = crn::utils::dHex(json["g"].get<std::string>());
-    _x = crn::utils::dHex(json["x"].get<std::string>());
+    auto p = CryptoPP::MakeParameters
+        (CryptoPP::Name::Modulus(),             crn::utils::dHex(json["p"].get<std::string>()))
+        (CryptoPP::Name::SubgroupOrder(),       crn::utils::dHex(json["q"].get<std::string>()))
+        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::dHex(json["g"].get<std::string>()))
+        (CryptoPP::Name::PrivateExponent(),     crn::utils::dHex(json["x"].get<std::string>()));
+    _key.AssignFrom(p);
+    init();
+}
+
+crn::identity::keys::private_key crn::identity::keys::private_key::from(const nlohmann::json& json){
+    return crn::identity::keys::private_key(json);
 }
 
 nlohmann::json crn::identity::keys::private_key::json() const{
@@ -59,10 +67,16 @@ std::string crn::identity::keys::public_key::genesis_id() const{
     return crn::utils::eHex(crn::utils::sha512(_y));
 }
 crn::identity::keys::public_key::public_key(const nlohmann::json& json, bool){
-    _p = crn::utils::dHex(json["p"].get<std::string>());
-    _q = crn::utils::dHex(json["q"].get<std::string>());
-    _g = crn::utils::dHex(json["g"].get<std::string>());
-    _y = crn::utils::dHex(json["y"].get<std::string>());
+    auto p = CryptoPP::MakeParameters
+        (CryptoPP::Name::Modulus(),             crn::utils::dHex(json["p"].get<std::string>()))
+        (CryptoPP::Name::SubgroupOrder(),       crn::utils::dHex(json["q"].get<std::string>()))
+        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::dHex(json["g"].get<std::string>()))
+        (CryptoPP::Name::PublicElement(),       crn::utils::dHex(json["y"].get<std::string>()));
+    _key.AssignFrom(p);
+    init();
+}
+crn::identity::keys::public_key crn::identity::keys::public_key::from(const nlohmann::json& json){
+    return crn::identity::keys::public_key(json);
 }
 
 nlohmann::json crn::identity::keys::public_key::json() const{
@@ -72,6 +86,12 @@ nlohmann::json crn::identity::keys::public_key::json() const{
         {"g", crn::utils::eHex(_g)},
         {"y", crn::utils::eHex(_y)}
     };
+}
+
+crn::identity::keys::public_key::public_key(const CryptoPP::Integer& y, const crn::group& other){
+    CryptoPP::AlgorithmParameters p = other.params() (CryptoPP::Name::PublicElement(), y);
+    _key.AssignFrom(p);
+    init();
 }
 
 

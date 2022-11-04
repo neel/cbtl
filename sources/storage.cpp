@@ -3,7 +3,7 @@
 
 #include "crn/storage.h"
 #include "crn/blocks.h"
-#include "crn/blocks_io.h"
+#include "crn/blocks/io.h"
 #include <exception>
 #include <boost/filesystem.hpp>
 

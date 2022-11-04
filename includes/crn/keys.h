@@ -60,16 +60,18 @@ struct private_key: dsa<CryptoPP::DSA::PrivateKey, private_key>{
     using base_type = dsa<CryptoPP::DSA::PrivateKey, private_key>;
 
     inline explicit private_key(const std::string& path): base_type(path) {}
-    explicit private_key(const nlohmann::json& json, bool);
     private_key(CryptoPP::AutoSeededRandomPool& rng, std::uint32_t key_size);
     private_key(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::AlgorithmParameters& params);
     private_key(CryptoPP::AutoSeededRandomPool& rng, const private_key& other);
     private_key(const private_key& other) = default;
 
+    static private_key from(const nlohmann::json& json);
     nlohmann::json json() const;
 
     bool initialize();
     inline const CryptoPP::Integer& x() const {return _x;}
+    protected:
+        explicit private_key(const nlohmann::json& json, bool);
     private:
         CryptoPP::Integer _x;
 };
@@ -79,21 +81,19 @@ struct public_key: dsa<CryptoPP::DSA::PublicKey, public_key>{
     using base_type = dsa<CryptoPP::DSA::PublicKey, public_key>;
 
     inline explicit public_key(const std::string& path): base_type(path) {}
-    explicit public_key(const nlohmann::json& json, bool);
     public_key(const private_key& pk);
     public_key(const public_key& other) = default;
-    inline public_key(const CryptoPP::Integer& y, const crn::group& other){
-        CryptoPP::AlgorithmParameters p = other.params() (CryptoPP::Name::PublicElement(), y);
-        _key.AssignFrom(p);
-        init();
-    }
+    public_key(const CryptoPP::Integer& y, const crn::group& other);
 
+    static public_key from(const nlohmann::json& json);
     nlohmann::json json() const;
 
     bool initialize();
     const CryptoPP::Integer& y() const {return _y;}
 
     std::string genesis_id() const;
+    protected:
+        explicit public_key(const nlohmann::json& json, bool);
     private:
         CryptoPP::Integer _y;
 };

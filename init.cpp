@@ -20,7 +20,7 @@
 #include "crn/utils.h"
 #include "crn/storage.h"
 #include "crn/blocks.h"
-#include "crn/blocks_io.h"
+#include "crn/blocks/io.h"
 
 constexpr static const std::uint32_t key_size = 1024;
 
