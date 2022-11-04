@@ -109,15 +109,3 @@ void crn::identity::keys::pair::save(const std::string& name) const{
     _private.save(name);
 }
 
-
-/// ----- identity
-
-crn::packets::request crn::identity::user::request() const{
-    crn::blocks::access last = crn::blocks::last::active(_db, pub(), pri());
-    crn::packets::request req;
-    req.y     = pub().y();
-    req.last  = last.address().hash();
-    req.token = pub().Gp().Exponentiate( last.active().forward(), pri().x() );
-    return req;
-}
-

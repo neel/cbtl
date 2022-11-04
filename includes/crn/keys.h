@@ -59,7 +59,7 @@ struct private_key;
 struct private_key: dsa<CryptoPP::DSA::PrivateKey, private_key>{
     using base_type = dsa<CryptoPP::DSA::PrivateKey, private_key>;
 
-    inline explicit private_key(const std::string& path): base_type(path) {}
+    inline explicit private_key(const std::string& path): base_type(path) { init(); }
     private_key(CryptoPP::AutoSeededRandomPool& rng, std::uint32_t key_size);
     private_key(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::AlgorithmParameters& params);
     private_key(CryptoPP::AutoSeededRandomPool& rng, const private_key& other);
@@ -80,7 +80,7 @@ struct private_key: dsa<CryptoPP::DSA::PrivateKey, private_key>{
 struct public_key: dsa<CryptoPP::DSA::PublicKey, public_key>{
     using base_type = dsa<CryptoPP::DSA::PublicKey, public_key>;
 
-    inline explicit public_key(const std::string& path): base_type(path) {}
+    inline explicit public_key(const std::string& path): base_type(path) { init(); }
     public_key(const private_key& pk);
     public_key(const public_key& other) = default;
     public_key(const CryptoPP::Integer& y, const crn::group& other);
@@ -119,15 +119,7 @@ struct pair{
 
 }
 
-struct user: keys::pair{
-    template <typename... Args>
-    user(crn::storage& db, Args... args): keys::pair(args...), _db(db) {}
-
-    crn::packets::request request() const;
-    private:
-        crn::storage& _db;
-
-};
+using user = keys::pair;
 
 }
 }

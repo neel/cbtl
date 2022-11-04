@@ -3,6 +3,23 @@
 
 #include "crn/packets.h"
 #include "crn/utils.h"
+#include "crn/keys.h"
+#include "crn/blocks/access.h"
+#include "crn/storage.h"
+
+crn::packets::request crn::packets::request::construct(const crn::blocks::access& block, const crn::identity::keys::pair& keys){
+    crn::packets::request req;
+    req.y     = keys.pub().y();
+    req.last  = block.address().hash();
+    req.token = keys.pub().Gp().Exponentiate( block.active().forward(), keys.pri().x() );
+    return req;
+}
+
+crn::packets::request crn::packets::request::construct(crn::storage& db, const crn::identity::keys::pair& keys){
+    return construct(crn::blocks::last::active(db, keys.pub(), keys.pri()), keys);
+}
+
+
 
 void crn::packets::to_json(nlohmann::json& j, const request& q){
     j = nlohmann::json {

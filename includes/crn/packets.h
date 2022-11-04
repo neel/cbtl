@@ -11,6 +11,20 @@
 #include <arpa/inet.h>
 
 namespace crn{
+
+namespace blocks{
+    struct access;
+}
+namespace identity{
+namespace keys{
+    struct public_key;
+    struct private_key;
+    struct pair;
+}
+}
+
+struct storage;
+
 namespace packets{
 
 enum class type{
@@ -32,6 +46,9 @@ struct request{
     std::string last;
     CryptoPP::Integer y;
     CryptoPP::Integer token;
+
+    static request construct(const crn::blocks::access& block, const crn::identity::keys::pair& keys);
+    static request construct(crn::storage& db, const crn::identity::keys::pair& keys);
 };
 
 void to_json(nlohmann::json& j, const request& q);

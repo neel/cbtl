@@ -33,9 +33,7 @@ int main(int argc, char** argv) {
 
     crn::storage db;
 
-    crn::identity::user user(db, secret_key, public_key);
-    user.init();
-
+    crn::identity::user user(secret_key, public_key);
     crn::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
 
@@ -45,7 +43,7 @@ int main(int argc, char** argv) {
     boost::asio::ip::tcp::socket socket(io_context);
     boost::asio::connect(socket, endpoints);
 
-    crn::packets::request request = user.request();
+    crn::packets::request request = crn::packets::request::construct(db, user);
     nlohmann::json request_json = request;
     std::cout << ">> " << std::endl << request_json.dump(4) << std::endl;
     {
