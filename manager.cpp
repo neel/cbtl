@@ -48,10 +48,7 @@ int main(int argc, char** argv) {
     std::cout << ">> " << std::endl << request_json.dump(4) << std::endl;
     {
         crn::packets::envelop<crn::packets::request> envelop(crn::packets::type::request, request);
-        std::vector<std::uint8_t> dbuffer;
-        envelop.copy(std::back_inserter(dbuffer));
-        boost::asio::write(socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
-        dbuffer.clear();
+        envelop.write(socket);
     }
     using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
 
@@ -85,9 +82,7 @@ int main(int argc, char** argv) {
         std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
         {
             crn::packets::envelop<crn::packets::response> envelop(crn::packets::type::response, challenge);
-            std::vector<std::uint8_t> dbuffer;
-            envelop.copy(std::back_inserter(dbuffer));
-            boost::asio::write(socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
+            envelop.write(socket);
         }
     }
 

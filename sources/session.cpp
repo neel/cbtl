@@ -59,70 +59,78 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
 
     if(type == crn::packets::type::request){
         crn::packets::request req = req_json;
-        // fetch req.last
-        crn::storage db;
-        crn::blocks::access access = db.fetch(req.last);
-        // verify
-        crn::identity::keys::public_key pub(req.y, _master.pub());
-        bool verified = access.active().verify(req.token, pub, _master.pri());
-        if(verified){
-            // construct challenge
-            CryptoPP::AutoSeededRandomPool rng;
-            CryptoPP::Integer rho = _master.pub().G().random(rng, true);
-            crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho);
-            _challenge_data.token      = req.token;
-            _challenge_data.y          = req.y;
-            _challenge_data.last       = access.address().id();
-            _challenge_data.challenged = true;
-            _challenge_data.forward    = access.active().forward();
-            _challenge_data.rho        = rho;
-            // send challenge
-            crn::packets::envelop<crn::packets::challenge> envelop(crn::packets::type::challenge, challenge);
-            std::vector<std::uint8_t> dbuffer;
-            envelop.copy(std::back_inserter(dbuffer));
-            boost::asio::write(_socket, boost::asio::buffer(dbuffer.data(), dbuffer.size()));
-
-            nlohmann::json challenge_json = challenge;
-            std::cout << ">> " << std::endl << challenge_json.dump(4) << std::endl;
-        }else{
-            std::cout << "failed to verify" << std::endl;
-        }
+        handle_request(req);
     }else if(type == crn::packets::type::response && _challenge_data.challenged){
         crn::packets::response response = req_json;
-        // TODO verify challenge response
-        auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
-        auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
-        auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
-        if(c2_d != response.c2){
-            std::cout << "Error matching c2" << std::endl;
-            // TODO abort
-        }else{
-            auto alpha = Gp.Exponentiate(Gp.Divide(response.c1, _challenge_data.forward), rho_inv);
-            auto beta  = Gp.Multiply(response.c3, Gp.Divide(response.c2, c2_d));
-
-            if(alpha != beta || beta != response.c3 || alpha != response.c3){
-                std::cout << "Verification failed" << std::endl;
-                // TODO abort
-            }else{
-                std::cout << "Verification Successful" << std::endl;
-                // TODO get the last passive block
-                crn::identity::keys::public_key passive("patient-0.pub");
-                passive.init();
-                crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive, _master.pri());
-                crn::identity::keys::public_key pub(_challenge_data.y, _master.pub());
-                crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive, _master.pri());
-                CryptoPP::AutoSeededRandomPool rng;
-                crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token);
-                std::cout << "written new block: " << block.address().hash() << std::endl;
-
-                _db.add(block);
-            }
-        }
+        handle_challenge_response(response);
     }
-
 
     do_read();
 }
 void crn::session::write_handler(){
 
+}
+
+void crn::session::handle_request(const crn::packets::request& req){
+    // fetch req.last
+    crn::storage db;
+    crn::blocks::access access = db.fetch(req.last);
+    // verify
+    crn::identity::keys::public_key pub(req.y, _master.pub());
+    bool verified = access.active().verify(req.token, pub, _master.pri());
+    if(verified){
+        // construct challenge
+        CryptoPP::AutoSeededRandomPool rng;
+        CryptoPP::Integer rho = _master.pub().G().random(rng, true);
+        crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho);
+        _challenge_data.token      = req.token;
+        _challenge_data.y          = req.y;
+        _challenge_data.last       = access.address().id();
+        _challenge_data.challenged = true;
+        _challenge_data.forward    = access.active().forward();
+        _challenge_data.rho        = rho;
+        // send challenge
+        crn::packets::envelop<crn::packets::challenge> envelop(crn::packets::type::challenge, challenge);
+        envelop.write(_socket);
+
+        nlohmann::json challenge_json = challenge;
+        std::cout << ">> " << std::endl << challenge_json.dump(4) << std::endl;
+    }else{
+        std::cout << "failed to verify" << std::endl;
+    }
+}
+
+
+void crn::session::handle_challenge_response(const crn::packets::response& response){
+    auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
+    auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
+    auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
+    if(c2_d != response.c2){
+        std::cout << "Error matching c2" << std::endl;
+        // TODO abort
+    }else{
+        auto alpha = Gp.Exponentiate(Gp.Divide(response.c1, _challenge_data.forward), rho_inv);
+        auto beta  = Gp.Multiply(response.c3, Gp.Divide(response.c2, c2_d));
+
+        if(alpha != beta || beta != response.c3 || alpha != response.c3){
+            std::cout << "Verification failed" << std::endl;
+            // TODO abort
+        }else{
+            std::cout << "Verification Successful" << std::endl;
+            crn::identity::keys::public_key passive("patient-0.pub");
+            passive.init();
+            crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive, _master.pri());
+            crn::identity::keys::public_key pub(_challenge_data.y, _master.pub());
+            crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive, _master.pri());
+            CryptoPP::AutoSeededRandomPool rng;
+            crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token);
+            std::cout << "written new block: " << block.address().hash() << std::endl;
+            if(_db.exists(block.address().hash())){
+                // TODO abort
+                std::cout << "block already exist" << std::endl;
+            }else{
+                _db.add(block);
+            }
+        }
+    }
 }

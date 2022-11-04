@@ -65,13 +65,16 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     ~session() {}
   private:
     explicit session(crn::storage& db, crn::identity::user& master, socket_type socket);
-    public:
+  public:
       void run();
       void do_read();
       void handle_read_header(const boost::system::error_code& error, std::size_t bytes_transferred);
       void handle_read_data(const boost::system::error_code& error, std::size_t bytes_transferred) ;
       void write_handler();
       inline socket_type& socket(){ return _socket; }
+  private:
+      void handle_request(const crn::packets::request& req);
+      void handle_challenge_response(const crn::packets::response& response);
 };
 
 }

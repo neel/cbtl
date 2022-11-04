@@ -9,6 +9,8 @@
 #include <cryptopp/integer.h>
 #include <nlohmann/json.hpp>
 #include <arpa/inet.h>
+#include <boost/asio/write.hpp>
+#include <boost/asio/buffer.hpp>
 
 namespace crn{
 
@@ -85,6 +87,14 @@ struct envelop{
         std::uint8_t* h = reinterpret_cast<std::uint8_t*>(&_head);
         IteratorT it = std::copy_n(h, sizeof(_head), begin);
         std::copy(_serialized.cbegin(), _serialized.cend(), it);
+    }
+    template <typename SocketT>
+    std::size_t write(SocketT& socket){
+        std::vector<std::uint8_t> buffer;
+        copy(std::back_inserter(buffer));
+        std::size_t written = boost::asio::write(socket, boost::asio::buffer(buffer.data(), buffer.size()));
+        buffer.clear();
+        return written;
     }
 };
 
