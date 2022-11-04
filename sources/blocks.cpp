@@ -43,6 +43,8 @@ std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP
 bool crn::blocks::parts::active::verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& y, const CryptoPP::Integer& w) const{
     auto Gp = G.Gp();
     auto hash = crn::utils::sha512(Gp.Multiply(Gp.Exponentiate(token, w), y));
+    std::cout << "checksum " << _checksum << std::endl;
+    std::cout << "hash " << hash << std::endl;
     return _checksum == hash;
 }
 
