@@ -16,10 +16,12 @@ struct storage{
     ~storage();
 
     bool add(const crn::blocks::access& block);
-    bool exists(const std::string& id);
+    bool exists(const std::string& id, bool index = false);
     bool search(const CryptoPP::Integer& address);
 
-    crn::blocks::access fetch(const std::string& block_id);
+    std::string id(const std::string& addr);
+
+    crn::blocks::access fetch(const std::string& key, bool index = false);
 
     protected:
         void open();

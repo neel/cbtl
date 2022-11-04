@@ -93,16 +93,33 @@ bool crn::storage::add(const crn::blocks::access& block){
     return r_block == 0 && r_addr_active == 0 && r_addr_passive == 0;
 }
 
-bool crn::storage::exists(const std::string& id){
+bool crn::storage::exists(const std::string& id, bool index){
     open();
+    Db* db = index ? _index : _blocks;
     Dbt key((void*) id.c_str(), id.size());
-    int ret = _blocks->exists(NULL, &key, 0);
+    int ret = db->exists(NULL, &key, 0);
     close();
     return ret != DB_NOTFOUND;
 }
 
-crn::blocks::access crn::storage::fetch(const std::string& block_id){
+std::string crn::storage::id(const std::string& addr){
     open();
+    Dbt id((void*) addr.c_str(), addr.size()), value;
+    int ret = _index->get(NULL, &id, &value, 0);
+    if(ret == DB_NOTFOUND){
+        throw std::out_of_range("address "+ addr + " not found");
+    }else{
+        std::string id((const char*) value.get_data(), value.get_size());
+        std::cout << "index to id " << id << std::endl;
+        close();
+        return id;
+    }
+}
+
+
+crn::blocks::access crn::storage::fetch(const std::string& key, bool index){
+    open();
+    std::string block_id = index ? id(key) : key;
     Dbt id((void*) block_id.c_str(), block_id.size()), value;
     int ret = _blocks->get(NULL, &id, &value, 0);
     if(ret == DB_NOTFOUND){

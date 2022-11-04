@@ -56,32 +56,34 @@ void crn::identity::keys::pair::save(const std::string& name) const{
 
 /// ----- identity
 
-std::string crn::identity::user::last_id() const{
-    std::string last;
-    std::string block_id = pub().genesis_id();
-    while(true){
-        if(_db.exists(block_id)){
-            last  = block_id;
-            crn::blocks::access block = _db.fetch(block_id);
-            block_id = block.active().next(pub().G(), block.address().id(), pri().x());
-        }else{
-            break;
-        }
-    }
-    return last;
-}
-
-CryptoPP::Integer crn::identity::user::request(std::string& id) const{
-    auto Gp = pub().G().Gp();
-    id = last_id();
-    crn::blocks::access block = _db.fetch(id);
-    return Gp.Exponentiate( block.active().forward(), pri().x() );
-}
+// std::string crn::identity::user::last_id() const{
+//     std::string last;
+//     std::string block_id = pub().genesis_id();
+//     while(true){
+//         if(_db.exists(block_id)){
+//             last  = block_id;
+//             crn::blocks::access block = _db.fetch(block_id);
+//             block_id = block.active().next(pub().G(), block.address().id(), pri().x());
+//         }else{
+//             break;
+//         }
+//     }
+//     return last;
+// }
+//
+// CryptoPP::Integer crn::identity::user::request(std::string& id) const{
+//     auto Gp = pub().G().Gp();
+//     id = last_id();
+//     crn::blocks::access block = _db.fetch(id);
+//     return Gp.Exponentiate( block.active().forward(), pri().x() );
+// }
 
 crn::packets::request crn::identity::user::request() const{
+    crn::blocks::access last = crn::blocks::last::active(_db, pub(), pri());
     crn::packets::request req;
+    req.last = last.address().hash();
     req.y = pub().y();
-    req.token = request(req.last);
+    req.token = pub().Gp().Exponentiate( last.active().forward(), pri().x() );
     return req;
 }
 

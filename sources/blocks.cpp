@@ -64,7 +64,7 @@ crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::Aut
                       forward  = G.Gp().Exponentiate(forward, r);
     auto backward = (t == 0) ? CryptoPP::Integer::Zero() : G.Gp().Exponentiate(t, rho);
     auto rho_inv  = G.Gp1().MultiplicativeInverse(rho);
-    auto cipher   = G.Gp().Multiply(rho_inv, w);
+    auto cipher   = G.Gp().Multiply(rho_inv, G.Gp().Exponentiate(y, w));
     return crn::blocks::parts::passive(forward, backward, cipher);
 }
 
@@ -151,8 +151,8 @@ crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::ident
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
         std::string block_id = last.active().next(pub.G(), last.address().id(), pri.x());
-        if(db.exists(block_id)){
-            last = db.fetch(block_id);
+        if(db.exists(block_id, true)){
+            last = db.fetch(block_id, true);
         }else{
             break;
         }
@@ -165,8 +165,8 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::iden
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
         std::string block_id = last.passive().next(pub.G(), last.address().id(), pub.y(), secret.x());
-        if(db.exists(block_id)){
-            last = db.fetch(block_id);
+        if(db.exists(block_id, true)){
+            last = db.fetch(block_id, true);
         }else{
             break;
         }

@@ -105,8 +105,8 @@ struct user: keys::pair{
     template <typename... Args>
     user(crn::storage& db, Args... args): keys::pair(args...), _db(db) {}
 
-    std::string last_id() const;
-    CryptoPP::Integer request(std::string& id) const;
+    // std::string last_id() const;
+    // CryptoPP::Integer request(std::string& id) const;
     crn::packets::request request() const;
     private:
         crn::storage& _db;
