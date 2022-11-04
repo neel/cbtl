@@ -104,18 +104,19 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
                 // TODO abort
             }else{
                 std::cout << "Verification Successful" << std::endl;
-                crn::blocks::access::params params;
-                params.active.id    = _challenge_data.last;
-                params.active.token = response.c3;
-                params.active.y     = _challenge_data.y;
                 // TODO get the last passive block
                 crn::identity::keys::public_key passive("patient-0.pub");
                 passive.init();
                 crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive, _master.pri());
 
+                crn::blocks::access::params params;
+                params.active.id     = _challenge_data.last;
+                params.active.token  = response.c3;
+                params.active.y      = _challenge_data.y;
                 params.passive.id    = last_passive.address().id();
                 params.passive.y     = passive.y();
                 params.passive.token = last_passive.passive().token(passive.G(), passive.y(), _master.pri().x());
+                params.w             = _master.pri().x();
 
                 CryptoPP::AutoSeededRandomPool rng;
                 crn::blocks::access block = crn::blocks::access::construct(rng, _master.pub().G(), params, _challenge_data.token);

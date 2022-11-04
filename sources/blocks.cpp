@@ -12,9 +12,9 @@ crn::blocks::parts::active::active(const CryptoPP::Integer& forward, const Crypt
 crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t){
     auto random   = G.random(rng, false);
     auto forward  = G.Gp().Exponentiate(G.g(), random);
-    auto checksum = G.Gp().Exponentiate(y, random);
-         checksum = G.Gp().Exponentiate(checksum, w);
-         checksum = G.Gp().Multiply(checksum, y);
+    auto token    = G.Gp().Exponentiate(y, random);
+    auto token_w  = G.Gp().Exponentiate(token, w);
+    auto checksum = G.Gp().Multiply(token_w, y);
     auto hash     = crn::utils::sha512(checksum);
     crn::blocks::parts::active part(forward, t, hash);
     return part;
@@ -42,9 +42,9 @@ std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP
 
 bool crn::blocks::parts::active::verify(const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& y, const CryptoPP::Integer& w) const{
     auto Gp = G.Gp();
-    auto hash = crn::utils::sha512(Gp.Multiply(Gp.Exponentiate(token, w), y));
-    std::cout << "checksum " << _checksum << std::endl;
-    std::cout << "hash " << hash << std::endl;
+    auto token_w  = Gp.Exponentiate(token, w);
+    auto checksum = Gp.Multiply(token_w, y);
+    auto hash     = crn::utils::sha512(checksum);
     return _checksum == hash;
 }
 

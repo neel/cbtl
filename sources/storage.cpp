@@ -81,12 +81,12 @@ bool crn::storage::add(const crn::blocks::access& block){
             std::string active_address = crn::utils::eHex(block.address().active());
             Dbt key((void*) active_address.c_str(), active_address.size());
             r_addr_active = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
-            std::cout << "r_addr_active: " << r_addr_active << std::endl;
+            // std::cout << "r_addr_active: " << r_addr_active << std::endl;
         }{
             std::string passive_address = crn::utils::eHex(block.address().passive());
             Dbt key((void*) passive_address.c_str(), passive_address.size());
             r_addr_passive = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
-            std::cout << "r_addr_passive: " << r_addr_passive << std::endl;
+            // std::cout << "r_addr_passive: " << r_addr_passive << std::endl;
         }
     }
     close();
