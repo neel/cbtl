@@ -17,8 +17,9 @@ namespace crn{
 namespace blocks{
     struct access;
 }
-namespace identity{
+
 namespace keys{
+namespace identity{
     struct public_key;
     struct private_key;
     struct pair;
@@ -49,8 +50,8 @@ struct request{
     CryptoPP::Integer y;
     CryptoPP::Integer token;
 
-    static request construct(const crn::blocks::access& block, const crn::identity::keys::pair& keys);
-    static request construct(crn::storage& db, const crn::identity::keys::pair& keys);
+    static request construct(const crn::blocks::access& block, const crn::keys::identity::pair& keys);
+    static request construct(crn::storage& db, const crn::keys::identity::pair& keys);
 };
 
 void to_json(nlohmann::json& j, const request& q);
@@ -60,12 +61,21 @@ struct challenge{
     CryptoPP::Integer c1;
     CryptoPP::Integer c2;
     CryptoPP::Integer c3;
+    CryptoPP::Integer random;
 };
 
 void to_json(nlohmann::json& j, const challenge& c);
 void from_json(const nlohmann::json& j, challenge& c);
 
-typedef challenge response;
+struct response{
+    CryptoPP::Integer c1;
+    CryptoPP::Integer c2;
+    CryptoPP::Integer c3;
+    CryptoPP::Integer access;
+};
+
+void to_json(nlohmann::json& j, const response& res);
+void from_json(const nlohmann::json& j, response& res);
 
 template <typename DataT>
 struct envelop{

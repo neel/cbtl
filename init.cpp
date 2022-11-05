@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
     CryptoPP::AutoSeededRandomPool rng;
 
-    crn::identity::keys::pair trusted_server(rng, key_size);
+    crn::keys::identity::pair trusted_server(rng, key_size);
     trusted_server.save(master);
 
     CryptoPP::Integer theta = trusted_server.pub().random(rng, false), phi = trusted_server.pub().random(rng, false);
@@ -73,12 +73,11 @@ int main(int argc, char** argv) {
     crn::storage db;
     for(std::uint32_t i = 0; i < managers; ++i){
         std::string name = manager+"-"+boost::lexical_cast<std::string>(i);
-        crn::identity::keys::pair key(rng, trusted_server.pri());
-        key.init();
+        crn::keys::identity::pair key(rng, trusted_server.pri());
+        // key.init();
         key.save(name);
-        std::ofstream access(name+".access");
-        access << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), theta) );
-        access.close();
+        auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
+        access.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
         db.add(genesis);
@@ -86,12 +85,11 @@ int main(int argc, char** argv) {
 
     for(std::uint32_t i = 0; i < supers; ++i){
         std::string name = super+"-"+boost::lexical_cast<std::string>(i);
-        crn::identity::keys::pair key(rng, trusted_server.pri());
-        key.init();
+        crn::keys::identity::pair key(rng, trusted_server.pri());
+        // key.init();
         key.save(name);
-        std::ofstream access(name+".access");
-        access << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), theta) );
-        access.close();
+        auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
+        access.save(name);
         std::ofstream view(name+".view");
         view << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), phi) );
         view.close();
@@ -102,8 +100,8 @@ int main(int argc, char** argv) {
 
     for(std::uint32_t i = 0; i < patients; ++i){
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
-        crn::identity::keys::pair key(rng, trusted_server.pri());
-        key.init();
+        crn::keys::identity::pair key(rng, trusted_server.pri());
+        // key.init();
         key.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());

@@ -20,7 +20,7 @@ std::string crn::blocks::access::addresses::hash() const{
 
 crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr): _active(active), _passive(passive), _address(addr){}
 
-crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::identity::keys::private_key& master){
+crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master){
     if(p._active.genesis() == p._passive.genesis() && p._active.genesis()){
         auto active  = parts::active::construct(rng, p._active, master);
         auto passive = parts::passive::construct(rng, p._passive, master);
@@ -32,7 +32,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
     }
 }
 
-crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::identity::keys::private_key& master, const CryptoPP::Integer& active_request) {
+crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request) {
     auto active  = parts::active::construct(rng, p._active, master);
     auto passive = parts::passive::construct(rng, p._passive, master);
 
@@ -49,11 +49,11 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     return access(active, passive, addr);
 }
 
-crn::blocks::access crn::blocks::genesis(crn::storage& db, const crn::identity::keys::public_key& pub){
+crn::blocks::access crn::blocks::genesis(crn::storage& db, const crn::keys::identity::public_key& pub){
     return db.fetch(pub.genesis_id());
 }
 
-crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& pri){
+crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri){
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
         std::string address = last.active().next(pub.G(), last.address().id(), pri.x());
@@ -68,7 +68,7 @@ crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::ident
     return last;
 }
 
-crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& secret){
+crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& secret){
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
         std::string address = last.passive().next(pub.G(), last.address().id(), pub.y(), secret.x());

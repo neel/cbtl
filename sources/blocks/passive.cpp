@@ -14,10 +14,10 @@ crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::Aut
     auto cipher   = G.Gp().Multiply(rho_inv, G.Gp().Exponentiate(y, w));
     return crn::blocks::parts::passive(forward, backward, cipher);
 }
-crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master, const CryptoPP::Integer& t) {
+crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& t) {
     return construct(rng, pub.G(), pub.y(), master.x(), t);
 }
-crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::identity::keys::private_key& master){
+crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::keys::identity::private_key& master){
     return crn::blocks::parts::passive::construct(rng, p.pub(), master, p.token());
 }
 

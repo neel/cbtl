@@ -3,10 +3,10 @@
 
 #include "crn/server.h"
 
-crn::server::server(crn::storage& db, crn::identity::user& master, boost::asio::io_service& io, std::uint32_t port): server(db, master, io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
+crn::server::server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, std::uint32_t port): server(db, master, io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
 
 
-crn::server::server(crn::storage& db, crn::identity::user& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM), _db(db), _master(master) {
+crn::server::server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM), _db(db), _master(master) {
     boost::system::error_code ec;
     _acceptor.open(endpoint.protocol(), ec);
     if(ec) throw std::runtime_error((boost::format("Failed to open acceptor %1%") % ec.message()).str());

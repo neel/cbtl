@@ -7,7 +7,7 @@
 #include "crn/blocks/access.h"
 #include "crn/storage.h"
 
-crn::packets::request crn::packets::request::construct(const crn::blocks::access& block, const crn::identity::keys::pair& keys){
+crn::packets::request crn::packets::request::construct(const crn::blocks::access& block, const crn::keys::identity::pair& keys){
     crn::packets::request req;
     req.y     = keys.pub().y();
     req.last  = block.address().hash();
@@ -15,7 +15,7 @@ crn::packets::request crn::packets::request::construct(const crn::blocks::access
     return req;
 }
 
-crn::packets::request crn::packets::request::construct(crn::storage& db, const crn::identity::keys::pair& keys){
+crn::packets::request crn::packets::request::construct(crn::storage& db, const crn::keys::identity::pair& keys){
     return construct(crn::blocks::last::active(db, keys.pub(), keys.pri()), keys);
 }
 
@@ -40,6 +40,7 @@ void crn::packets::to_json(nlohmann::json& j, const challenge& c){
         {"c1", crn::utils::eHex(c.c1)},
         {"c2", crn::utils::eHex(c.c2)},
         {"c3", crn::utils::eHex(c.c3)},
+        {"random", crn::utils::eHex(c.random)}
     };
 }
 
@@ -47,4 +48,22 @@ void crn::packets::from_json(const nlohmann::json& j, challenge& c){
     c.c1 = crn::utils::dHex(j["c1"].get<std::string>());
     c.c2 = crn::utils::dHex(j["c2"].get<std::string>());
     c.c3 = crn::utils::dHex(j["c3"].get<std::string>());
+    c.random = crn::utils::dHex(j["random"].get<std::string>());
 }
+
+void crn::packets::to_json(nlohmann::json& j, const response& res){
+    j = nlohmann::json {
+        {"c1", crn::utils::eHex(res.c1)},
+        {"c2", crn::utils::eHex(res.c2)},
+        {"c3", crn::utils::eHex(res.c3)},
+        {"access", crn::utils::eHex(res.access)}
+    };
+}
+
+void crn::packets::from_json(const nlohmann::json& j, response& res){
+    res.c1 = crn::utils::dHex(j["c1"].get<std::string>());
+    res.c2 = crn::utils::dHex(j["c2"].get<std::string>());
+    res.c3 = crn::utils::dHex(j["c3"].get<std::string>());
+    res.access = crn::utils::dHex(j["access"].get<std::string>());
+}
+

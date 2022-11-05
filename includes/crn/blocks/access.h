@@ -46,8 +46,8 @@ struct access{
     inline bool is_genesis() const { return _address.active() == _address.passive(); }
     inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::eHex(crn::utils::sha512(y)); }
 
-    static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::identity::keys::private_key& master);
-    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::identity::keys::private_key& master, const CryptoPP::Integer& active_request);
+    static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master);
+    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request);
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
         access(const parts::active& active, const parts::passive& passive, const addresses& addr);
@@ -57,10 +57,10 @@ struct access{
         addresses         _address;
 };
 
-access genesis(crn::storage& db, const crn::identity::keys::public_key& pub);
+access genesis(crn::storage& db, const crn::keys::identity::public_key& pub);
 struct last{
-    static access active (crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& pri);
-    static access passive(crn::storage& db, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& secret);
+    static access active (crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri);
+    static access passive(crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& secret);
 };
 
 }

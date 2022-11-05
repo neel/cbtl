@@ -39,6 +39,7 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     bool challenged;
     CryptoPP::Integer forward;
     CryptoPP::Integer rho;
+    CryptoPP::Integer lambda;
 
     inline challenge_data(): challenged(false) {}
   };
@@ -57,14 +58,14 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     boost::array<char, 4096>        _data;
     crn::packets::header            _head;
     crn::storage&                   _db;
-    crn::identity::user&            _master;
+    crn::keys::identity::pair       _master;
     challenge_data                  _challenge_data;
   public:
     typedef boost::shared_ptr<session> pointer;
-    static pointer create(crn::storage& db, crn::identity::user& master, socket_type socket);
-    ~session() {}
+    static pointer create(crn::storage& db, const crn::keys::identity::pair& master, socket_type socket);
+    inline ~session() {}
   private:
-    explicit session(crn::storage& db, crn::identity::user& master, socket_type socket);
+    explicit session(crn::storage& db, const crn::keys::identity::pair& master, socket_type socket);
   public:
       void run();
       void do_read();

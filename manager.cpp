@@ -16,6 +16,8 @@ int main(int argc, char** argv) {
         ("public,p", boost::program_options::value<std::string>(), "path to the public key")
         ("secret,s", boost::program_options::value<std::string>(), "path to the secret key")
         ("access,a", boost::program_options::value<std::string>(), "path to the access key")
+        ("master,m", boost::program_options::value<std::string>(), "path to the trusted server's public key")
+        ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
         ;
 
     boost::program_options::variables_map map;
@@ -29,13 +31,21 @@ int main(int argc, char** argv) {
 
     std::string public_key = map["public"].as<std::string>(),
                 secret_key = map["secret"].as<std::string>(),
-                access_key = map["access"].as<std::string>();
+                access_key = map["access"].as<std::string>(),
+                master_key = map["master"].as<std::string>();
+
+    std::uint64_t record = map["record"].as<std::uint64_t>();
 
     crn::storage db;
 
-    crn::identity::user user(secret_key, public_key);
+    crn::keys::identity::pair user(secret_key, public_key);
+    crn::keys::identity::public_key master_pub(master_key);
+    crn::keys::access_key access(access_key);
+
     crn::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
+
+
 
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::resolver resolver(io_context);
@@ -70,18 +80,22 @@ int main(int argc, char** argv) {
         nlohmann::json challenge_json = nlohmann::json::parse(challenge_str);
         std::cout << "<< " << std::endl << challenge_json.dump(4) << std::endl;
         crn::packets::challenge challenge = challenge_json;
+        CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
+
+        crn::packets::response response;
 
         // construct response for the challenge
         CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(user.pri().x());
-        challenge.c1 = Gp.Exponentiate(challenge.c1, x_inv);
-        challenge.c2 = Gp.Exponentiate(challenge.c2, x_inv);
-        challenge.c3 = Gp.Exponentiate(challenge.c3, x_inv);
+        response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
+        response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
+        response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
+        response.access = access.prepare(user.pri(), record, lambda);
 
         // send the challenge
         nlohmann::json response_json = challenge;
         std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
         {
-            crn::packets::envelop<crn::packets::response> envelop(crn::packets::type::response, challenge);
+            crn::packets::envelop<crn::packets::response> envelop(crn::packets::type::response, response);
             envelop.write(socket);
         }
     }

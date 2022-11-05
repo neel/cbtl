@@ -33,11 +33,11 @@ class server: public boost::enable_shared_from_this<server>, private boost::nonc
     boost::asio::ip::tcp::acceptor  _acceptor;
     socket_type                     _socket;
     boost::asio::signal_set         _signals;
-    crn::storage&                        _db;
-    crn::identity::user&            _master;
+    crn::storage&                   _db;
+    crn::keys::identity::pair       _master;
   public:
-    server(crn::storage& db, crn::identity::user& master, boost::asio::io_service& io, std::uint32_t port);
-    server(crn::storage& db, crn::identity::user& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint);
+    server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, std::uint32_t port);
+    server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint);
     ~server() noexcept;
     void stop();
     void run();

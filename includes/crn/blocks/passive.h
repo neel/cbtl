@@ -38,8 +38,8 @@ struct passive{
      * y is the public key of the passive user
      */
     static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t);
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master, const CryptoPP::Integer& t);
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::identity::keys::private_key& master);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& t);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::keys::identity::private_key& master);
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::parts::passive>;

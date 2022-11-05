@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 
     crn::storage db;
 
-    crn::identity::user master(secret_key, public_key);
+    crn::keys::identity::pair master(secret_key, public_key);
     // master.init();
 
     boost::asio::io_service io;

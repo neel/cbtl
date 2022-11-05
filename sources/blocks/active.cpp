@@ -23,10 +23,10 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoS
     crn::blocks::parts::active part(forward, t, hash);
     return part;
 }
-crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master, const CryptoPP::Integer& token) {
+crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& token) {
     return construct(rng, pub.G(), pub.y(), master.x(), token);
 }
-crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::identity::keys::private_key& master){
+crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::keys::identity::private_key& master){
     return crn::blocks::parts::active::construct(rng, p.pub(), master, p.token());
 }
 
@@ -46,7 +46,7 @@ std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP
     return crn::utils::eHex(addr);
 }
 
-bool crn::blocks::parts::active::verify(const CryptoPP::Integer& token, const crn::identity::keys::public_key& pub, const crn::identity::keys::private_key& master) const{
+bool crn::blocks::parts::active::verify(const CryptoPP::Integer& token, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master) const{
     return verify(pub.G(), token, pub.y(), master.x());
 }
 
@@ -59,13 +59,14 @@ bool crn::blocks::parts::active::verify(const crn::group& G, const CryptoPP::Int
     return _checksum == hash;
 }
 
-crn::packets::challenge crn::blocks::parts::active::challenge(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& rho) const{
+crn::packets::challenge crn::blocks::parts::active::challenge(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& rho, const CryptoPP::Integer& lambda) const{
     auto Gp = G.Gp(), Gp1 = G.Gp1();
     auto rho_inv = Gp1.MultiplicativeInverse(rho);
     crn::packets::challenge c;
     c.c1 = Gp.Multiply( token, Gp.Exponentiate(_forward, rho) );
     c.c2 = Gp.Exponentiate(token, rho_inv);
     c.c3 = _forward;
+    c.random = lambda;
     return c;
 }
 
