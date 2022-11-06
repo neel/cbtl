@@ -83,7 +83,8 @@ void crn::session::handle_request(const crn::packets::request& req){
         // construct challenge
         CryptoPP::AutoSeededRandomPool rng;
         CryptoPP::Integer rho = G.random(rng, true), lambda = G.random(rng, true);
-        crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho, lambda);
+        auto cipher = G.Gp().Multiply(lambda, G.Gp().Exponentiate(pub.y(), _master.pri().x()));
+        crn::packets::challenge challenge = access.active().challenge(rng, _master.pub().G(), req.token, rho, cipher);
         _challenge_data.token      = req.token;
         _challenge_data.y          = req.y;
         _challenge_data.last       = access.address().id();
