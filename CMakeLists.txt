@@ -40,10 +40,6 @@ target_link_libraries(crn-manager    crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES
 
 target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
 
-# target_include_directories(crn-server     PUBLIC ${INCLUDE_DIRS})
-# target_include_directories(crn-init       PUBLIC ${INCLUDE_DIRS})
-# target_include_directories(crn-manager    PUBLIC ${INCLUDE_DIRS})
-
 install(TARGETS crn         RUNTIME DESTINATION lib)
 install(TARGETS crn-server  RUNTIME DESTINATION bin)
 install(TARGETS crn-init    RUNTIME DESTINATION bin)
