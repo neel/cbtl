@@ -125,11 +125,11 @@ void crn::session::handle_challenge_response(const crn::packets::response& respo
 
             std::cout << "computed access key: " << std::endl << access << std::endl;
 
-            crn::keys::identity::public_key passive("patient-0.pub");
-            passive.init();
-            crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive, _master.pri());
+            crn::keys::identity::public_key passive_pub("patient-0.pub");
+            // passive.init();
+            crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, _master.pri());
             crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
-            crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive, _master.pri());
+            crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive_pub, _master.pri());
             CryptoPP::AutoSeededRandomPool rng;
             crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token);
             std::cout << "written new block: " << block.address().hash() << std::endl;

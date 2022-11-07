@@ -24,13 +24,13 @@ struct params{
 
         static active genesis(const crn::keys::identity::public_key& pub);
 
-        inline const CryptoPP::Integer& id() const { return _id; }
+        inline const CryptoPP::Integer& last() const { return _last; }
         inline const crn::keys::identity::public_key& pub() const { return _pub; }
         inline const CryptoPP::Integer& token() const { return _token; }
         protected:
             active(const crn::keys::identity::public_key& pub);
         private:
-            CryptoPP::Integer _id;
+            CryptoPP::Integer _last;
             crn::keys::identity::public_key _pub;
             CryptoPP::Integer _token;    ///< $ g^{\pi_{u}^{-1}r_{u}^{(0)}} $
     };
@@ -42,13 +42,13 @@ struct params{
         static passive genesis(const crn::keys::identity::public_key& pub);
         static passive construct(const crn::blocks::access& last, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri);
 
-        inline const CryptoPP::Integer& id() const { return _id; }
+        inline const CryptoPP::Integer& last() const { return _last; }
         inline const crn::keys::identity::public_key& pub() const { return _pub; }
         inline const CryptoPP::Integer& token() const { return _token; }
         protected:
             passive(const crn::keys::identity::public_key& pub);
         private:
-            CryptoPP::Integer _id;
+            CryptoPP::Integer _last;
             crn::keys::identity::public_key _pub;
             CryptoPP::Integer _token;    ///< $ g^{\pi_{v}r_{v}^{(0)}} $
     };

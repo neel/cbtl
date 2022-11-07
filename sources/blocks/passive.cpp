@@ -8,7 +8,7 @@
 crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t){
     auto rho = G.random(rng, true), r = G.random(rng, false);
     auto forward  = G.Gp().Exponentiate(y, rho);
-                      forward  = G.Gp().Exponentiate(forward, r);
+         forward  = G.Gp().Exponentiate(forward, r);
     auto backward = (t == 0) ? CryptoPP::Integer::Zero() : G.Gp().Exponentiate(t, rho);
     auto rho_inv  = G.Gp1().MultiplicativeInverse(rho);
     auto cipher   = G.Gp().Multiply(rho_inv, G.Gp().Exponentiate(y, w));

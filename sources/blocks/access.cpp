@@ -5,6 +5,7 @@
 #include "crn/utils.h"
 #include "crn/keys.h"
 #include "crn/storage.h"
+#include <cryptopp/nbtheory.h>
 
 crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive): _active(active), _passive(passive){
     if(_active == _passive){
@@ -34,7 +35,10 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
 }
 
 crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request) {
-    auto active  = parts::active::construct(rng, p.a(), master);
+    auto Gp = master.Gp();
+
+    CryptoPP::Integer random;
+    auto active  = parts::active::construct(rng, p.a(), master, random);
     auto passive = parts::passive::construct(rng, p.p(), master);
 
     if(active_request.IsZero()){
@@ -46,7 +50,24 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
 
     CryptoPP::Integer addr_active  = p.a().address(active_request);
     CryptoPP::Integer addr_passive = p.p().address();
+
     addresses addr(addr_active, addr_passive);
+
+    CryptoPP::Integer xv = Gp.Exponentiate(p.p().pub().y(), random), yv = addr_active;
+    CryptoPP::Integer xu = active_request, yu = addr_passive;
+    // CryptoPP::Integer dx = Gp.Subtract(xv, xu), dy = Gp.Subtract(yv, yu), mdy = Gp.Subtract(yu, yv);
+    // CryptoPP::Integer c  = Gp.Subtract(Gp.Multiply(dy, xu), Gp.Multiply(dx, yu));
+    //
+    // CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, mdy);
+    // auto res = Gp.Divide(c, gcd);
+    // if(res.IsZero()){
+    //     // TODO check Math
+    // }else{
+    //
+    // }
+    CryptoPP::Integer xs = Gp.Divide(Gp.Add(xu, xv), 2), ys = Gp.Divide(Gp.Add(yu, yv), 2);
+    CryptoPP::Integer xt = Gp.Divide(Gp.Add(xs, xv), 2), yt = Gp.Divide(Gp.Add(ys, yv), 2);
+
     return access(active, passive, addr);
 }
 
@@ -83,7 +104,7 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
     return last;
 }
 
-void crn::blocks::access::line() const{
-    CryptoPP::Integer delta_x , delta_y;
+void crn::blocks::access::line(const CryptoPP::Integer& xu, const CryptoPP::Integer& xv) const{
+    CryptoPP::Integer delta_x, delta_y;
 }
 
