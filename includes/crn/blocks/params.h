@@ -53,17 +53,19 @@ struct params{
             CryptoPP::Integer _token;    ///< $ g^{\pi_{v}r_{v}^{(0)}} $
     };
 
-    active  _active;
-    passive _passive;
-    crn::keys::identity::private_key  _master;
-
     params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master);
     params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master);
 
-    // inline const active& active() const { return _active; }
-    // inline const passive& passive() const { return _passive; }
+    inline const params::active& a() const { return _active; }
+    inline const params::passive& p() const { return _passive; }
+    inline const crn::keys::identity::private_key& mastre() const { return _master; }
 
     static params genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& passive_pub);
+
+    private:
+        active  _active;
+        passive _passive;
+        crn::keys::identity::private_key  _master;
 };
 
 }

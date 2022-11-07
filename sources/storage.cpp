@@ -76,7 +76,7 @@ bool crn::storage::add(const crn::blocks::access& block){
         Dbt value((void*) block_str.c_str(), block_str.size());
         r_block = _blocks->put(NULL, &id, &value, DB_NOOVERWRITE);
     }
-    if(!block.is_genesis()){
+    if(!block.genesis()){
         {
             std::string active_address = crn::utils::eHex(block.address().active());
             Dbt key((void*) active_address.c_str(), active_address.size());

@@ -7,6 +7,7 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/osrng.h>
 #include <nlohmann/json.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "crn/group.h"
 #include "crn/utils.h"
 #include "crn/keys.h"
@@ -40,14 +41,23 @@ struct access{
             std::string hash() const;
     };
 
+    struct contents{
+        std::string _message;
+    };
+
     inline const parts::active& active() const { return _active; }
     inline const parts::passive& passive() const { return _passive; }
     inline const addresses& address() const { return _address; }
-    inline bool is_genesis() const { return _address.active() == _address.passive(); }
+    inline bool genesis() const { return _address.active() == _address.passive(); }
     inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::eHex(crn::utils::sha512(y)); }
+    inline const boost::posix_time::ptime& requested() const { return _requested;}
+    inline const boost::posix_time::ptime& created() const { return _created;}
+
 
     static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master);
     static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request);
+
+    void line() const;
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
         access(const parts::active& active, const parts::passive& passive, const addresses& addr);
@@ -55,6 +65,9 @@ struct access{
         parts::active     _active;
         parts::passive    _passive;
         addresses         _address;
+        contents          _contents;
+        boost::posix_time::ptime _requested;
+        boost::posix_time::ptime _created;
 };
 
 access genesis(crn::storage& db, const crn::keys::identity::public_key& pub);

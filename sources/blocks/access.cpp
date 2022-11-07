@@ -10,7 +10,8 @@ crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const
     if(_active == _passive){
         _id = crn::utils::sha512(_active);
     }else{
-        _id = crn::utils::sha512(crn::utils::eHex(_active) + " " + crn::utils::eHex(_passive));
+        std::string input = crn::utils::eHex(_active) + " " + crn::utils::eHex(_passive);
+        _id = crn::utils::sha512(input);
     }
 }
 
@@ -21,11 +22,11 @@ std::string crn::blocks::access::addresses::hash() const{
 crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr): _active(active), _passive(passive), _address(addr){}
 
 crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master){
-    if(p._active.genesis() == p._passive.genesis() && p._active.genesis()){
-        auto active  = parts::active::construct(rng, p._active, master);
-        auto passive = parts::passive::construct(rng, p._passive, master);
+    if(p.a().genesis() == p.p().genesis() && p.a().genesis()){
+        auto active  = parts::active::construct(rng, p.a(), master);
+        auto passive = parts::passive::construct(rng, p.p(), master);
 
-        addresses addr(p._active.pub().y(), p._passive.pub().y());
+        addresses addr(p.a().pub().y(), p.p().pub().y());
         return access(active, passive, addr);
     }else{
         throw std::invalid_argument("p is not genesis parameters");
@@ -33,18 +34,18 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
 }
 
 crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request) {
-    auto active  = parts::active::construct(rng, p._active, master);
-    auto passive = parts::passive::construct(rng, p._passive, master);
+    auto active  = parts::active::construct(rng, p.a(), master);
+    auto passive = parts::passive::construct(rng, p.p(), master);
 
     if(active_request.IsZero()){
         throw std::invalid_argument("active_request must not be zero unless it is a genesis block (use genesis function in that case)");
     }
-    if(p._active.genesis() == p._passive.genesis() && p._active.genesis()){
+    if(p.a().genesis() == p.p().genesis() && p.a().genesis()){
         throw std::invalid_argument("genesis parms not accepted (use genesis function)");
     }
 
-    CryptoPP::Integer addr_active  = p._active.address(active_request);
-    CryptoPP::Integer addr_passive = p._passive.address();
+    CryptoPP::Integer addr_active  = p.a().address(active_request);
+    CryptoPP::Integer addr_passive = p.p().address();
     addresses addr(addr_active, addr_passive);
     return access(active, passive, addr);
 }
@@ -80,5 +81,9 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
         }
     }
     return last;
+}
+
+void crn::blocks::access::line() const{
+    CryptoPP::Integer delta_x , delta_y;
 }
 
