@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
         response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
         response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
         response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
-        response.access = access.prepare(user.pri(), record, lambda);
+        response.access = access.prepare(user.pri(), lambda);
 
         // send the challenge
         nlohmann::json response_json = challenge;

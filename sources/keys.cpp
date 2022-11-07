@@ -127,11 +127,10 @@ crn::keys::access_key::access_key(const std::string& path){
 }
 
 
-CryptoPP::Integer crn::keys::access_key::prepare(const crn::keys::identity::private_key& pri, const CryptoPP::Integer& k, const CryptoPP::Integer& lambda) const{
+CryptoPP::Integer crn::keys::access_key::prepare(const crn::keys::identity::private_key& pri, const CryptoPP::Integer& lambda) const{
     auto Gp = pri.Gp(), Gp1 = pri.Gp1();
     auto x_inv = Gp1.MultiplicativeInverse(pri.x());
     auto res   = Gp.Exponentiate(_secret, x_inv);
-         res   = Gp.Exponentiate(res, k);
          res   = Gp.Exponentiate(res, lambda);
     return res;
 }

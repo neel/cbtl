@@ -128,7 +128,7 @@ struct access_key{
     static access_key construct(const CryptoPP::Integer& theta, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master);
     access_key(const std::string& path);
 
-    CryptoPP::Integer prepare(const crn::keys::identity::private_key& pri, const CryptoPP::Integer& k, const CryptoPP::Integer& lambda) const;
+    CryptoPP::Integer prepare(const crn::keys::identity::private_key& pri, const CryptoPP::Integer& lambda) const;
 
     static CryptoPP::Integer reconstruct(const CryptoPP::Integer& prepared, const CryptoPP::Integer& lambda, const crn::keys::identity::private_key& master);
 
