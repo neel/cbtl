@@ -39,6 +39,9 @@ struct group{
 
 };
 
+bool operator==(const group& l, const group& r);
+bool operator!=(const group& l, const group& r);
+
 inline CryptoPP::ModularArithmetic G(const CryptoPP::Integer& p){ return CryptoPP::ModularArithmetic(p); }
 
 }

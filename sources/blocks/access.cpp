@@ -6,6 +6,9 @@
 #include "crn/keys.h"
 #include "crn/storage.h"
 #include <cryptopp/nbtheory.h>
+#include <cryptopp/polynomi.h>
+#include <cryptopp/aes.h>
+#include <cryptopp/modes.h>
 
 crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive): _active(active), _passive(passive){
     if(_active == _passive){
@@ -20,15 +23,53 @@ std::string crn::blocks::access::addresses::hash() const{
     return crn::utils::eHex(_id);
 }
 
-crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr): _active(active), _passive(passive), _address(addr){}
+crn::blocks::access::contents::contents(const crn::coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg): _random(random), _gamma(gamma), _message(msg) { }
+crn::blocks::access::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::access::addresses& addr, const std::string& msg): _random(pub.G()){
+    auto G = pub.G();
+    auto Gp = G.Gp();
+    CryptoPP::Integer xv = Gp.Exponentiate(pub.y(), random), yv = addr.active();
+    CryptoPP::Integer xu = active_req, yu = addr.passive();
+    compute(crn::coordinates{G, xu, yu}, crn::coordinates{G, xv, yv}, msg);
+}
+
+
+void crn::blocks::access::contents::compute(const crn::coordinates& p1, const crn::coordinates& p2, const std::string& msg){
+    crn::linear_diophantine line = crn::linear_diophantine::interpolate(p1, p2);
+    CryptoPP::AutoSeededRandomPool rng;
+    _random = line.random(rng, false);
+    crn::coordinates r = line.random(rng, false);
+    _gamma = r.x();
+    CryptoPP::Integer delta = r.y();
+
+    // // { TODO encrypt msg with delta;
+    // std::vector<CryptoPP::byte> bytes;
+    // bytes.resize(delta.MinEncodedSize());
+    // delta.Encode(&bytes[0], bytes.size());
+    // CryptoPP::SHA256 hash;
+    // CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
+    // hash.CalculateDigest(digest, bytes.data(), bytes.size());
+    // std::string ciphertext;
+    // CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
+    // enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+    // CryptoPP::StringSink sink(ciphertext);
+    // CryptoPP::StreamTransformationFilter transformer(enc, &sink);
+    // CryptoPP::StringSource(msg, true, &transformer);
+    // // }
+    // _message = ciphertext;
+}
+
+
+crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body): _active(active), _passive(passive), _address(addr), _contents(body){}
 
 crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master){
     if(p.a().genesis() == p.p().genesis() && p.a().genesis()){
-        auto active  = parts::active::construct(rng, p.a(), master);
+        CryptoPP::Integer random;
+        auto active  = parts::active::construct(rng, p.a(), master, random);
         auto passive = parts::passive::construct(rng, p.p(), master);
 
         addresses addr(p.a().pub().y(), p.p().pub().y());
-        return access(active, passive, addr);
+        access::contents contents(p.p().pub(), random, 0, addr, "");
+        return access(active, passive, addr, contents);
     }else{
         throw std::invalid_argument("p is not genesis parameters");
     }
@@ -52,23 +93,9 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     CryptoPP::Integer addr_passive = p.p().address();
 
     addresses addr(addr_active, addr_passive);
+    access::contents contents(p.p().pub(), random, active_request, addr, "Hello World");
 
-    CryptoPP::Integer xv = Gp.Exponentiate(p.p().pub().y(), random), yv = addr_active;
-    CryptoPP::Integer xu = active_request, yu = addr_passive;
-    // CryptoPP::Integer dx = Gp.Subtract(xv, xu), dy = Gp.Subtract(yv, yu), mdy = Gp.Subtract(yu, yv);
-    // CryptoPP::Integer c  = Gp.Subtract(Gp.Multiply(dy, xu), Gp.Multiply(dx, yu));
-    //
-    // CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, mdy);
-    // auto res = Gp.Divide(c, gcd);
-    // if(res.IsZero()){
-    //     // TODO check Math
-    // }else{
-    //
-    // }
-    CryptoPP::Integer xs = Gp.Divide(Gp.Add(xu, xv), 2), ys = Gp.Divide(Gp.Add(yu, yv), 2);
-    CryptoPP::Integer xt = Gp.Divide(Gp.Add(xs, xv), 2), yt = Gp.Divide(Gp.Add(ys, yv), 2);
-
-    return access(active, passive, addr);
+    return access(active, passive, addr, contents);
 }
 
 crn::blocks::access crn::blocks::genesis(crn::storage& db, const crn::keys::identity::public_key& pub){

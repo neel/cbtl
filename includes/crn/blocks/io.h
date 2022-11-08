@@ -60,20 +60,42 @@ namespace nlohmann {
             };
         }
     };
+
+    template <>
+    struct adl_serializer<crn::blocks::access::contents> {
+        static crn::blocks::access::contents from_json(const json& j) {
+            crn::coordinates random = j["random"].get<crn::coordinates>();
+            CryptoPP::Integer gamma = crn::utils::dHex(j["gamma"].get<std::string>());
+            std::string message     = j["message"].get<std::string>();
+
+            return crn::blocks::access::contents(random, gamma, message);
+        }
+
+        static void to_json(json& j, const crn::blocks::access::contents& contents) {
+            j = nlohmann::json {
+                {"random",   contents.random()},
+                {"gamma",    crn::utils::eHex(contents.gamma())},
+                {"message",  contents._message}
+            };
+        }
+    };
+
     template <>
     struct adl_serializer<crn::blocks::access> {
         static crn::blocks::access from_json(const json& j) {
             crn::blocks::parts::active     active    = j["active"].get<crn::blocks::parts::active>();
             crn::blocks::parts::passive    passive   = j["passive"].get<crn::blocks::parts::passive>();
             crn::blocks::access::addresses addresses = j["address"].get<crn::blocks::access::addresses>();
-            return crn::blocks::access(active, passive, addresses);
+            crn::blocks::access::contents  contents  = j["contents"].get<crn::blocks::access::contents>();
+            return crn::blocks::access(active, passive, addresses, contents);
         }
 
         static void to_json(json& j, const crn::blocks::access& block) {
             j = nlohmann::json {
-                {"active",  block._active},
-                {"passive", block._passive},
-                {"address", block._address}
+                {"active",   block._active},
+                {"passive",  block._passive},
+                {"address",  block._address},
+                {"contents", block._contents}
             };
         }
     };

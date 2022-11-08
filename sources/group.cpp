@@ -28,6 +28,14 @@ CryptoPP::Integer crn::group::random(CryptoPP::AutoSeededRandomPool& rng, bool i
     return r;
 }
 
+bool crn::operator==(const crn::group& l, const crn::group& r){
+    return l.g() == r.g() && l.p() == r.p() && l.q() == r.q();
+}
+bool crn::operator!=(const crn::group& l, const crn::group& r){
+    return !operator==(l, r);
+}
+
+
 void crn::to_json(nlohmann::json& j, const crn::group& grp){
     j = nlohmann::json {
         {"p", crn::utils::eHex(grp.p())},

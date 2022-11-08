@@ -13,6 +13,7 @@
 #include "crn/keys.h"
 #include "crn/blocks/active.h"
 #include "crn/blocks/passive.h"
+#include "crn/line.h"
 
 namespace crn{
 
@@ -42,8 +43,18 @@ struct access{
     };
 
     struct contents{
-        CryptoPP::Integer alpha, beta, gamma;
-        std::string _message;
+        contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const addresses& addr, const std::string& msg);
+        private:
+            friend class nlohmann::adl_serializer<crn::blocks::access::contents>;
+            contents(const crn::coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg);
+            void compute(const crn::coordinates& p1, const crn::coordinates& p2, const std::string& msg);
+
+            inline const crn::coordinates& random() const { return _random; }
+            inline const CryptoPP::Integer& gamma() const { return _gamma; }
+        private:
+            crn::coordinates  _random;
+            CryptoPP::Integer _gamma;
+            std::string       _message;
     };
 
     inline const parts::active& active() const { return _active; }
@@ -61,7 +72,7 @@ struct access{
     void line(const CryptoPP::Integer& xu, const CryptoPP::Integer& xv) const;
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
-        access(const parts::active& active, const parts::passive& passive, const addresses& addr);
+        access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body);
     private:
         parts::active     _active;
         parts::passive    _passive;
