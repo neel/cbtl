@@ -44,13 +44,12 @@ struct access{
 
     struct contents{
         contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const addresses& addr, const std::string& msg);
+        inline const crn::free_coordinates& random() const { return _random; }
+        inline const CryptoPP::Integer& gamma() const { return _gamma; }
         private:
             friend class nlohmann::adl_serializer<crn::blocks::access::contents>;
             contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg);
             void compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G);
-
-            inline const crn::free_coordinates& random() const { return _random; }
-            inline const CryptoPP::Integer& gamma() const { return _gamma; }
         private:
             crn::free_coordinates  _random;
             CryptoPP::Integer _gamma;
@@ -64,7 +63,7 @@ struct access{
     inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::eHex(crn::utils::sha512(y)); }
     inline const boost::posix_time::ptime& requested() const { return _requested;}
     inline const boost::posix_time::ptime& created() const { return _created;}
-
+    inline const contents& body() const { return _contents; }
 
     static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master);
     static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request);

@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
         ("secret,s", boost::program_options::value<std::string>(), "path to the secret key")
         ("access,a", boost::program_options::value<std::string>(), "path to the access key")
         ("master,m", boost::program_options::value<std::string>(), "path to the trusted server's public key")
-        ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
+        // ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
         ;
 
     boost::program_options::variables_map map;
@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
                 secret_key = map["secret"].as<std::string>(),
                 access_key = map["access"].as<std::string>(),
                 master_key = map["master"].as<std::string>();
-
-    std::uint64_t record = map["record"].as<std::uint64_t>();
+/*
+    std::uint64_t record = map["record"].as<std::uint64_t>();*/
 
     crn::storage db;
 
@@ -44,8 +44,6 @@ int main(int argc, char** argv) {
 
     crn::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
-
-    std::cout << "G.p(): " << G.p() << std::endl;
 
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::resolver resolver(io_context);

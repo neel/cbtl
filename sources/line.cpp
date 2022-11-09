@@ -18,9 +18,9 @@ crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::free_coo
         free_coordinates shift{l.x(), l.y()};
         free_coordinates delta{a, b};
 
-        std::cout << "a: " << a << std::endl;
-        std::cout << "b: " << b << std::endl;
-        std::cout << "c: " << c << std::endl;
+        // std::cout << "a: " << a << std::endl;
+        // std::cout << "b: " << b << std::endl;
+        // std::cout << "c: " << c << std::endl;
 
         return crn::linear_diophantine(a, b, c, delta, shift);
     }else{

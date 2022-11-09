@@ -40,6 +40,7 @@ void crn::blocks::access::contents::compute(const crn::free_coordinates& p1, con
     crn::free_coordinates r = line.random(rng, G.p()-1);
     _gamma = r.x();
     CryptoPP::Integer delta = r.y();
+    std::cout << "password: " << delta << std::endl;
 }
 
 
