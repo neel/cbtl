@@ -122,8 +122,8 @@ namespace nlohmann {
     template <>
     struct adl_serializer<crn::free_coordinates> {
         static crn::free_coordinates from_json(const json& j) {
-            CryptoPP::Integer x = crn::utils::dHex(j["x"].get<std::string>());
-            CryptoPP::Integer y = crn::utils::dHex(j["y"].get<std::string>());
+            CryptoPP::Integer x = crn::utils::dHex(j["x"].get<std::string>(), true);
+            CryptoPP::Integer y = crn::utils::dHex(j["y"].get<std::string>(), true);
             return crn::free_coordinates{x, y};
         }
 
