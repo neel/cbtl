@@ -8,7 +8,7 @@
 
 std::string crn::utils::eHex(const CryptoPP::Integer& value){
     std::vector<CryptoPP::byte> bytes;
-    bytes.resize(value.MinEncodedSize());
+    bytes.resize(value.MinEncodedSize(value.IsNegative() ? CryptoPP::Integer::SIGNED : CryptoPP::Integer::UNSIGNED));
     value.Encode(&bytes[0], bytes.size());
     CryptoPP::HexEncoder encoder;
     std::string output;
