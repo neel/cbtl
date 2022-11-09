@@ -4,41 +4,55 @@
 #include "crn/line.h"
 #include <iostream>
 
-crn::linear_diophantine::linear_diophantine(const crn::group& G, const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const vector<2>& delta, const vector<2>& shift): _G(G), _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
+crn::linear_diophantine::linear_diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const crn::free_coordinates& delta, const crn::free_coordinates& shift): _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
 
-crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::coordinates& l, const crn::coordinates& r){
-    assert(l.G() == r.G());
-    auto Gp = l.G().Gp();
-    CryptoPP::Integer dx  = Gp.Subtract(r.x(), l.x()), dy = Gp.Subtract(r.y(), l.y()), mdy = Gp.Subtract(l.y(), r.y());
-    CryptoPP::Integer c   = Gp.Subtract(Gp.Multiply(dx, l.y()), Gp.Multiply(dy, l.x()));
-    // CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, mdy);
-    // CryptoPP::Integer res = Gp.Divide(c, gcd);
-    // if(res.IsZero()){
-    //     // auto a = Gp.Divide(mdy, gcd), b = Gp.Divide(dx, gcd);
-    //     // c = res;
-    //     //
-    //     // crn::vector<2> shift{l.G(), l.x(), l.y()};
-    //     // crn::vector<2> delta{l.G(), a, b};
-    //     //
-    //     // return crn::line(l.G(), a, b, c, delta, shift);
-    //     throw std::runtime_error("NO NO NO Math broke");
-    // }
-    crn::vector<2> shift{l.G(), l.x(), l.y()};
-    crn::vector<2> delta{l.G(), dx, dy};
-    auto line = crn::linear_diophantine(l.G(), mdy, dx, c, delta, shift);
+crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::free_coordinates& l, const crn::free_coordinates& r){
+    CryptoPP::Integer dx  = r.x() - l.x(), dy = r.y() - l.y(), mdy = l.y() - r.y();
+    CryptoPP::Integer c   = (r.x() * l.y()) - (r.y() * l.x());
+    CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, mdy);
+    CryptoPP::Integer res = c / gcd;
+    if(!res.IsZero()){
+        auto a = mdy / gcd, b = dx / gcd;
+        c = res;
 
-    std::cout << "l.y(): " << l.y() << std::endl;
-    std::cout << "eval: " << line.eval(l.x()) << std::endl;
+        free_coordinates shift{l.x(), l.y()};
+        free_coordinates delta{a, b};
 
-    return line;
+        std::cout << "a: " << a << std::endl;
+        std::cout << "b: " << b << std::endl;
+        std::cout << "c: " << c << std::endl;
+
+        return crn::linear_diophantine(a, b, c, delta, shift);
+    }else{
+        throw std::runtime_error("NO NO NO Math broke");
+    }
+    // free_coordinates shift{l.x(), l.y()};
+    // free_coordinates delta{dx, dy};
+    // auto line = crn::linear_diophantine(mdy, dx, c, delta, shift);
+    //
+    // // std::cout << "l.x(): " << l.x() << std::endl;
+    // // std::cout << "l.y(): " << l.y() << std::endl;
+    // // std::cout << "r.x(): " << r.x() << std::endl;
+    // // std::cout << "r.y(): " << r.y() << std::endl;
+    // // std::cout << "eval: " << line.eval(l.x()) << std::endl;
+    //
+    // return line;
 }
 
-crn::coordinates crn::linear_diophantine::random(CryptoPP::AutoSeededRandomPool& rng, bool invertible) const{
-    auto r = _G.random(rng, invertible);
+crn::free_coordinates crn::linear_diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& p) const{
+    CryptoPP::Integer r(rng, 2, p-1);
     return _shift + (_delta * r);
 }
 
 CryptoPP::Integer crn::linear_diophantine::eval(const CryptoPP::Integer& x) const{
-    auto Gp = _G.Gp();
-    return Gp.Divide(Gp.Subtract(_c, Gp.Multiply(x, _a)), _b);
+    return (_c - (_a * x)) / _b;
+}
+
+
+crn::free_coordinates crn::operator+(const crn::free_coordinates& l, const crn::free_coordinates& r){
+    return crn::free_coordinates{l.x() + r.x(), l.y() + r.y()};
+}
+
+crn::free_coordinates crn::operator*(const crn::free_coordinates& c, const CryptoPP::Integer& s){
+    return crn::free_coordinates{c.x() * s, c.y() * s};
 }

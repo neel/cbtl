@@ -64,7 +64,7 @@ namespace nlohmann {
     template <>
     struct adl_serializer<crn::blocks::access::contents> {
         static crn::blocks::access::contents from_json(const json& j) {
-            crn::coordinates random = j["random"].get<crn::coordinates>();
+            crn::free_coordinates random = j["random"].get<crn::free_coordinates>();
             CryptoPP::Integer gamma = crn::utils::dHex(j["gamma"].get<std::string>());
             std::string message     = j["message"].get<std::string>();
 

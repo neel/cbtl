@@ -23,21 +23,21 @@ std::string crn::blocks::access::addresses::hash() const{
     return crn::utils::eHex(_id);
 }
 
-crn::blocks::access::contents::contents(const crn::coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg): _random(random), _gamma(gamma), _message(msg) { }
-crn::blocks::access::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::access::addresses& addr, const std::string& msg): _random(pub.G()){
+crn::blocks::access::contents::contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg): _random(random), _gamma(gamma), _message(msg) { }
+crn::blocks::access::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::access::addresses& addr, const std::string& msg) {
     auto G = pub.G();
     auto Gp = G.Gp();
     CryptoPP::Integer xv = Gp.Exponentiate(pub.y(), random), yv = addr.active();
     CryptoPP::Integer xu = active_req, yu = addr.passive();
-    compute(crn::coordinates{G, xu, yu}, crn::coordinates{G, xv, yv}, msg);
+    compute(crn::free_coordinates{xu, yu}, crn::free_coordinates{xv, yv}, msg, G);
 }
 
 
-void crn::blocks::access::contents::compute(const crn::coordinates& p1, const crn::coordinates& p2, const std::string& msg){
+void crn::blocks::access::contents::compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G){
     crn::linear_diophantine line = crn::linear_diophantine::interpolate(p1, p2);
     CryptoPP::AutoSeededRandomPool rng;
-    _random = line.random(rng, false);
-    crn::coordinates r = line.random(rng, false);
+    _random = line.random(rng, G.p()-1);
+    crn::free_coordinates r = line.random(rng, G.p()-1);
     _gamma = r.x();
     CryptoPP::Integer delta = r.y();
 }

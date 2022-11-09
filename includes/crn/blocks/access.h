@@ -46,13 +46,13 @@ struct access{
         contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const addresses& addr, const std::string& msg);
         private:
             friend class nlohmann::adl_serializer<crn::blocks::access::contents>;
-            contents(const crn::coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg);
-            void compute(const crn::coordinates& p1, const crn::coordinates& p2, const std::string& msg);
+            contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg);
+            void compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G);
 
-            inline const crn::coordinates& random() const { return _random; }
+            inline const crn::free_coordinates& random() const { return _random; }
             inline const CryptoPP::Integer& gamma() const { return _gamma; }
         private:
-            crn::coordinates  _random;
+            crn::free_coordinates  _random;
             CryptoPP::Integer _gamma;
             std::string       _message;
     };

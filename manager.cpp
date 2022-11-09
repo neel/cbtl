@@ -45,6 +45,8 @@ int main(int argc, char** argv) {
     crn::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
 
+    std::cout << "G.p(): " << G.p() << std::endl;
+
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::resolver resolver(io_context);
     boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve("127.0.0.1", "9887");
