@@ -40,22 +40,6 @@ void crn::blocks::access::contents::compute(const crn::coordinates& p1, const cr
     crn::coordinates r = line.random(rng, false);
     _gamma = r.x();
     CryptoPP::Integer delta = r.y();
-
-    // // { TODO encrypt msg with delta;
-    // std::vector<CryptoPP::byte> bytes;
-    // bytes.resize(delta.MinEncodedSize());
-    // delta.Encode(&bytes[0], bytes.size());
-    // CryptoPP::SHA256 hash;
-    // CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
-    // hash.CalculateDigest(digest, bytes.data(), bytes.size());
-    // std::string ciphertext;
-    // CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
-    // enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-    // CryptoPP::StringSink sink(ciphertext);
-    // CryptoPP::StreamTransformationFilter transformer(enc, &sink);
-    // CryptoPP::StringSource(msg, true, &transformer);
-    // // }
-    // _message = ciphertext;
 }
 
 
