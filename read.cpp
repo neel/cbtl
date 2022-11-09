@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), map);
     boost::program_options::notify(map);
 
-    if(map.count("help") || !map.count("public") || !map.count("secret")){
+    if(map.count("help") || !map.count("public") || !map.count("secret") || !map.count("at")){
         std::cout << desc << std::endl;
         return 1;
     }
@@ -62,8 +62,10 @@ int main(int argc, char** argv) {
             auto line = crn::linear_diophantine::interpolate(crn::free_coordinates{x, y}, random);
             CryptoPP::Integer password = line.eval(body.gamma());
 
-            std::cout << block_id << std::endl;
-            std::cout << password << std::endl;
+            std::cout << i << std::endl;
+            std::cout << "block id: " << std::endl << block_id << std::endl;
+            std::cout << "password: " << std::endl << password << std::endl;
+            std::cout << "-----------------------------" << std::endl;
         }else{
             break;
         }
