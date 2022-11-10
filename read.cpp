@@ -75,8 +75,12 @@ int main(int argc, char** argv) {
             CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
             dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
             std::string plaintext;
-            CryptoPP::StringSource s(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext)))); // StringSource
-
+            try{
+                CryptoPP::StringSource s(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext)))); // StringSource
+            }catch(const CryptoPP::InvalidCiphertext&){
+                std::cout << "invalid ciphertext" << std::endl;
+                plaintext = "failed";
+            }
             std::cout << i << std::endl;
             std::cout << "block id: " << std::endl << block_id << std::endl;
             std::cout << "password: " << std::endl << delta << std::endl;
