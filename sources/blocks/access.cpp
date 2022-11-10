@@ -70,6 +70,10 @@ void crn::blocks::access::contents::compute(const crn::free_coordinates& p1, con
 
     std::cout << "H(secret): " << hash_str << std::endl;
 
+    CryptoPP::Integer hash_int;
+    hash_int.Decode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+    // TODO supervisor
+
     std::string ciphertext;
     CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
     enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);

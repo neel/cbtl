@@ -53,8 +53,9 @@ struct access{
             void compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G);
         private:
             crn::free_coordinates  _random;
-            CryptoPP::Integer _gamma;
-            std::string       _message;
+            CryptoPP::Integer      _gamma;
+            CryptoPP::Integer      _super;
+            std::string            _message;
     };
 
     inline const parts::active& active() const { return _active; }
