@@ -11,6 +11,7 @@ int main(int argc, char** argv){
         ("help,h", "prints this help message")
         ("public,p", boost::program_options::value<std::string>(), "path to the public key")
         ("secret,s", boost::program_options::value<std::string>(), "path to the secret key")
+        ("view,v",   boost::program_options::value<std::string>(), "path to the master view secret")
         ;
 
     boost::program_options::variables_map map;
