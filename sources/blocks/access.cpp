@@ -8,6 +8,7 @@
 #include <cryptopp/nbtheory.h>
 #include <cryptopp/polynomi.h>
 #include <cryptopp/aes.h>
+#include <cryptopp/base64.h>
 #include <cryptopp/modes.h>
 
 crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive): _active(active), _passive(passive){
@@ -41,6 +42,23 @@ void crn::blocks::access::contents::compute(const crn::free_coordinates& p1, con
     _gamma = r.x();
     CryptoPP::Integer delta = r.y();
     std::cout << "password: " << delta << std::endl;
+
+    // { TODO encrypt msg with delta;
+    auto signedness = delta.IsNegative() ? CryptoPP::Integer::SIGNED : CryptoPP::Integer::UNSIGNED;
+    std::vector<CryptoPP::byte> bytes;
+    bytes.resize(delta.MinEncodedSize(signedness));
+    delta.Encode(&bytes[0], bytes.size());
+    CryptoPP::SHA256 hash;
+    CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
+    hash.CalculateDigest(digest, bytes.data(), bytes.size());
+    std::string ciphertext;
+    CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
+    enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+    CryptoPP::StringSource(msg, true, new CryptoPP::StreamTransformationFilter(enc, new CryptoPP::Base64Encoder(new CryptoPP::StringSink(ciphertext), false))); // StringSource
+
+    // }
+    _message = ciphertext;
+
 }
 
 
@@ -53,7 +71,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
         auto passive = parts::passive::construct(rng, p.p(), master);
 
         addresses addr(p.a().pub().y(), p.p().pub().y());
-        access::contents contents(p.p().pub(), random, 0, addr, "");
+        access::contents contents(p.p().pub(), random, 0, addr, "genesis");
         return access(active, passive, addr, contents);
     }else{
         throw std::invalid_argument("p is not genesis parameters");

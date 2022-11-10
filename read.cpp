@@ -9,6 +9,9 @@
 #include "crn/packets.h"
 #include "crn/keys.h"
 #include "crn/blocks.h"
+#include <cryptopp/aes.h>
+#include <cryptopp/modes.h>
+#include <cryptopp/base64.h>
 
 int main(int argc, char** argv) {
     boost::program_options::options_description desc("CLI Frontend for Data Managers");
@@ -60,11 +63,24 @@ int main(int argc, char** argv) {
             auto body = last.body();
             crn::free_coordinates random = body.random();
             auto line = crn::linear_diophantine::interpolate(crn::free_coordinates{x, y}, random);
-            CryptoPP::Integer password = line.eval(body.gamma());
+            CryptoPP::Integer delta = line.eval(body.gamma());
+            std::string ciphertext = body.ciphertext();
+
+            std::vector<CryptoPP::byte> bytes;
+            bytes.resize(delta.MinEncodedSize(CryptoPP::Integer::SIGNED));
+            delta.Encode(&bytes[0], bytes.size());
+            CryptoPP::SHA256 hash;
+            CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
+            hash.CalculateDigest(digest, bytes.data(), bytes.size());
+            CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
+            dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+            std::string plaintext;
+            CryptoPP::StringSource s(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext)))); // StringSource
 
             std::cout << i << std::endl;
             std::cout << "block id: " << std::endl << block_id << std::endl;
-            std::cout << "password: " << std::endl << password << std::endl;
+            std::cout << "password: " << std::endl << delta << std::endl;
+            std::cout << "message:  " << std::endl << plaintext << std::endl;
             std::cout << "-----------------------------" << std::endl;
         }else{
             break;

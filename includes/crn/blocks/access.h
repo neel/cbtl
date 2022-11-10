@@ -46,6 +46,7 @@ struct access{
         contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const addresses& addr, const std::string& msg);
         inline const crn::free_coordinates& random() const { return _random; }
         inline const CryptoPP::Integer& gamma() const { return _gamma; }
+        inline const std::string& ciphertext() const { return _message; }
         private:
             friend class nlohmann::adl_serializer<crn::blocks::access::contents>;
             contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg);
