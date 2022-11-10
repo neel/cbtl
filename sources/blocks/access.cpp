@@ -10,6 +10,7 @@
 #include <cryptopp/aes.h>
 #include <cryptopp/base64.h>
 #include <cryptopp/modes.h>
+#include <cryptopp/hex.h>
 
 crn::blocks::access::addresses::addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive): _active(active), _passive(passive){
     if(_active == _passive){
@@ -29,6 +30,9 @@ crn::blocks::access::contents::contents(const crn::keys::identity::public_key& p
     auto G = pub.G();
     auto Gp = G.Gp();
     CryptoPP::Integer xv = Gp.Exponentiate(pub.y(), random), yv = addr.active();
+
+    // std::cout << "coordinates:" << std::endl << xv << yv << std::endl;
+
     CryptoPP::Integer xu = active_req, yu = addr.passive();
     compute(crn::free_coordinates{xu, yu}, crn::free_coordinates{xv, yv}, msg, G);
 }
@@ -43,14 +47,29 @@ void crn::blocks::access::contents::compute(const crn::free_coordinates& p1, con
     CryptoPP::Integer delta = r.y();
     std::cout << "password: " << delta << std::endl;
 
+    assert(crn::linear_diophantine::interpolate(p1, _random) == line);
+    assert(crn::linear_diophantine::interpolate(p2, _random) == line);
+    assert(crn::linear_diophantine::interpolate(p1, r) == line);
+    assert(crn::linear_diophantine::interpolate(p2, r) == line);
+    assert(crn::linear_diophantine::interpolate(r, _random) == line);
+
     // { TODO encrypt msg with delta;
     auto signedness = delta.IsNegative() ? CryptoPP::Integer::SIGNED : CryptoPP::Integer::UNSIGNED;
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(delta.MinEncodedSize(signedness));
-    delta.Encode(&bytes[0], bytes.size());
+    delta.Encode(&bytes[0], bytes.size(), signedness);
     CryptoPP::SHA256 hash;
     CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
     hash.CalculateDigest(digest, bytes.data(), bytes.size());
+
+    CryptoPP::HexEncoder encoder;
+    std::string hash_str;
+    encoder.Attach(new CryptoPP::StringSink(hash_str));
+    encoder.Put(digest, sizeof(digest));
+    encoder.MessageEnd();
+
+    std::cout << "H(secret): " << hash_str << std::endl;
+
     std::string ciphertext;
     CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
     enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);

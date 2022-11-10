@@ -55,6 +55,11 @@ struct free_coordinates {
 free_coordinates operator*(const free_coordinates& c, const CryptoPP::Integer& s);
 free_coordinates operator+(const free_coordinates& l, const free_coordinates& r);
 
+inline std::ostream& operator<<(std::ostream& os, const free_coordinates& c){
+    os << "x: " << c.x() << ", y: " << c.y();
+    return os;
+}
+
 template <std::size_t N>
 vector<N> operator+(const vector<N>& l, const vector<N>& r){
     assert(l.G() == r.G());
@@ -109,12 +114,24 @@ class linear_diophantine{
     CryptoPP::Integer _a, _b, _c;
     crn::free_coordinates _delta, _shift;
 
+    friend std::ostream& operator<<(std::ostream&, const linear_diophantine&);
+    friend bool operator==(const linear_diophantine&, const linear_diophantine&);
+
     linear_diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const free_coordinates& delta, const free_coordinates& shift);
     public:
         static linear_diophantine interpolate(const free_coordinates& l, const free_coordinates& r);
         free_coordinates random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& p) const;
         CryptoPP::Integer eval(const CryptoPP::Integer& x) const;
 };
+
+inline bool operator==(const linear_diophantine& l, const linear_diophantine& r){
+    return l._a == r._a && l._b == r._b && l._c == r._c;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const linear_diophantine& line){
+    os << line._a << "x" << " + " << line._b << "y" << " = " << line._c;
+    return os;
+}
 
 }
 

@@ -7,22 +7,33 @@
 crn::linear_diophantine::linear_diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const crn::free_coordinates& delta, const crn::free_coordinates& shift): _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
 
 crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::free_coordinates& l, const crn::free_coordinates& r){
-    CryptoPP::Integer dx  = r.x() - l.x(), dy = r.y() - l.y(), mdy = l.y() - r.y();
-    CryptoPP::Integer c   = (r.x() * l.y()) - (r.y() * l.x());
-    CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, mdy);
+    CryptoPP::Integer dx  = r.x() - l.x(), dy = r.y() - l.y();
+    CryptoPP::Integer c   = (r.y() * l.x()) - (r.x() * l.y());
+    CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, dy);
     CryptoPP::Integer res = c / gcd;
+
+    // std::cout << "res: " << res << std::endl;
+
     if(!res.IsZero()){
-        auto a = mdy / gcd, b = dx / gcd;
+        auto a = dy / gcd, b = dx / gcd;
         c = res;
 
+        if(a.IsNegative()){
+            a = -1 * a;
+            b = -1 * b;
+            c = -1 * c;
+        }
+
         free_coordinates shift{l.x(), l.y()};
-        free_coordinates delta{a, b};
+        free_coordinates delta{-b, -a};
 
-        // std::cout << "a: " << a << std::endl;
-        // std::cout << "b: " << b << std::endl;
-        // std::cout << "c: " << c << std::endl;
+        // std::cout << "shift: " << shift << std::endl;
+        // std::cout << "delta: " << delta << std::endl;
 
-        return crn::linear_diophantine(a, b, c, delta, shift);
+        auto line = crn::linear_diophantine(a, -b, c, delta, shift);
+        assert(line.eval(l.x()) == l.y());
+        assert(line.eval(r.x()) == r.y());
+        return line;
     }else{
         throw std::runtime_error("NO NO NO Math broke");
     }
@@ -41,7 +52,10 @@ crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::free_coo
 
 crn::free_coordinates crn::linear_diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& p) const{
     CryptoPP::Integer r(rng, 2, p-1);
-    return _shift + (_delta * r);
+    // std::cout << "r: " << r << std::endl;
+    auto coordinate = _shift + (_delta * r);
+    assert(eval(coordinate.x()) == coordinate.y());
+    return coordinate;
 }
 
 CryptoPP::Integer crn::linear_diophantine::eval(const CryptoPP::Integer& x) const{

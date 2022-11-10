@@ -3,6 +3,7 @@
 #include "crn/utils.h"
 #include <cryptopp/modarith.h>
 #include <cassert>
+#include "crn/line.h"
 
 int main(int argc, char** argv){
     // CryptoPP::Integer x1("59155865408868259425557571612471620428297988408165845346132791388203026665780027334884289790496698975366550859751679098576474914656477108493456088740714638392460074168696957786644452257687431017811952658833178670113578592426217762888790213090753444458649558440508900270736330461377938922007295905864081619510");
@@ -48,9 +49,28 @@ int main(int argc, char** argv){
     //
     // }
 
-    CryptoPP::Integer a("-24");
-    std::string hex = crn::utils::eHex(a);
-    CryptoPP::Integer b = crn::utils::dHex(hex, true);
+    // CryptoPP::Integer a("-24");
+    // std::string hex = crn::utils::eHex(a);
+    // CryptoPP::Integer b = crn::utils::dHex(hex, true);
+    //
+    // std::cout << hex << std::endl << b << std::endl;
 
-    std::cout << hex << std::endl << b << std::endl;
+    CryptoPP::AutoSeededRandomPool rng;
+
+    crn::free_coordinates p1{5, -7}, p2{8, -12};
+    auto line = crn::linear_diophantine::interpolate(p1, p2);
+
+    auto r1 = line.random(rng, 50);
+    auto r2 = line.random(rng, 50);
+
+    std::cout << line << std::endl;
+    std::cout << r1 << std::endl;
+    std::cout << crn::linear_diophantine::interpolate(p1, r1) << std::endl;
+    std::cout << r2 << std::endl;
+
+    assert(crn::linear_diophantine::interpolate(p1, r1) == line);
+    assert(crn::linear_diophantine::interpolate(p2, r1) == line);
+    assert(crn::linear_diophantine::interpolate(p1, r2) == line);
+    assert(crn::linear_diophantine::interpolate(p2, r2) == line);
+    assert(crn::linear_diophantine::interpolate(r2, r1) == line);
 }

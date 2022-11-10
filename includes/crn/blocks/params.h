@@ -58,7 +58,7 @@ struct params{
 
     inline const params::active& a() const { return _active; }
     inline const params::passive& p() const { return _passive; }
-    inline const crn::keys::identity::private_key& mastre() const { return _master; }
+    inline const crn::keys::identity::private_key& master() const { return _master; }
 
     static params genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& passive_pub);
 
