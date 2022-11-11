@@ -133,7 +133,7 @@ void crn::session::handle_challenge_response(const crn::packets::response& respo
             crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
             crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive_pub, _master.pri());
             CryptoPP::AutoSeededRandomPool rng;
-            crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token);
+            crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, access, _view);
             std::cout << "written new block: " << block.address().hash() << std::endl;
             if(_db.exists(block.address().hash())){
                 // TODO abort

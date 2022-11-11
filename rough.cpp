@@ -2,6 +2,7 @@
 #include <iostream>
 #include "crn/utils.h"
 #include <cryptopp/modarith.h>
+#include <cryptopp/osrng.h>
 #include <cassert>
 #include "crn/line.h"
 
@@ -55,22 +56,33 @@ int main(int argc, char** argv){
     //
     // std::cout << hex << std::endl << b << std::endl;
 
+    // CryptoPP::AutoSeededRandomPool rng;
+    //
+    // crn::free_coordinates p1{5, -7}, p2{8, -12};
+    // auto line = crn::linear_diophantine::interpolate(p1, p2);
+    //
+    // auto r1 = line.random(rng, 50);
+    // auto r2 = line.random(rng, 50);
+    //
+    // std::cout << line << std::endl;
+    // std::cout << r1 << std::endl;
+    // std::cout << crn::linear_diophantine::interpolate(p1, r1) << std::endl;
+    // std::cout << r2 << std::endl;
+    //
+    // assert(crn::linear_diophantine::interpolate(p1, r1) == line);
+    // assert(crn::linear_diophantine::interpolate(p2, r1) == line);
+    // assert(crn::linear_diophantine::interpolate(p1, r2) == line);
+    // assert(crn::linear_diophantine::interpolate(p2, r2) == line);
+    // assert(crn::linear_diophantine::interpolate(r2, r1) == line);
+
+    CryptoPP::Integer s = -17, d = -3;
+    CryptoPP::Integer min = (2-s) / d;
+    CryptoPP::Integer max = (100-s) / d;
+    std::cout << min << std::endl;
+    std::cout << max << std::endl;
+
     CryptoPP::AutoSeededRandomPool rng;
+    CryptoPP::Integer r(rng, std::min(min, max), std::max(min, max));
+    std::cout << (s + (r * d)) << std::endl;
 
-    crn::free_coordinates p1{5, -7}, p2{8, -12};
-    auto line = crn::linear_diophantine::interpolate(p1, p2);
-
-    auto r1 = line.random(rng, 50);
-    auto r2 = line.random(rng, 50);
-
-    std::cout << line << std::endl;
-    std::cout << r1 << std::endl;
-    std::cout << crn::linear_diophantine::interpolate(p1, r1) << std::endl;
-    std::cout << r2 << std::endl;
-
-    assert(crn::linear_diophantine::interpolate(p1, r1) == line);
-    assert(crn::linear_diophantine::interpolate(p2, r1) == line);
-    assert(crn::linear_diophantine::interpolate(p1, r2) == line);
-    assert(crn::linear_diophantine::interpolate(p2, r2) == line);
-    assert(crn::linear_diophantine::interpolate(r2, r1) == line);
 }

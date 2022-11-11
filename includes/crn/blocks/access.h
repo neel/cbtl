@@ -43,14 +43,14 @@ struct access{
     };
 
     struct contents{
-        contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const addresses& addr, const std::string& msg);
+        contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const addresses& addr, const std::string& msg, const CryptoPP::Integer& super);
         inline const crn::free_coordinates& random() const { return _random; }
         inline const CryptoPP::Integer& gamma() const { return _gamma; }
         inline const std::string& ciphertext() const { return _message; }
         private:
             friend class nlohmann::adl_serializer<crn::blocks::access::contents>;
             contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg);
-            void compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G);
+            void compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G, const CryptoPP::Integer& super);
         private:
             crn::free_coordinates  _random;
             CryptoPP::Integer      _gamma;
@@ -68,7 +68,7 @@ struct access{
     inline const contents& body() const { return _contents; }
 
     static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master);
-    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request);
+    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const crn::keys::view_key& view);
 
     void line(const CryptoPP::Integer& xu, const CryptoPP::Integer& xv) const;
     protected:

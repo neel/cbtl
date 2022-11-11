@@ -52,6 +52,7 @@ struct free_coordinates {
         CryptoPP::Integer _x, _y;
 };
 
+bool operator==(const free_coordinates& l, const free_coordinates& r);
 free_coordinates operator*(const free_coordinates& c, const CryptoPP::Integer& s);
 free_coordinates operator+(const free_coordinates& l, const free_coordinates& r);
 

@@ -10,6 +10,9 @@ crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::free_coo
     CryptoPP::Integer dx  = r.x() - l.x(), dy = r.y() - l.y();
     CryptoPP::Integer c   = (r.y() * l.x()) - (r.x() * l.y());
     CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, dy);
+    if(gcd.IsZero()){
+        std::cout << "dx: " << dx << std::endl << "dy: " << dy << std::endl;
+    }
     CryptoPP::Integer res = c / gcd;
 
     // std::cout << "res: " << res << std::endl;
@@ -51,6 +54,35 @@ crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::free_coo
 }
 
 crn::free_coordinates crn::linear_diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& p) const{
+    // Generates a random coordinate that satisfies the line
+    // The x coordinate must be less that p-1
+    // The multiplicative inverse of the x coordinate must not exist in Z_{p-1}
+    // Following is a brute force implementation but it can be better with little effort.
+
+    // auto min = (2 - _shift.x()) / _delta.x();
+    // auto max = (p - _shift.x()) / _delta.x();
+    //
+    // std::cout << "s: " << _shift << std::endl << "d: " << _delta << std::endl;
+    // std::cout << "min: " << min << std::endl << "max: " << max << std::endl;
+    //
+    // if(max - min < 10) {
+    //     std::cout << "difficult " << std::endl;
+    // }
+    //
+    // CryptoPP::ModularArithmetic Gp1(p-1);
+    // while(true){
+    //     CryptoPP::Integer r(rng, std::min(min, max), std::max(min, max));
+    //     auto coordinate = _shift + (_delta * r);
+    //     if(coordinate.x() >= 2 && coordinate.x() <= (p-1)){
+    //         std::cout << coordinate.x() << std::endl;
+    //         auto x_inv = Gp1.MultiplicativeInverse(coordinate.x());
+    //         if(x_inv.IsZero()){
+    //             assert(eval(coordinate.x()) == coordinate.y());
+    //             return coordinate;
+    //         }
+    //     }
+    // }
+
     CryptoPP::Integer r(rng, 2, p-1);
     // std::cout << "r: " << r << std::endl;
     auto coordinate = _shift + (_delta * r);
@@ -62,7 +94,9 @@ CryptoPP::Integer crn::linear_diophantine::eval(const CryptoPP::Integer& x) cons
     return (_c - (_a * x)) / _b;
 }
 
-
+bool crn::operator==(const crn::free_coordinates& l, const crn::free_coordinates& r){
+    return l.x() == r.x() && l.y() == r.y();
+}
 crn::free_coordinates crn::operator+(const crn::free_coordinates& l, const crn::free_coordinates& r){
     return crn::free_coordinates{l.x() + r.x(), l.y() + r.y()};
 }
