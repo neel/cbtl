@@ -35,9 +35,10 @@ class server: public boost::enable_shared_from_this<server>, private boost::nonc
     boost::asio::signal_set         _signals;
     crn::storage&                   _db;
     crn::keys::identity::pair       _master;
+    crn::keys::view_key             _view;
   public:
-    server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, std::uint32_t port);
-    server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint);
+    server(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, boost::asio::io_service& io, std::uint32_t port);
+    server(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint);
     ~server() noexcept;
     void stop();
     void run();

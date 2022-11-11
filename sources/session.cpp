@@ -3,9 +3,9 @@
 
 #include "crn/session.h"
 
-crn::session::session(crn::storage& db, const crn::keys::identity::pair& master, socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()), _db(db), _master(master) { }
+crn::session::session(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()), _db(db), _master(master), _view(view) { }
 
-crn::session::pointer crn::session::create(crn::storage& db, const crn::keys::identity::pair& master, socket_type socket) { return pointer(new session(db, master, std::move(socket))); }
+crn::session::pointer crn::session::create(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, socket_type socket) { return pointer(new session(db, master, view, std::move(socket))); }
 
 void crn::session::run(){
     do_read();
@@ -122,6 +122,8 @@ void crn::session::handle_challenge_response(const crn::packets::response& respo
             std::cout << "Verification Successful" << std::endl;
 
             auto access = crn::keys::access_key::reconstruct(response.access, _challenge_data.lambda, _master.pri());
+
+            Gp.Multiply(Gp.Exponentiate(_master.pub().y(), _view.secret()),  Gp.Exponentiate(access, _master.pri().x()));
 
             std::cout << "computed access key: " << std::endl << access << std::endl;
 

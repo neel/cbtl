@@ -3,10 +3,10 @@
 
 #include "crn/server.h"
 
-crn::server::server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, std::uint32_t port): server(db, master, io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
+crn::server::server(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, boost::asio::io_service& io, std::uint32_t port): server(db, master, view, io, boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::any(), port)) {}
 
 
-crn::server::server(crn::storage& db, const crn::keys::identity::pair& master, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM), _db(db), _master(master) {
+crn::server::server(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, boost::asio::io_service& io, const boost::asio::ip::tcp::endpoint& endpoint):_io(io), _acceptor(_io), _socket(io), _signals(io, SIGINT, SIGTERM), _db(db), _master(master), _view(view) {
     boost::system::error_code ec;
     _acceptor.open(endpoint.protocol(), ec);
     if(ec) throw std::runtime_error((boost::format("Failed to open acceptor %1%") % ec.message()).str());
@@ -48,7 +48,7 @@ void crn::server::on_accept(boost::system::error_code ec){
         // TODO failed to accept
         std::cout << "on_accept: " << ec.message() << std::endl;
     }else{
-        auto conn = session::create(_db, _master, std::move(_socket));
+        auto conn = session::create(_db, _master, _view, std::move(_socket));
         conn->run();
     }
     accept();

@@ -24,16 +24,18 @@ int main(int argc, char** argv){
     }
 
     std::string public_key = map["public"].as<std::string>(),
-                secret_key = map["secret"].as<std::string>();
+                secret_key = map["secret"].as<std::string>(),
+                view_key   = map["view"].as<std::string>();
 
     crn::storage db;
 
     crn::keys::identity::pair master(secret_key, public_key);
+    crn::keys::view_key view(view_key);
     // master.init();
 
     boost::asio::io_service io;
 
-    crn::server server(db, master, io, 9887);
+    crn::server server(db, master, view, io, 9887);
     server.run();
 
     io.run();
