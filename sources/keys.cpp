@@ -158,4 +158,21 @@ void crn::keys::access_key::load(const std::string& name){
     _secret = crn::utils::dHex(hexed);
 }
 
+crn::keys::view_key::view_key(const std::string& name){
+    load(name);
+}
 
+
+void crn::keys::view_key::save(const std::string& name) const{
+    std::ofstream access(name+".view");
+    access << crn::utils::eHex(_secret);
+    access.close();
+}
+
+void crn::keys::view_key::load(const std::string& name){
+    std::ifstream access(name+".view");
+    std::string hexed;
+    access >> hexed;
+    access.close();
+    _secret = crn::utils::dHex(hexed);
+}

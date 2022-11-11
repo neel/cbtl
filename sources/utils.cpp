@@ -7,9 +7,10 @@
 
 
 std::string crn::utils::eHex(const CryptoPP::Integer& value){
+    auto signedness = value.IsNegative() ? CryptoPP::Integer::SIGNED : CryptoPP::Integer::UNSIGNED;
     std::vector<CryptoPP::byte> bytes;
-    bytes.resize(value.MinEncodedSize());
-    value.Encode(&bytes[0], bytes.size());
+    bytes.resize(value.MinEncodedSize(signedness));
+    value.Encode(&bytes[0], bytes.size(), signedness);
     CryptoPP::HexEncoder encoder;
     std::string output;
     encoder.Attach(new CryptoPP::StringSink(output));
@@ -18,7 +19,7 @@ std::string crn::utils::eHex(const CryptoPP::Integer& value){
     return output;
 }
 
-CryptoPP::Integer crn::utils::dHex(const std::string& str){
+CryptoPP::Integer crn::utils::dHex(const std::string& str, bool sign){
     CryptoPP::HexDecoder decoder;
     decoder.Put( (CryptoPP::byte*) str.data(), str.size() );
     decoder.MessageEnd();
@@ -26,7 +27,7 @@ CryptoPP::Integer crn::utils::dHex(const std::string& str){
     bytes.resize(decoder.MaxRetrievable());
     decoder.Get(&bytes[0], bytes.size());
     CryptoPP::Integer value;
-    value.Decode(&bytes[0], bytes.size());
+    value.Decode(&bytes[0], bytes.size(), sign ? CryptoPP::Integer::SIGNED : CryptoPP::Integer::UNSIGNED);
     return value;
 }
 

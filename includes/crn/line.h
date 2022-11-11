@@ -41,6 +41,26 @@ struct coordinates: vector<2> {
     inline const CryptoPP::Integer& y() const { return vector<2>::at(1); }
 };
 
+struct free_coordinates {
+    inline free_coordinates() = default;
+    inline free_coordinates(const free_coordinates&) = default;
+    inline free_coordinates(const CryptoPP::Integer& x, const CryptoPP::Integer& y): _x(x), _y(y) {}
+    inline const CryptoPP::Integer& x() const { return _x; }
+    inline const CryptoPP::Integer& y() const { return _y; }
+
+    private:
+        CryptoPP::Integer _x, _y;
+};
+
+bool operator==(const free_coordinates& l, const free_coordinates& r);
+free_coordinates operator*(const free_coordinates& c, const CryptoPP::Integer& s);
+free_coordinates operator+(const free_coordinates& l, const free_coordinates& r);
+
+inline std::ostream& operator<<(std::ostream& os, const free_coordinates& c){
+    os << "x: " << c.x() << ", y: " << c.y();
+    return os;
+}
+
 template <std::size_t N>
 vector<N> operator+(const vector<N>& l, const vector<N>& r){
     assert(l.G() == r.G());
@@ -93,33 +113,42 @@ vector<N> operator/(const CryptoPP::Integer& s, const vector<N>& c){
  */
 class linear_diophantine{
     CryptoPP::Integer _a, _b, _c;
-    vector<2> _delta, _shift;
-    crn::group   _G;
+    crn::free_coordinates _delta, _shift;
 
-    linear_diophantine(const crn::group& G, const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const vector<2>& delta, const vector<2>& shift);
+    friend std::ostream& operator<<(std::ostream&, const linear_diophantine&);
+    friend bool operator==(const linear_diophantine&, const linear_diophantine&);
+
+    linear_diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const free_coordinates& delta, const free_coordinates& shift);
     public:
-        static linear_diophantine interpolate(const coordinates& l, const coordinates& r);
-        coordinates random(CryptoPP::AutoSeededRandomPool& rng, bool invertible) const;
+        static linear_diophantine interpolate(const free_coordinates& l, const free_coordinates& r);
+        free_coordinates random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& p) const;
         CryptoPP::Integer eval(const CryptoPP::Integer& x) const;
 };
+
+inline bool operator==(const linear_diophantine& l, const linear_diophantine& r){
+    return l._a == r._a && l._b == r._b && l._c == r._c;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const linear_diophantine& line){
+    os << line._a << "x" << " + " << line._b << "y" << " = " << line._c;
+    return os;
+}
 
 }
 
 namespace nlohmann {
     template <>
-    struct adl_serializer<crn::coordinates> {
-        static crn::coordinates from_json(const json& j) {
-            CryptoPP::Integer x = crn::utils::dHex(j["x"].get<std::string>());
-            CryptoPP::Integer y = crn::utils::dHex(j["y"].get<std::string>());
-            crn::group G = j["G"].get<crn::group>();
-            return crn::coordinates{G, x, y};
+    struct adl_serializer<crn::free_coordinates> {
+        static crn::free_coordinates from_json(const json& j) {
+            CryptoPP::Integer x = crn::utils::dHex(j["x"].get<std::string>(), true);
+            CryptoPP::Integer y = crn::utils::dHex(j["y"].get<std::string>(), true);
+            return crn::free_coordinates{x, y};
         }
 
-        static void to_json(json& j, const crn::coordinates& c) {
+        static void to_json(json& j, const crn::free_coordinates& c) {
             j = nlohmann::json {
                 {"x", crn::utils::eHex(c.x())},
-                {"y", crn::utils::eHex(c.y())},
-                {"G", c.G()}
+                {"y", crn::utils::eHex(c.y())}
             };
         }
     };

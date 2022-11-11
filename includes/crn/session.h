@@ -59,13 +59,14 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     crn::packets::header            _head;
     crn::storage&                   _db;
     crn::keys::identity::pair       _master;
+    crn::keys::view_key             _view;
     challenge_data                  _challenge_data;
   public:
     typedef boost::shared_ptr<session> pointer;
-    static pointer create(crn::storage& db, const crn::keys::identity::pair& master, socket_type socket);
+    static pointer create(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, socket_type socket);
     inline ~session() {}
   private:
-    explicit session(crn::storage& db, const crn::keys::identity::pair& master, socket_type socket);
+    explicit session(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, socket_type socket);
   public:
       void run();
       void do_read();

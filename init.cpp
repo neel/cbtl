@@ -62,9 +62,12 @@ int main(int argc, char** argv) {
 
     CryptoPP::Integer theta = trusted_server.pub().random(rng, false), phi = trusted_server.pub().random(rng, false);
 
-    std::ofstream view(master+".view");
-    view << crn::utils::eHex(phi);
-    view.close();
+    // std::ofstream view(master+".view");
+    // view << crn::utils::eHex(phi);
+    // view.close();
+
+    crn::keys::view_key view(phi);
+    view.save("master");
 
     crn::group G = trusted_server.pub();
     auto Gp = G.Gp();

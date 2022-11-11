@@ -139,6 +139,20 @@ struct access_key{
         CryptoPP::Integer _secret;
 };
 
+struct view_key{
+    void save(const std::string& name) const;
+    void load(const std::string& name);
+
+    view_key() = delete;
+
+    inline explicit view_key(const CryptoPP::Integer& phi): _secret(phi) {}
+    explicit view_key(const std::string& name);
+
+    inline const CryptoPP::Integer& secret() const { return _secret; }
+    private:
+        CryptoPP::Integer _secret;
+};
+
 }
 
 }
