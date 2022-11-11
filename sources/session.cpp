@@ -123,7 +123,7 @@ void crn::session::handle_challenge_response(const crn::packets::response& respo
 
             auto access = crn::keys::access_key::reconstruct(response.access, _challenge_data.lambda, _master.pri());
 
-            Gp.Multiply(Gp.Exponentiate(_master.pub().y(), _view.secret()),  Gp.Exponentiate(access, _master.pri().x()));
+            // auto sup_suffix = Gp.Multiply(Gp.Exponentiate(_master.pub().y(), _view.secret()),  Gp.Exponentiate(access, _master.pri().x()));
 
             std::cout << "computed access key: " << std::endl << access << std::endl;
 
