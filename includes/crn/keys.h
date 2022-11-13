@@ -146,6 +146,7 @@ struct view_key{
     view_key() = delete;
 
     inline explicit view_key(const CryptoPP::Integer& phi): _secret(phi) {}
+    static view_key construct(const CryptoPP::Integer& phi, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master);
     explicit view_key(const std::string& name);
 
     inline const CryptoPP::Integer& secret() const { return _secret; }

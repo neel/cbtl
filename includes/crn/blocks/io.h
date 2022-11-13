@@ -66,15 +66,17 @@ namespace nlohmann {
         static crn::blocks::access::contents from_json(const json& j) {
             crn::free_coordinates random = j["random"].get<crn::free_coordinates>();
             CryptoPP::Integer gamma      = crn::utils::dHex(j["gamma"].get<std::string>(), true);
+            CryptoPP::Integer super      = crn::utils::dHex(j["super"].get<std::string>());
             std::string message          = j["message"].get<std::string>();
 
-            return crn::blocks::access::contents(random, gamma, message);
+            return crn::blocks::access::contents(random, gamma, super, message);
         }
 
         static void to_json(json& j, const crn::blocks::access::contents& contents) {
             j = nlohmann::json {
                 {"random",   contents.random()},
                 {"gamma",    crn::utils::eHex(contents.gamma())},
+                {"super",    crn::utils::eHex(contents.super())},
                 {"message",  contents._message}
             };
         }

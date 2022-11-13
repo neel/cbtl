@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include "crn/utils.h"
+#include "crn/keys.h"
 #include <cryptopp/modarith.h>
 #include <cryptopp/osrng.h>
 #include <cassert>
@@ -80,14 +81,17 @@ int main(int argc, char** argv){
     // assert(crn::linear_diophantine::interpolate(p2, r2) == line);
     // assert(crn::linear_diophantine::interpolate(r2, r1) == line);
 
-    CryptoPP::Integer s = -17, d = -3;
-    CryptoPP::Integer min = (2-s) / d;
-    CryptoPP::Integer max = (100-s) / d;
-    std::cout << min << std::endl;
-    std::cout << max << std::endl;
+//    CryptoPP::Integer s = -17, d = -3;
+//    CryptoPP::Integer min = (2-s) / d;
+//    CryptoPP::Integer max = (100-s) / d;
+//    std::cout << min << std::endl;
+//    std::cout << max << std::endl;
 
-    CryptoPP::AutoSeededRandomPool rng;
-    CryptoPP::Integer r(rng, std::min(min, max), std::max(min, max));
-    std::cout << (s + (r * d)) << std::endl;
+//    CryptoPP::AutoSeededRandomPool rng;
+//    CryptoPP::Integer r(rng, std::min(min, max), std::max(min, max));
+//    std::cout << (s + (r * d)) << std::endl;
+
+    crn::keys::access_key access("manager-0.access");
+
 
 }

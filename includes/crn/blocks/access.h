@@ -47,9 +47,10 @@ struct access{
         inline const crn::free_coordinates& random() const { return _random; }
         inline const CryptoPP::Integer& gamma() const { return _gamma; }
         inline const std::string& ciphertext() const { return _message; }
+        inline const CryptoPP::Integer& super() const { return _super; }
         private:
             friend class nlohmann::adl_serializer<crn::blocks::access::contents>;
-            contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg);
+            contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const CryptoPP::Integer& super, const std::string& msg);
             void compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G, const CryptoPP::Integer& super);
         private:
             crn::free_coordinates  _random;

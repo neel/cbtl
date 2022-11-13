@@ -93,9 +93,8 @@ int main(int argc, char** argv) {
         key.save(name);
         auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
         access.save(name);
-        std::ofstream view(name+".view");
-        view << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), phi) );
-        view.close();
+        auto view   = crn::keys::view_key::construct(phi, key.pub(), trusted_server.pri());
+        view.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
         db.add(genesis);

@@ -158,6 +158,13 @@ void crn::keys::access_key::load(const std::string& name){
     _secret = crn::utils::dHex(hexed);
 }
 
+crn::keys::view_key crn::keys::view_key::construct(const CryptoPP::Integer& phi, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master){
+    auto Gp = pub.Gp();
+    auto secret = Gp.Exponentiate(Gp.Exponentiate(pub.y(), phi), master.x());
+
+    return crn::keys::view_key(secret);
+}
+
 crn::keys::view_key::view_key(const std::string& name){
     load(name);
 }
@@ -170,9 +177,12 @@ void crn::keys::view_key::save(const std::string& name) const{
 }
 
 void crn::keys::view_key::load(const std::string& name){
-    std::ifstream access(name+".view");
+    std::ifstream view(name);
+    if(!view.is_open()){
+        throw std::runtime_error("Failed to open "+name);
+    }
     std::string hexed;
-    access >> hexed;
-    access.close();
+    view >> hexed;
+    view.close();
     _secret = crn::utils::dHex(hexed);
 }

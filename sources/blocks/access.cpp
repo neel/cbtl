@@ -25,7 +25,7 @@ std::string crn::blocks::access::addresses::hash() const{
     return crn::utils::eHex(_id);
 }
 
-crn::blocks::access::contents::contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const std::string& msg): _random(random), _gamma(gamma), _message(msg) { }
+crn::blocks::access::contents::contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const CryptoPP::Integer& super, const std::string& msg): _random(random), _gamma(gamma), _message(msg), _super(super) { }
 crn::blocks::access::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::access::addresses& addr, const std::string& msg, const CryptoPP::Integer& super) {
     auto G = pub.G();
     auto Gp = G.Gp();
@@ -126,6 +126,8 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     }
 
     auto suffix = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(G.g(), view.secret()),  gaccess), master.x());
+
+    std::cout << "suffix: " << suffix << std::endl;
 
     CryptoPP::Integer addr_active  = p.a().address(active_request);
     CryptoPP::Integer addr_passive = p.p().address();
