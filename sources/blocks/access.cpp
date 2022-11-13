@@ -29,11 +29,11 @@ crn::blocks::access::contents::contents(const crn::free_coordinates& random, con
 crn::blocks::access::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::access::addresses& addr, const std::string& msg, const CryptoPP::Integer& super) {
     auto G = pub.G();
     auto Gp = G.Gp();
-    CryptoPP::Integer xv = Gp.Exponentiate(pub.y(), random), yv = addr.active();
+    CryptoPP::Integer xv = crn::utils::sha256(Gp.Exponentiate(pub.y(), random)), yv = addr.active();
 
     // std::cout << "coordinates:" << std::endl << xv << yv << std::endl;
 
-    CryptoPP::Integer xu = active_req, yu = addr.passive();
+    CryptoPP::Integer xu = crn::utils::sha256(active_req), yu = addr.passive();
     compute(crn::free_coordinates{xu, yu}, crn::free_coordinates{xv, yv}, msg, G, super);
 }
 
@@ -41,15 +41,17 @@ crn::blocks::access::contents::contents(const crn::keys::identity::public_key& p
 void crn::blocks::access::contents::compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G, const CryptoPP::Integer& super){
     crn::linear_diophantine line = crn::linear_diophantine::interpolate(p1, p2);
     CryptoPP::AutoSeededRandomPool rng;
-    _random = line.random(rng, G.p()-1);
-    if(_random == p1 || _random == p2){
-        _random = line.random(rng, G.p()-1);
+    _random = line.random(rng, G.p());
+    while(_random == p1 || _random == p2){
+        _random = line.random(rng, G.p());
     }
-    crn::free_coordinates r = line.random(rng, G.p()-1);
+    crn::free_coordinates r = line.random(rng, G.p());
     while(r == _random || r == p1 || r == p2){
-        r = line.random(rng, G.p()-1);
+        r = line.random(rng, G.p());
     }
     _gamma = r.x();
+    assert(_gamma.IsPositive());
+    assert(_gamma <= G.p()-1);
     CryptoPP::Integer delta = r.y();
     std::cout << "password: " << delta << std::endl;
 
