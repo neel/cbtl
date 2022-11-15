@@ -62,10 +62,6 @@ int main(int argc, char** argv) {
 
     CryptoPP::Integer theta = trusted_server.pub().random(rng, false), phi = trusted_server.pub().random(rng, false);
 
-    // std::ofstream view(master+".view");
-    // view << crn::utils::eHex(phi);
-    // view.close();
-
     crn::keys::view_key view(phi);
     view.save("master");
 
@@ -77,7 +73,6 @@ int main(int argc, char** argv) {
     for(std::uint32_t i = 0; i < managers; ++i){
         std::string name = manager+"-"+boost::lexical_cast<std::string>(i);
         crn::keys::identity::pair key(rng, trusted_server.pri());
-        // key.init();
         key.save(name);
         auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
         access.save(name);
@@ -89,13 +84,11 @@ int main(int argc, char** argv) {
     for(std::uint32_t i = 0; i < supers; ++i){
         std::string name = super+"-"+boost::lexical_cast<std::string>(i);
         crn::keys::identity::pair key(rng, trusted_server.pri());
-        // key.init();
         key.save(name);
         auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
         access.save(name);
-        std::ofstream view(name+".view");
-        view << crn::utils::eHex( Gp.Exponentiate(Gp.Exponentiate( key.pub().y(), trusted_server.pri().x()), phi) );
-        view.close();
+        auto view   = crn::keys::view_key::construct(phi, key.pub(), trusted_server.pri());
+        view.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
         db.add(genesis);
@@ -104,7 +97,6 @@ int main(int argc, char** argv) {
     for(std::uint32_t i = 0; i < patients; ++i){
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
         crn::keys::identity::pair key(rng, trusted_server.pri());
-        // key.init();
         key.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
@@ -112,6 +104,13 @@ int main(int argc, char** argv) {
     }
 
     // TODO Distribute those keys
+
+    std::cout << "---------------------------------------------------" << std::endl;
+    auto g = G.g();
+    std::cout << "g^{\\theta}: " << Gp.Exponentiate(g, theta) << std::endl;
+    std::cout << "g^{w\\theta}: " << Gp.Exponentiate(Gp.Exponentiate(g, theta), trusted_server.pri().x()) << std::endl;
+    std::cout << "g^{\\theta + \\phi}: " << Gp.Multiply(Gp.Exponentiate(g, theta), Gp.Exponentiate(g, phi)) << std::endl;
+    std::cout << "g^{w(\\theta + \\phi)}: " << Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(g, theta), Gp.Exponentiate(g, phi)), trusted_server.pri().x()) << std::endl;
 
     return 0;
 }

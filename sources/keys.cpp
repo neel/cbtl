@@ -25,10 +25,10 @@ crn::keys::identity::private_key::private_key(CryptoPP::AutoSeededRandomPool& rn
 }
 crn::keys::identity::private_key::private_key(const nlohmann::json& json, bool){
     auto p = CryptoPP::MakeParameters
-        (CryptoPP::Name::Modulus(),             crn::utils::dHex(json["p"].get<std::string>()))
-        (CryptoPP::Name::SubgroupOrder(),       crn::utils::dHex(json["q"].get<std::string>()))
-        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::dHex(json["g"].get<std::string>()))
-        (CryptoPP::Name::PrivateExponent(),     crn::utils::dHex(json["x"].get<std::string>()));
+        (CryptoPP::Name::Modulus(),             crn::utils::dHex(json["p"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::SubgroupOrder(),       crn::utils::dHex(json["q"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::dHex(json["g"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::PrivateExponent(),     crn::utils::dHex(json["x"].get<std::string>(), CryptoPP::Integer::UNSIGNED));
     _key.AssignFrom(p);
     init();
 }
@@ -39,10 +39,10 @@ crn::keys::identity::private_key crn::keys::identity::private_key::from(const nl
 
 nlohmann::json crn::keys::identity::private_key::json() const{
     return nlohmann::json {
-        {"p", crn::utils::eHex(_p)},
-        {"q", crn::utils::eHex(_q)},
-        {"g", crn::utils::eHex(_g)},
-        {"x", crn::utils::eHex(_x)}
+        {"p", crn::utils::eHex(_p, CryptoPP::Integer::UNSIGNED)},
+        {"q", crn::utils::eHex(_q, CryptoPP::Integer::UNSIGNED)},
+        {"g", crn::utils::eHex(_g, CryptoPP::Integer::UNSIGNED)},
+        {"x", crn::utils::eHex(_x, CryptoPP::Integer::UNSIGNED)}
     };
 }
 
@@ -64,14 +64,14 @@ bool crn::keys::identity::public_key::initialize() {
 }
 
 std::string crn::keys::identity::public_key::genesis_id() const{
-    return crn::utils::eHex(crn::utils::sha512(_y));
+    return crn::utils::eHex(crn::utils::sha512(_y), CryptoPP::Integer::UNSIGNED);
 }
 crn::keys::identity::public_key::public_key(const nlohmann::json& json, bool){
     auto p = CryptoPP::MakeParameters
-        (CryptoPP::Name::Modulus(),             crn::utils::dHex(json["p"].get<std::string>()))
-        (CryptoPP::Name::SubgroupOrder(),       crn::utils::dHex(json["q"].get<std::string>()))
-        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::dHex(json["g"].get<std::string>()))
-        (CryptoPP::Name::PublicElement(),       crn::utils::dHex(json["y"].get<std::string>()));
+        (CryptoPP::Name::Modulus(),             crn::utils::dHex(json["p"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::SubgroupOrder(),       crn::utils::dHex(json["q"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::dHex(json["g"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::PublicElement(),       crn::utils::dHex(json["y"].get<std::string>(), CryptoPP::Integer::UNSIGNED));
     _key.AssignFrom(p);
     init();
 }
@@ -81,10 +81,10 @@ crn::keys::identity::public_key crn::keys::identity::public_key::from(const nloh
 
 nlohmann::json crn::keys::identity::public_key::json() const{
     return nlohmann::json {
-        {"p", crn::utils::eHex(_p)},
-        {"q", crn::utils::eHex(_q)},
-        {"g", crn::utils::eHex(_g)},
-        {"y", crn::utils::eHex(_y)}
+        {"p", crn::utils::eHex(_p, CryptoPP::Integer::UNSIGNED)},
+        {"q", crn::utils::eHex(_q, CryptoPP::Integer::UNSIGNED)},
+        {"g", crn::utils::eHex(_g, CryptoPP::Integer::UNSIGNED)},
+        {"y", crn::utils::eHex(_y, CryptoPP::Integer::UNSIGNED)}
     };
 }
 
@@ -123,7 +123,7 @@ crn::keys::access_key::access_key(const std::string& path){
     std::ifstream file(path);
     std::string hexed;
     file >> hexed;
-    _secret = crn::utils::dHex(hexed);
+    _secret = crn::utils::dHex(hexed, CryptoPP::Integer::UNSIGNED);
 }
 
 
@@ -146,7 +146,7 @@ CryptoPP::Integer crn::keys::access_key::reconstruct(const CryptoPP::Integer& pr
 
 void crn::keys::access_key::save(const std::string& name) const{
     std::ofstream access(name+".access");
-    access << crn::utils::eHex(_secret);
+    access << crn::utils::eHex(_secret, CryptoPP::Integer::UNSIGNED);
     access.close();
 }
 
@@ -155,7 +155,14 @@ void crn::keys::access_key::load(const std::string& name){
     std::string hexed;
     access >> hexed;
     access.close();
-    _secret = crn::utils::dHex(hexed);
+    _secret = crn::utils::dHex(hexed, CryptoPP::Integer::UNSIGNED);
+}
+
+crn::keys::view_key crn::keys::view_key::construct(const CryptoPP::Integer& phi, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master){
+    auto Gp = pub.Gp();
+    auto secret = Gp.Exponentiate(Gp.Exponentiate(pub.y(), phi), master.x());
+
+    return crn::keys::view_key(secret);
 }
 
 crn::keys::view_key::view_key(const std::string& name){
@@ -165,14 +172,17 @@ crn::keys::view_key::view_key(const std::string& name){
 
 void crn::keys::view_key::save(const std::string& name) const{
     std::ofstream access(name+".view");
-    access << crn::utils::eHex(_secret);
+    access << crn::utils::eHex(_secret, CryptoPP::Integer::UNSIGNED);
     access.close();
 }
 
 void crn::keys::view_key::load(const std::string& name){
-    std::ifstream access(name+".view");
+    std::ifstream view(name);
+    if(!view.is_open()){
+        throw std::runtime_error("Failed to open "+name);
+    }
     std::string hexed;
-    access >> hexed;
-    access.close();
-    _secret = crn::utils::dHex(hexed);
+    view >> hexed;
+    view.close();
+    _secret = crn::utils::dHex(hexed, CryptoPP::Integer::UNSIGNED);
 }

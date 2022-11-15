@@ -6,8 +6,7 @@
 #include <cryptopp/sha.h>
 
 
-std::string crn::utils::eHex(const CryptoPP::Integer& value){
-    auto signedness = value.IsNegative() ? CryptoPP::Integer::SIGNED : CryptoPP::Integer::UNSIGNED;
+std::string crn::utils::eHex(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize(signedness));
     value.Encode(&bytes[0], bytes.size(), signedness);
@@ -19,7 +18,7 @@ std::string crn::utils::eHex(const CryptoPP::Integer& value){
     return output;
 }
 
-CryptoPP::Integer crn::utils::dHex(const std::string& str, bool sign){
+CryptoPP::Integer crn::utils::dHex(const std::string& str, CryptoPP::Integer::Signedness signedness){
     CryptoPP::HexDecoder decoder;
     decoder.Put( (CryptoPP::byte*) str.data(), str.size() );
     decoder.MessageEnd();
@@ -27,7 +26,7 @@ CryptoPP::Integer crn::utils::dHex(const std::string& str, bool sign){
     bytes.resize(decoder.MaxRetrievable());
     decoder.Get(&bytes[0], bytes.size());
     CryptoPP::Integer value;
-    value.Decode(&bytes[0], bytes.size(), sign ? CryptoPP::Integer::SIGNED : CryptoPP::Integer::UNSIGNED);
+    value.Decode(&bytes[0], bytes.size(), signedness);
     return value;
 }
 
@@ -85,6 +84,18 @@ CryptoPP::Integer crn::utils::sha512(const CryptoPP::Integer& value){
     hash.CalculateDigest(digest, bytes.data(), bytes.size());
     CryptoPP::Integer ret;
     ret.Decode(&digest[0], CryptoPP::SHA512::DIGESTSIZE);
+    return ret;
+}
+
+CryptoPP::Integer crn::utils::sha256(const CryptoPP::Integer& value){
+    std::vector<CryptoPP::byte> bytes;
+    bytes.resize(value.MinEncodedSize());
+    value.Encode(&bytes[0], value.MinEncodedSize());
+    CryptoPP::SHA256 hash;
+    CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
+    hash.CalculateDigest(digest, bytes.data(), bytes.size());
+    CryptoPP::Integer ret;
+    ret.Decode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
     return ret;
 }
 

@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include "crn/utils.h"
+#include "crn/keys.h"
 #include <cryptopp/modarith.h>
 #include <cryptopp/osrng.h>
 #include <cassert>
@@ -12,7 +13,7 @@ int main(int argc, char** argv){
     // CryptoPP::Integer y1("15532588564541259482922018944097853897300168981677954188716754703307497158337714880433137687641278802841087340039578684036658054493398074873834397457078926775924304480658287770519079275439081927738422285768406410397661454394363161024640626036869355676305517960711933863623200507534787097131264154704514178528");
     // CryptoPP::Integer y2("18681104435936101884448227316030762542107116083698320896806859540547443331269148757807169307897834606930640490118708410979463001754418260497415780748530755543566898480965940648878220684347582565134185256730690865433076765778856737642958127745233063853975442413445206113883902055488910897572165540719794965920");
     // CryptoPP::Integer p ("171320888899847002522538286010717970050712035465289873249959090208041304926005539317533010051124825774622387763181990139801020807777709472681854339326432257665967930555817418179389068496976851304848858267411231278762526840486673505596715269737069851957355166043141770807768677357720176332759237252035377645721");
-    //
+
     // std::cout << "x1: " << x1 << std::endl << "x2: " << x2 << std::endl << "y1: " << y1 << std::endl << "y2: " << y2 << std::endl;
     // std::cout << std::endl;
     //
@@ -50,6 +51,7 @@ int main(int argc, char** argv){
     //
     // }
 
+
     // CryptoPP::Integer a("-24");
     // std::string hex = crn::utils::eHex(a);
     // CryptoPP::Integer b = crn::utils::dHex(hex, true);
@@ -75,14 +77,22 @@ int main(int argc, char** argv){
     // assert(crn::linear_diophantine::interpolate(p2, r2) == line);
     // assert(crn::linear_diophantine::interpolate(r2, r1) == line);
 
-    CryptoPP::Integer s = -17, d = -3;
-    CryptoPP::Integer min = (2-s) / d;
-    CryptoPP::Integer max = (100-s) / d;
-    std::cout << min << std::endl;
-    std::cout << max << std::endl;
+//    CryptoPP::Integer s = -17, d = -3;
+//    CryptoPP::Integer min = (2-s) / d;
+//    CryptoPP::Integer max = (100-s) / d;
+//    std::cout << min << std::endl;
+//    std::cout << max << std::endl;
 
-    CryptoPP::AutoSeededRandomPool rng;
-    CryptoPP::Integer r(rng, std::min(min, max), std::max(min, max));
-    std::cout << (s + (r * d)) << std::endl;
+//    CryptoPP::AutoSeededRandomPool rng;
+//    CryptoPP::Integer r(rng, std::min(min, max), std::max(min, max));
+//    std::cout << (s + (r * d)) << std::endl;
+
+    CryptoPP::Integer input("186633539891002931657903750944036618999121140963084441002216962744063819191747778554251739081222280194591114477120837017347391135685014884998818270812356287863278733776657004536784711864987844059518625183113291316963478075992615428701873885603882558519838236649371224041513368881332877284661694696234762507103618674240516886679599578991724726024224533261887533319966030600727820886568027737247883559933896208827396126093239144545827918042186634278635947001842854676887680983235599222536135945517403491220345489274779478737751808274681116360");
+    std::string shex = crn::utils::eHex(input, CryptoPP::Integer::SIGNED);
+    std::string uhex = crn::utils::eHex(input, CryptoPP::Integer::UNSIGNED);
+    std::cout << shex << std::endl << uhex << std::endl;
+    std::cout << crn::utils::dHex(uhex, CryptoPP::Integer::SIGNED) << std::endl;
+    // std::cout << crn::utils::dHex(hex, true) << std::endl;
+
 
 }
