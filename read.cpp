@@ -40,7 +40,9 @@ int main(int argc, char** argv) {
     }
     if(map["active"].as<bool>() || map["passive"].as<bool>()){
         if(!map.count("public") || !map.count("secret") || !map.count("master") || !map.count("at")){
-            std::cout << "active or passive traversal requires -p public_key -s secret_key -m master_key -a limit" << std::endl;
+            if(map["active"].as<bool>()) std::cout << "active";
+            if(map["passive"].as<bool>()) std::cout << "passive";
+            std::cout << " traversal requires -p public_key -s secret_key -m master_key -a limit" << std::endl;
             std::cout << desc << std::endl;
             return 1;
         }
@@ -152,8 +154,8 @@ int main(int argc, char** argv) {
             CryptoPP::Integer suffix  = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(access.secret(), x_inv), Gp.Exponentiate(view.secret(), x_inv)), gamma);
             CryptoPP::Integer pswdh   = Gp.Divide(super, suffix);
 
-            std::cout << "super: " << super << std::endl;
-            std::cout << "suffix: " << suffix << std::endl;
+            // std::cout << "super: " << super << std::endl;
+            // std::cout << "suffix: " << suffix << std::endl;
             std::cout << "password: " << pswdh << std::endl;
 
             CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
