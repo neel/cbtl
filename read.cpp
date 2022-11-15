@@ -15,7 +15,7 @@
 #include <cryptopp/hex.h>
 
 int main(int argc, char** argv) {
-    boost::program_options::options_description desc("CLI Frontend for Data Managers");
+    boost::program_options::options_description desc("CLI Block Reader for Data Managers and Supervisors");
     desc.add_options()
         ("help,h",    "prints this help message")
         ("public,p",  boost::program_options::value<std::string>(), "path to the public key")
