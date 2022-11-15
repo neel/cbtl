@@ -86,8 +86,8 @@ int main(int argc, char** argv) {
                 auto body = last.body();
                 crn::free_coordinates random = body.random();
                 auto line = crn::linear_diophantine::interpolate(crn::free_coordinates{x, y}, random);
-                std::cout << "p: " << std::endl << crn::free_coordinates{x, y} << std::endl;
-                std::cout << "random: " << std::endl << random << std::endl;
+                // std::cout << "p: " << std::endl << crn::free_coordinates{x, y} << std::endl;
+                // std::cout << "random: " << std::endl << random << std::endl;
                 // std::cout << "line: " << line << std::endl;
                 // std::cout << "random: " << random.x() << random.y() << std::endl;
                 CryptoPP::Integer delta = line.eval(body.gamma());

@@ -47,10 +47,10 @@ void crn::blocks::contents::compute(const crn::free_coordinates& p1, const crn::
     assert(crn::linear_diophantine::interpolate(p1, _random).eval(_gamma) == delta);
     assert(crn::linear_diophantine::interpolate(p2, _random).eval(_gamma) == delta);
 
-    std::cout << "p1: " << std::endl << p1 << std::endl;
-    std::cout << "p2: " << std::endl << p2 << std::endl;
-    std::cout << "_random: " << std::endl << _random << std::endl;
-    std::cout << "r: " << std::endl << r << std::endl;
+    // std::cout << "p1: " << std::endl << p1 << std::endl;
+    // std::cout << "p2: " << std::endl << p2 << std::endl;
+    // std::cout << "_random: " << std::endl << _random << std::endl;
+    // std::cout << "r: " << std::endl << r << std::endl;
 
     // std::cout << line << std::endl;
     // std::cout << crn::linear_diophantine::interpolate(p1, _random) << std::endl;
