@@ -20,6 +20,8 @@ SET(SOURCES
     sources/blocks/passive.cpp
     sources/blocks/params.cpp
     sources/blocks/access.cpp
+    sources/blocks/contents.cpp
+    sources/blocks/addresses.cpp
     sources/storage.cpp
     sources/server.cpp
     sources/session.cpp

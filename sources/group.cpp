@@ -38,13 +38,13 @@ bool crn::operator!=(const crn::group& l, const crn::group& r){
 
 void crn::to_json(nlohmann::json& j, const crn::group& grp){
     j = nlohmann::json {
-        {"p", crn::utils::eHex(grp.p())},
-        {"q", crn::utils::eHex(grp.q())},
-        {"g", crn::utils::eHex(grp.g())}
+        {"p", crn::utils::eHex(grp.p(), CryptoPP::Integer::UNSIGNED)},
+        {"q", crn::utils::eHex(grp.q(), CryptoPP::Integer::UNSIGNED)},
+        {"g", crn::utils::eHex(grp.g(), CryptoPP::Integer::UNSIGNED)}
     };
 }
 void crn::from_json(const nlohmann::json& j, crn::group& grp){
-    grp._p = crn::utils::dHex(j["p"].get<std::string>());
-    grp._q = crn::utils::dHex(j["q"].get<std::string>());
-    grp._g = crn::utils::dHex(j["g"].get<std::string>());
+    grp._p = crn::utils::dHex(j["p"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
+    grp._q = crn::utils::dHex(j["q"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
+    grp._g = crn::utils::dHex(j["g"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
 }

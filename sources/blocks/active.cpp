@@ -42,7 +42,7 @@ std::string crn::blocks::parts::active::next(const crn::group& G, const CryptoPP
     auto link = G.Gp().Exponentiate(_forward, secret);
     auto hash = crn::utils::sha512(link);
     auto addr = G.Gp().Multiply(id, hash);
-    return crn::utils::eHex(addr);
+    return crn::utils::eHex(addr, CryptoPP::Integer::UNSIGNED);
 }
 
 std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const{
@@ -50,7 +50,7 @@ std::string crn::blocks::parts::active::prev(const crn::group& G, const CryptoPP
          link = G.Gp().Exponentiate(link, secret);
     auto hash = crn::utils::sha512(link);
     auto addr = G.Gp().Divide(id, hash);
-    return crn::utils::eHex(addr);
+    return crn::utils::eHex(addr, CryptoPP::Integer::UNSIGNED);
 }
 
 bool crn::blocks::parts::active::verify(const CryptoPP::Integer& token, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master) const{

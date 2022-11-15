@@ -11,51 +11,20 @@ crn::linear_diophantine crn::linear_diophantine::interpolate(const crn::free_coo
     CryptoPP::Integer dx  = r.x() - l.x(), dy = r.y() - l.y();
     CryptoPP::Integer c   = (r.y() * l.x()) - (r.x() * l.y());
     CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, dy);
-//    if(gcd.IsZero()){
-//        std::cout << "dx: " << dx << std::endl << "dy: " << dy << std::endl;
-//    }
     assert(!gcd.IsZero());
     CryptoPP::Integer res = c / gcd;
     assert(!res.IsZero());
-//    std::cout << "gcd: " << gcd << std::endl << "res: " << res << std::endl;
-
-//    if(!res.IsZero()){
     auto a = dy / gcd, b = dx / gcd;
     c = res;
-
-    if(a.IsNegative()){
-        a = -1 * a;
-        b = -1 * b;
-        c = -1 * c;
-    }
-
     free_coordinates shift{l.x(), l.y()};
     free_coordinates delta{-b, -a};
-
-    // std::cout << "shift: " << shift << std::endl;
-    // std::cout << "delta: " << delta << std::endl;
-
     auto line = crn::linear_diophantine(a, -b, c, delta, shift);
     assert(line.eval(l.x()) == l.y());
     assert(line.eval(r.x()) == r.y());
     return line;
-//    }else{
-//        throw std::runtime_error("NO NO NO Math broke");
-//    }
-    // free_coordinates shift{l.x(), l.y()};
-    // free_coordinates delta{dx, dy};
-    // auto line = crn::linear_diophantine(mdy, dx, c, delta, shift);
-    //
-    // // std::cout << "l.x(): " << l.x() << std::endl;
-    // // std::cout << "l.y(): " << l.y() << std::endl;
-    // // std::cout << "r.x(): " << r.x() << std::endl;
-    // // std::cout << "r.y(): " << r.y() << std::endl;
-    // // std::cout << "eval: " << line.eval(l.x()) << std::endl;
-    //
-    // return line;
 }
 
-crn::free_coordinates crn::linear_diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& p) const{
+crn::free_coordinates crn::linear_diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& p, bool noninvertible) const{
     // Generates a random coordinate that satisfies the line
     // The x coordinate must be less that p-1
     // The multiplicative inverse of the x coordinate must not exist in Z_{p-1}
@@ -84,11 +53,15 @@ crn::free_coordinates crn::linear_diophantine::random(CryptoPP::AutoSeededRandom
         if(_shift.x().IsOdd() && _delta.x().IsOdd() && !r.IsOdd())   r = r + 1;
         auto coordinate = _shift + (_delta * r);
         if(coordinate.x() >= 2 && coordinate.x() <= (p-1)){
-            auto x_inv = Gp1.MultiplicativeInverse(coordinate.x());
-            if(x_inv.IsZero()){
-                assert(eval(coordinate.x()) == coordinate.y());
-                std::cout << "found after retries " << retries << std::endl;
+            if(!noninvertible){
                 return coordinate;
+            }else{
+                auto x_inv = Gp1.MultiplicativeInverse(coordinate.x());
+                if(x_inv.IsZero()){
+                    assert(eval(coordinate.x()) == coordinate.y());
+                    std::cout << "found after retries " << retries << std::endl;
+                    return coordinate;
+                }
             }
         }
         ++retries;

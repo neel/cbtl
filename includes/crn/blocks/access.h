@@ -13,6 +13,7 @@
 #include "crn/keys.h"
 #include "crn/blocks/active.h"
 #include "crn/blocks/passive.h"
+#include "crn/blocks/contents.h"
 #include "crn/line.h"
 
 namespace crn{
@@ -24,46 +25,11 @@ namespace blocks{
 struct params;
 
 struct access{
-    class addresses{
-        friend struct access;
-
-        CryptoPP::Integer _active;
-        CryptoPP::Integer _passive;
-        CryptoPP::Integer _id;
-
-        friend class nlohmann::adl_serializer<crn::blocks::access::addresses>;
-        addresses(const CryptoPP::Integer& active, const CryptoPP::Integer& passive);
-        public:
-            addresses(const addresses& other) = default;
-        public:
-            inline const CryptoPP::Integer& active() const { return _active; }
-            inline const CryptoPP::Integer& passive() const { return _passive; }
-            inline const CryptoPP::Integer id() const { return _id; }
-            std::string hash() const;
-    };
-
-    struct contents{
-        contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const addresses& addr, const std::string& msg, const CryptoPP::Integer& super);
-        inline const crn::free_coordinates& random() const { return _random; }
-        inline const CryptoPP::Integer& gamma() const { return _gamma; }
-        inline const std::string& ciphertext() const { return _message; }
-        inline const CryptoPP::Integer& super() const { return _super; }
-        private:
-            friend class nlohmann::adl_serializer<crn::blocks::access::contents>;
-            contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const CryptoPP::Integer& super, const std::string& msg);
-            void compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G, const CryptoPP::Integer& super);
-        private:
-            crn::free_coordinates  _random;
-            CryptoPP::Integer      _gamma;
-            CryptoPP::Integer      _super;
-            std::string            _message;
-    };
-
     inline const parts::active& active() const { return _active; }
     inline const parts::passive& passive() const { return _passive; }
     inline const addresses& address() const { return _address; }
     inline bool genesis() const { return _address.active() == _address.passive(); }
-    inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::eHex(crn::utils::sha512(y)); }
+    inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::eHex(crn::utils::sha512(y), CryptoPP::Integer::UNSIGNED); }
     inline const boost::posix_time::ptime& requested() const { return _requested;}
     inline const boost::posix_time::ptime& created() const { return _created;}
     inline const contents& body() const { return _contents; }
@@ -79,7 +45,7 @@ struct access{
         parts::active     _active;
         parts::passive    _passive;
         addresses         _address;
-        contents          _contents;
+        blocks::contents  _contents;
         boost::posix_time::ptime _requested;
         boost::posix_time::ptime _created;
 };

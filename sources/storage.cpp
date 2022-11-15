@@ -78,12 +78,12 @@ bool crn::storage::add(const crn::blocks::access& block){
     }
     if(!block.genesis()){
         {
-            std::string active_address = crn::utils::eHex(block.address().active());
+            std::string active_address = crn::utils::eHex(block.address().active(), CryptoPP::Integer::UNSIGNED);
             Dbt key((void*) active_address.c_str(), active_address.size());
             r_addr_active = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
             // std::cout << "r_addr_active: " << r_addr_active << std::endl;
         }{
-            std::string passive_address = crn::utils::eHex(block.address().passive());
+            std::string passive_address = crn::utils::eHex(block.address().passive(), CryptoPP::Integer::UNSIGNED);
             Dbt key((void*) passive_address.c_str(), passive_address.size());
             r_addr_passive = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
             // std::cout << "r_addr_passive: " << r_addr_passive << std::endl;
@@ -134,7 +134,7 @@ crn::blocks::access crn::storage::fetch(const std::string& block_id){
 
 bool crn::storage::search(const CryptoPP::Integer& address){
     open();
-    std::string addr = crn::utils::eHex(address);
+    std::string addr = crn::utils::eHex(address, CryptoPP::Integer::UNSIGNED);
     Dbt key((void*) addr.c_str(), addr.size());
     int ret = _blocks->exists(NULL, &key, 0);
     close();
