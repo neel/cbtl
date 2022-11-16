@@ -51,6 +51,13 @@ crn::math::free_coordinates crn::math::linear_diophantine::random(CryptoPP::Auto
             // shift: even, delta: odd  -> r has to be even
             // shift: odd,  delta: odd  -> r has to be odd
             // shift: odd,  delta: even -> it has to be devisible by the other factors of p-1
+            //              but delta = -b = -dx/gcd = (l.x() - r.x()) / gcd = l.x()/gcd - r.x()/gcd
+            //              if delta is even then either both l.x()/gcd and r.x()/gcd are even or both ar odd
+            //              if both are even then this last case (4) won't happen.
+            //              Hence both l.x()/gcd and r.x()/gcd are odd
+            //              In this case it is not possible to generate an even value for (shift.x() + delta.x() * r)
+            //              But we can make it divisible by the smallest prime factor f > 2 of (p-1)
+            //              Which requires factorization of (p-1) which can be expensive
             if(_shift.x().IsEven() && _delta.x().IsOdd() && !r.IsEven()) r = r + 1;
             if(_shift.x().IsOdd()  && _delta.x().IsOdd() && !r.IsOdd() ) r = r + 1;
             auto coordinate = _shift + (_delta * r);

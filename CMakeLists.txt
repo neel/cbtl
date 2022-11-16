@@ -36,6 +36,9 @@ SET(SOURCES
     sources/packets.cpp
 )
 
+FILE(GLOB_RECURSE LibFiles "includes/*.h")
+add_custom_target(headers SOURCES ${LibFiles})
+
 add_library(crn SHARED ${SOURCES})
 
 add_executable(crn-init    init.cpp)
