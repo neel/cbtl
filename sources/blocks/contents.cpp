@@ -9,7 +9,7 @@
 #include <cryptopp/hex.h>
 #include <iostream>
 
-crn::blocks::contents::contents(const crn::free_coordinates& random, const CryptoPP::Integer& gamma, const CryptoPP::Integer& super, const std::string& msg): _random(random), _gamma(gamma), _message(msg), _super(super) { }
+crn::blocks::contents::contents(const crn::math::free_coordinates& random, const CryptoPP::Integer& gamma, const CryptoPP::Integer& super, const std::string& msg): _random(random), _gamma(gamma), _message(msg), _super(super) { }
 crn::blocks::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::addresses& addr, const std::string& msg, const CryptoPP::Integer& super) {
     auto G = pub.G();
     auto Gp = G.Gp();
@@ -18,20 +18,20 @@ crn::blocks::contents::contents(const crn::keys::identity::public_key& pub, cons
     // std::cout << "coordinates:" << std::endl << xv << yv << std::endl;
 
     CryptoPP::Integer xu = crn::utils::sha256(active_req), yu = addr.passive();
-    compute(crn::free_coordinates{xu, yu}, crn::free_coordinates{xv, yv}, msg, G, super);
+    compute(crn::math::free_coordinates{xu, yu}, crn::math::free_coordinates{xv, yv}, msg, G, super);
 }
 
 
-void crn::blocks::contents::compute(const crn::free_coordinates& p1, const crn::free_coordinates& p2, const std::string& msg, const crn::group& G, const CryptoPP::Integer& super){
-    crn::linear_diophantine line = crn::linear_diophantine::interpolate(p1, p2);
+void crn::blocks::contents::compute(const crn::math::free_coordinates& p1, const crn::math::free_coordinates& p2, const std::string& msg, const crn::math::group& G, const CryptoPP::Integer& super){
+    crn::math::linear_diophantine line = crn::math::linear_diophantine::interpolate(p1, p2);
     CryptoPP::AutoSeededRandomPool rng;
-    _random = line.random(rng, G.p(), false);
+    _random = line.random(rng, G, false);
     while(_random == p1 || _random == p2){
-        _random = line.random(rng, G.p());
+        _random = line.random(rng, G);
     }
-    crn::free_coordinates r = line.random(rng, G.p());
+    crn::math::free_coordinates r = line.random(rng, G);
     while(r == _random || r == p1 || r == p2){
-        r = line.random(rng, G.p());
+        r = line.random(rng, G);
     }
     _gamma = r.x();
     assert(_gamma.IsPositive());
@@ -39,22 +39,13 @@ void crn::blocks::contents::compute(const crn::free_coordinates& p1, const crn::
     CryptoPP::Integer delta = r.y();
     std::cout << "password: " << delta << std::endl;
 
-    assert(crn::linear_diophantine::interpolate(p1, _random) == line);
-    assert(crn::linear_diophantine::interpolate(p2, _random) == line);
-    assert(crn::linear_diophantine::interpolate(p1, r) == line);
-    assert(crn::linear_diophantine::interpolate(p2, r) == line);
-    assert(crn::linear_diophantine::interpolate(r, _random) == line);
-    assert(crn::linear_diophantine::interpolate(p1, _random).eval(_gamma) == delta);
-    assert(crn::linear_diophantine::interpolate(p2, _random).eval(_gamma) == delta);
-
-    // std::cout << "p1: " << std::endl << p1 << std::endl;
-    // std::cout << "p2: " << std::endl << p2 << std::endl;
-    // std::cout << "_random: " << std::endl << _random << std::endl;
-    // std::cout << "r: " << std::endl << r << std::endl;
-
-    // std::cout << line << std::endl;
-    // std::cout << crn::linear_diophantine::interpolate(p1, _random) << std::endl;
-    // std::cout << crn::linear_diophantine::interpolate(p2, _random) << std::endl;
+    assert(crn::math::linear_diophantine::interpolate(p1, _random) == line);
+    assert(crn::math::linear_diophantine::interpolate(p2, _random) == line);
+    assert(crn::math::linear_diophantine::interpolate(p1, r) == line);
+    assert(crn::math::linear_diophantine::interpolate(p2, r) == line);
+    assert(crn::math::linear_diophantine::interpolate(r, _random) == line);
+    assert(crn::math::linear_diophantine::interpolate(p1, _random).eval(_gamma) == delta);
+    assert(crn::math::linear_diophantine::interpolate(p2, _random).eval(_gamma) == delta);
 
     // { TODO encrypt msg with delta;
     std::vector<CryptoPP::byte> bytes;

@@ -7,7 +7,7 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/osrng.h>
 #include <nlohmann/json.hpp>
-#include "crn/group.h"
+#include "crn/math/group.h"
 #include "crn/utils.h"
 #include "crn/keys.h"
 

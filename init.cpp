@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     crn::keys::view_key view(phi);
     view.save("master");
 
-    crn::group G = trusted_server.pub();
+    crn::math::group G = trusted_server.pub();
     auto Gp = G.Gp();
     auto Gp1 = G.Gp1();
 

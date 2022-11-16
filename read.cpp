@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
         crn::keys::identity::pair user(secret_key, public_key);
         crn::keys::identity::public_key master(master_key);
 
-        crn::group G = user.pub();
+        crn::math::group G = user.pub();
         auto Gp = G.Gp(), Gp1 = G.Gp1();
 
         bool is_active = map["active"].as<bool>();
@@ -86,9 +86,9 @@ int main(int argc, char** argv) {
                 // std::cout << "coordinates:" << std::endl << x << y << std::endl;
 
                 auto body = last.body();
-                crn::free_coordinates random = body.random();
-                auto line = crn::linear_diophantine::interpolate(crn::free_coordinates{x, y}, random);
-                // std::cout << "p: " << std::endl << crn::free_coordinates{x, y} << std::endl;
+                crn::math::free_coordinates random = body.random();
+                auto line = crn::math::linear_diophantine::interpolate(crn::math::free_coordinates{x, y}, random);
+                // std::cout << "p: " << std::endl << crn::math::free_coordinates{x, y} << std::endl;
                 // std::cout << "random: " << std::endl << random << std::endl;
                 // std::cout << "line: " << line << std::endl;
                 // std::cout << "random: " << random.x() << random.y() << std::endl;

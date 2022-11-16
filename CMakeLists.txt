@@ -13,8 +13,6 @@ SET(INCLUDE_DIRS
 )
 
 SET(SOURCES
-    sources/group.cpp
-    sources/line.cpp
     sources/utils.cpp
     sources/blocks/active.cpp
     sources/blocks/passive.cpp
@@ -22,11 +20,20 @@ SET(SOURCES
     sources/blocks/access.cpp
     sources/blocks/contents.cpp
     sources/blocks/addresses.cpp
+    sources/math/group.cpp
+    sources/math/line.cpp
+    sources/math/vector.cpp
+    sources/math/coordinates.cpp
+    sources/keys/dsa.cpp
+    sources/keys/private.cpp
+    sources/keys/public.cpp
+    sources/keys/pair.cpp
+    sources/keys/access.cpp
+    sources/keys/view.cpp
     sources/storage.cpp
     sources/server.cpp
     sources/session.cpp
     sources/packets.cpp
-    sources/keys.cpp
 )
 
 add_library(crn SHARED ${SOURCES})

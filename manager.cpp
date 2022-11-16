@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     crn::keys::identity::public_key master_pub(master_key);
     crn::keys::access_key access(access_key);
 
-    crn::group G = user.pub();
+    crn::math::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
 
     boost::asio::io_context io_context;

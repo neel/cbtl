@@ -8,13 +8,13 @@
 #include <cryptopp/osrng.h>
 #include <nlohmann/json.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "crn/group.h"
+#include "crn/math/group.h"
 #include "crn/utils.h"
 #include "crn/keys.h"
 #include "crn/blocks/active.h"
 #include "crn/blocks/passive.h"
 #include "crn/blocks/contents.h"
-#include "crn/line.h"
+#include "crn/math/line.h"
 
 namespace crn{
 

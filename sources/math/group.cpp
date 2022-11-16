@@ -1,18 +1,18 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/group.h"
+#include "crn/math/group.h"
 #include <cryptopp/argnames.h>
 #include "crn/utils.h"
 
-CryptoPP::AlgorithmParameters crn::group::params() const {
+CryptoPP::AlgorithmParameters crn::math::group::params() const {
     return CryptoPP::MakeParameters
         (CryptoPP::Name::Modulus(), _p)
         (CryptoPP::Name::SubgroupOrder(), _q)
         (CryptoPP::Name::SubgroupGenerator(), _g);
 }
 
-CryptoPP::Integer crn::group::random(CryptoPP::AutoSeededRandomPool& rng, bool invertible) const {
+CryptoPP::Integer crn::math::group::random(CryptoPP::AutoSeededRandomPool& rng, bool invertible) const {
     CryptoPP::Integer r(rng, 2, _p-1);
     while(true){
         CryptoPP::Integer r_inverse = Gp1().MultiplicativeInverse(r);
@@ -28,22 +28,22 @@ CryptoPP::Integer crn::group::random(CryptoPP::AutoSeededRandomPool& rng, bool i
     return r;
 }
 
-bool crn::operator==(const crn::group& l, const crn::group& r){
+bool crn::math::operator==(const crn::math::group& l, const crn::math::group& r){
     return l.g() == r.g() && l.p() == r.p() && l.q() == r.q();
 }
-bool crn::operator!=(const crn::group& l, const crn::group& r){
+bool crn::math::operator!=(const crn::math::group& l, const crn::math::group& r){
     return !operator==(l, r);
 }
 
 
-void crn::to_json(nlohmann::json& j, const crn::group& grp){
+void crn::math::to_json(nlohmann::json& j, const crn::math::group& grp){
     j = nlohmann::json {
         {"p", crn::utils::eHex(grp.p(), CryptoPP::Integer::UNSIGNED)},
         {"q", crn::utils::eHex(grp.q(), CryptoPP::Integer::UNSIGNED)},
         {"g", crn::utils::eHex(grp.g(), CryptoPP::Integer::UNSIGNED)}
     };
 }
-void crn::from_json(const nlohmann::json& j, crn::group& grp){
+void crn::math::from_json(const nlohmann::json& j, crn::math::group& grp){
     grp._p = crn::utils::dHex(j["p"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
     grp._q = crn::utils::dHex(j["q"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
     grp._g = crn::utils::dHex(j["g"].get<std::string>(), CryptoPP::Integer::UNSIGNED);

@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef CRN_GROUP_H
-#define CRN_GROUP_H
+#ifndef CRN_MATH_GROUP_H
+#define CRN_MATH_GROUP_H
 
 #include <cryptopp/integer.h>
 #include <cryptopp/modarith.h>
@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 
 namespace crn{
+namespace math{
 
 struct group;
 
@@ -45,5 +46,7 @@ bool operator!=(const group& l, const group& r);
 inline CryptoPP::ModularArithmetic G(const CryptoPP::Integer& p){ return CryptoPP::ModularArithmetic(p); }
 
 }
+}
 
-#endif // CRN_GROUP_H
+
+#endif // CRN_MATH_GROUP_H
