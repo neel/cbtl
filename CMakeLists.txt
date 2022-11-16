@@ -21,7 +21,7 @@ SET(SOURCES
     sources/blocks/contents.cpp
     sources/blocks/addresses.cpp
     sources/math/group.cpp
-    sources/math/line.cpp
+    sources/math/diophantine.cpp
     sources/math/vector.cpp
     sources/math/coordinates.cpp
     sources/keys/dsa.cpp

@@ -4,7 +4,7 @@
 #ifndef CRN_BLOCKS_CONTENTS_H
 #define CRN_BLOCKS_CONTENTS_H
 
-#include "crn/math/line.h"
+#include "crn/math/diophantine.h"
 #include <cryptopp/integer.h>
 #include <string>
 #include "crn/keys.h"

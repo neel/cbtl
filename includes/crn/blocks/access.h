@@ -14,7 +14,7 @@
 #include "crn/blocks/active.h"
 #include "crn/blocks/passive.h"
 #include "crn/blocks/contents.h"
-#include "crn/math/line.h"
+#include "crn/math/diophantine.h"
 
 namespace crn{
 

@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/math/line.h"
+#include "crn/math/diophantine.h"
 #include <iostream>
 #include <cryptopp/nbtheory.h>
 
-crn::math::linear_diophantine::linear_diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const crn::math::free_coordinates& delta, const crn::math::free_coordinates& shift): _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
+crn::math::diophantine::diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const crn::math::free_coordinates& delta, const crn::math::free_coordinates& shift): _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
 
-crn::math::linear_diophantine crn::math::linear_diophantine::interpolate(const crn::math::free_coordinates& l, const crn::math::free_coordinates& r){
+crn::math::diophantine crn::math::diophantine::interpolate(const crn::math::free_coordinates& l, const crn::math::free_coordinates& r){
     CryptoPP::Integer dx  = r.x() - l.x(), dy = r.y() - l.y();
     CryptoPP::Integer c   = (r.y() * l.x()) - (r.x() * l.y());
     CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, dy);
@@ -18,13 +18,13 @@ crn::math::linear_diophantine crn::math::linear_diophantine::interpolate(const c
     c = res;
     free_coordinates shift{l.x(), l.y()};
     free_coordinates delta{-b, -a};
-    auto line = crn::math::linear_diophantine(a, -b, c, delta, shift);
+    auto line = crn::math::diophantine(a, -b, c, delta, shift);
     assert(line.eval(l.x()) == l.y());
     assert(line.eval(r.x()) == r.y());
     return line;
 }
 
-crn::math::free_coordinates crn::math::linear_diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, bool force_noninvertible) const{
+crn::math::free_coordinates crn::math::diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, bool force_noninvertible) const{
     // Generates a random coordinate that satisfies the line
     // The x coordinate must be less that p-1
     // The multiplicative inverse of the x coordinate must not exist in Z_{p-1}
@@ -74,7 +74,7 @@ crn::math::free_coordinates crn::math::linear_diophantine::random(CryptoPP::Auto
     }
 }
 
-CryptoPP::Integer crn::math::linear_diophantine::eval(const CryptoPP::Integer& x) const{
+CryptoPP::Integer crn::math::diophantine::eval(const CryptoPP::Integer& x) const{
     return (_c - (_a * x)) / _b;
 }
 

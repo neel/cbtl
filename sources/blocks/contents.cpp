@@ -23,7 +23,7 @@ crn::blocks::contents::contents(const crn::keys::identity::public_key& pub, cons
 
 
 void crn::blocks::contents::compute(const crn::math::free_coordinates& p1, const crn::math::free_coordinates& p2, const std::string& msg, const crn::math::group& G, const CryptoPP::Integer& super){
-    crn::math::linear_diophantine line = crn::math::linear_diophantine::interpolate(p1, p2);
+    crn::math::diophantine line = crn::math::diophantine::interpolate(p1, p2);
     CryptoPP::AutoSeededRandomPool rng;
     _random = line.random(rng, G, false);
     while(_random == p1 || _random == p2){
@@ -39,13 +39,13 @@ void crn::blocks::contents::compute(const crn::math::free_coordinates& p1, const
     CryptoPP::Integer delta = r.y();
     std::cout << "password: " << delta << std::endl;
 
-    assert(crn::math::linear_diophantine::interpolate(p1, _random) == line);
-    assert(crn::math::linear_diophantine::interpolate(p2, _random) == line);
-    assert(crn::math::linear_diophantine::interpolate(p1, r) == line);
-    assert(crn::math::linear_diophantine::interpolate(p2, r) == line);
-    assert(crn::math::linear_diophantine::interpolate(r, _random) == line);
-    assert(crn::math::linear_diophantine::interpolate(p1, _random).eval(_gamma) == delta);
-    assert(crn::math::linear_diophantine::interpolate(p2, _random).eval(_gamma) == delta);
+    assert(crn::math::diophantine::interpolate(p1, _random) == line);
+    assert(crn::math::diophantine::interpolate(p2, _random) == line);
+    assert(crn::math::diophantine::interpolate(p1, r) == line);
+    assert(crn::math::diophantine::interpolate(p2, r) == line);
+    assert(crn::math::diophantine::interpolate(r, _random) == line);
+    assert(crn::math::diophantine::interpolate(p1, _random).eval(_gamma) == delta);
+    assert(crn::math::diophantine::interpolate(p2, _random).eval(_gamma) == delta);
 
     // { TODO encrypt msg with delta;
     std::vector<CryptoPP::byte> bytes;
