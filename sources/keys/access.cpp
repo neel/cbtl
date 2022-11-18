@@ -18,7 +18,7 @@ crn::keys::access_key::access_key(const std::string& path){
     std::ifstream file(path);
     std::string hexed;
     file >> hexed;
-    _secret = crn::utils::dHex(hexed, CryptoPP::Integer::UNSIGNED);
+    _secret = crn::utils::hex::decode(hexed, CryptoPP::Integer::UNSIGNED);
 }
 
 
@@ -41,7 +41,7 @@ CryptoPP::Integer crn::keys::access_key::reconstruct(const CryptoPP::Integer& pr
 
 void crn::keys::access_key::save(const std::string& name) const{
     std::ofstream access(name+".access");
-    access << crn::utils::eHex(_secret, CryptoPP::Integer::UNSIGNED);
+    access << crn::utils::hex::encode(_secret, CryptoPP::Integer::UNSIGNED);
     access.close();
 }
 
@@ -50,5 +50,5 @@ void crn::keys::access_key::load(const std::string& name){
     std::string hexed;
     access >> hexed;
     access.close();
-    _secret = crn::utils::dHex(hexed, CryptoPP::Integer::UNSIGNED);
+    _secret = crn::utils::hex::decode(hexed, CryptoPP::Integer::UNSIGNED);
 }

@@ -23,7 +23,7 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoS
     auto token    = Gp.Exponentiate(y, random);
     auto token_w  = Gp.Exponentiate(token, w);
     auto checksum = Gp.Multiply(token_w, y);
-    auto hash     = crn::utils::sha512(checksum);
+    auto hash     = crn::utils::sha512::digest(checksum);
     crn::blocks::parts::active part(forward, t, hash);
     return part;
 }
@@ -40,17 +40,17 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoS
 
 std::string crn::blocks::parts::active::next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const{
     auto link = G.Gp().Exponentiate(_forward, secret);
-    auto hash = crn::utils::sha512(link);
+    auto hash = crn::utils::sha512::digest(link);
     auto addr = G.Gp().Multiply(id, hash);
-    return crn::utils::eHex(addr, CryptoPP::Integer::UNSIGNED);
+    return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
 std::string crn::blocks::parts::active::prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const{
     auto link = G.Gp().Exponentiate(_forward, secret);
          link = G.Gp().Exponentiate(link, secret);
-    auto hash = crn::utils::sha512(link);
+    auto hash = crn::utils::sha512::digest(link);
     auto addr = G.Gp().Divide(id, hash);
-    return crn::utils::eHex(addr, CryptoPP::Integer::UNSIGNED);
+    return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
 bool crn::blocks::parts::active::verify(const CryptoPP::Integer& token, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master) const{
@@ -62,7 +62,7 @@ bool crn::blocks::parts::active::verify(const crn::math::group& G, const CryptoP
     auto Gp = G.Gp();
     auto token_w  = Gp.Exponentiate(token, w);
     auto checksum = Gp.Multiply(token_w, y);
-    auto hash     = crn::utils::sha512(checksum);
+    auto hash     = crn::utils::sha512::digest(checksum);
     return _checksum == hash;
 }
 

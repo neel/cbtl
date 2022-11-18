@@ -6,7 +6,7 @@
 #include <cryptopp/sha.h>
 
 
-std::string crn::utils::eHex(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
+std::string crn::utils::hex::encode(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize(signedness));
     value.Encode(&bytes[0], bytes.size(), signedness);
@@ -18,7 +18,7 @@ std::string crn::utils::eHex(const CryptoPP::Integer& value, CryptoPP::Integer::
     return output;
 }
 
-CryptoPP::Integer crn::utils::dHex(const std::string& str, CryptoPP::Integer::Signedness signedness){
+CryptoPP::Integer crn::utils::hex::decode(const std::string& str, CryptoPP::Integer::Signedness signedness){
     CryptoPP::HexDecoder decoder;
     decoder.Put( (CryptoPP::byte*) str.data(), str.size() );
     decoder.MessageEnd();
@@ -31,7 +31,7 @@ CryptoPP::Integer crn::utils::dHex(const std::string& str, CryptoPP::Integer::Si
 }
 
 
-std::string crn::utils::SHA512(const CryptoPP::Integer& value){
+std::string crn::utils::sha512::str(const CryptoPP::Integer& value){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize());
     value.Encode(&bytes[0], bytes.size());
@@ -46,7 +46,7 @@ std::string crn::utils::SHA512(const CryptoPP::Integer& value){
     return output;
 }
 
-std::string crn::utils::SHA256(const CryptoPP::Integer& value){
+std::string crn::utils::sha256::str(const CryptoPP::Integer& value){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize());
     value.Encode(&bytes[0], bytes.size());
@@ -61,7 +61,7 @@ std::string crn::utils::SHA256(const CryptoPP::Integer& value){
     return output;
 }
 
-std::string crn::utils::SHA512(const std::string& value){
+std::string crn::utils::sha512::str(const std::string& value){
     std::vector<CryptoPP::byte> bytes;
     std::copy(value.begin(), value.end(), std::back_inserter(bytes));
     CryptoPP::SHA512 hash;
@@ -75,7 +75,7 @@ std::string crn::utils::SHA512(const std::string& value){
     return output;
 }
 
-CryptoPP::Integer crn::utils::sha512(const CryptoPP::Integer& value){
+CryptoPP::Integer crn::utils::sha512::digest(const CryptoPP::Integer& value){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize());
     value.Encode(&bytes[0], value.MinEncodedSize());
@@ -87,7 +87,7 @@ CryptoPP::Integer crn::utils::sha512(const CryptoPP::Integer& value){
     return ret;
 }
 
-CryptoPP::Integer crn::utils::sha256(const CryptoPP::Integer& value){
+CryptoPP::Integer crn::utils::sha256::digest(const CryptoPP::Integer& value){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize());
     value.Encode(&bytes[0], value.MinEncodedSize());
@@ -99,7 +99,7 @@ CryptoPP::Integer crn::utils::sha256(const CryptoPP::Integer& value){
     return ret;
 }
 
-CryptoPP::Integer crn::utils::sha512(const std::string& value){
+CryptoPP::Integer crn::utils::sha512::digest(const std::string& value){
     std::vector<CryptoPP::byte> bytes;
     std::copy(value.begin(), value.end(), std::back_inserter(bytes));
     CryptoPP::SHA512 hash;

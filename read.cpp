@@ -75,12 +75,12 @@ int main(int argc, char** argv) {
                                     ? last.active().next(user.pub().G(), last.address().id(), user.pri().x())
                                     : last.passive().next(user.pub().G(), last.address().id(), master.y(), user.pri().x());
             if(db.exists(address, true)){
-                CryptoPP::Integer x = crn::utils::sha256(Gp.Exponentiate(last.active().forward(), user.pri().x()));
+                CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
                 std::string block_id = db.id(address);
                 last = db.fetch(block_id);
                 CryptoPP::Integer y = is_active ? last.address().passive() : last.address().active();
                 if(!is_active){
-                    x = crn::utils::sha256(Gp.Exponentiate(last.active().forward(), user.pri().x()));
+                    x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
                 }
 
                 // std::cout << "coordinates:" << std::endl << x << y << std::endl;

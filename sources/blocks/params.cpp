@@ -17,7 +17,7 @@ crn::blocks::params::active::active(const crn::keys::identity::public_key& pub):
 crn::blocks::params::active crn::blocks::params::active::genesis(const crn::keys::identity::public_key& pub){ return crn::blocks::params::active(pub); }
 bool crn::blocks::params::active::genesis() const{ return _token.IsZero(); }
 CryptoPP::Integer crn::blocks::params::active::address(const CryptoPP::Integer& request) const{
-    return _pub.Gp().Multiply(_last, crn::utils::sha512(request));
+    return _pub.Gp().Multiply(_last, crn::utils::sha512::digest(request));
 }
 
 
@@ -34,7 +34,7 @@ crn::blocks::params::passive::passive(const crn::keys::identity::public_key& pub
 crn::blocks::params::passive crn::blocks::params::passive::genesis(const crn::keys::identity::public_key& pub){ return crn::blocks::params::passive(pub); }
 bool crn::blocks::params::passive::genesis() const{ return _token.IsZero(); }
 CryptoPP::Integer crn::blocks::params::passive::address() const{
-    return _pub.Gp().Multiply(_last, crn::utils::sha512(_token));
+    return _pub.Gp().Multiply(_last, crn::utils::sha512::digest(_token));
 }
 crn::blocks::params::passive crn::blocks::params::passive::construct(const crn::blocks::access& last, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri){
     auto secret  = pub.Gp().Exponentiate(pub.y(), pri.x());

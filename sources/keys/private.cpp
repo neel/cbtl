@@ -22,10 +22,10 @@ crn::keys::identity::private_key::private_key(CryptoPP::AutoSeededRandomPool& rn
 }
 crn::keys::identity::private_key::private_key(const nlohmann::json& json, bool){
     auto p = CryptoPP::MakeParameters
-        (CryptoPP::Name::Modulus(),             crn::utils::dHex(json["p"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
-        (CryptoPP::Name::SubgroupOrder(),       crn::utils::dHex(json["q"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
-        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::dHex(json["g"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
-        (CryptoPP::Name::PrivateExponent(),     crn::utils::dHex(json["x"].get<std::string>(), CryptoPP::Integer::UNSIGNED));
+        (CryptoPP::Name::Modulus(),             crn::utils::hex::decode(json["p"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::SubgroupOrder(),       crn::utils::hex::decode(json["q"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::SubgroupGenerator(),   crn::utils::hex::decode(json["g"].get<std::string>(), CryptoPP::Integer::UNSIGNED))
+        (CryptoPP::Name::PrivateExponent(),     crn::utils::hex::decode(json["x"].get<std::string>(), CryptoPP::Integer::UNSIGNED));
     _key.AssignFrom(p);
     init();
 }
@@ -36,10 +36,10 @@ crn::keys::identity::private_key crn::keys::identity::private_key::from(const nl
 
 nlohmann::json crn::keys::identity::private_key::json() const{
     return nlohmann::json {
-        {"p", crn::utils::eHex(_p, CryptoPP::Integer::UNSIGNED)},
-        {"q", crn::utils::eHex(_q, CryptoPP::Integer::UNSIGNED)},
-        {"g", crn::utils::eHex(_g, CryptoPP::Integer::UNSIGNED)},
-        {"x", crn::utils::eHex(_x, CryptoPP::Integer::UNSIGNED)}
+        {"p", crn::utils::hex::encode(_p, CryptoPP::Integer::UNSIGNED)},
+        {"q", crn::utils::hex::encode(_q, CryptoPP::Integer::UNSIGNED)},
+        {"g", crn::utils::hex::encode(_g, CryptoPP::Integer::UNSIGNED)},
+        {"x", crn::utils::hex::encode(_x, CryptoPP::Integer::UNSIGNED)}
     };
 }
 

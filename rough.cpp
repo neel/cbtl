@@ -53,30 +53,41 @@ int main(int argc, char** argv){
 
 
     // CryptoPP::Integer a("-24");
-    // std::string hex = crn::utils::eHex(a);
-    // CryptoPP::Integer b = crn::utils::dHex(hex, true);
+    // std::string hex = crn::utils::hex::encode(a);
+    // CryptoPP::Integer b = crn::utils::hex::decode(hex, true);
     //
     // std::cout << hex << std::endl << b << std::endl;
 
-    // CryptoPP::AutoSeededRandomPool rng;
-    //
-    // crn::free_coordinates p1{5, -7}, p2{8, -12};
-    // auto line = crn::linear_diophantine::interpolate(p1, p2);
-    //
-    // auto r1 = line.random(rng, 50);
-    // auto r2 = line.random(rng, 50);
-    //
-    // std::cout << line << std::endl;
-    // std::cout << r1 << std::endl;
-    // std::cout << crn::linear_diophantine::interpolate(p1, r1) << std::endl;
-    // std::cout << r2 << std::endl;
-    //
-    // assert(crn::linear_diophantine::interpolate(p1, r1) == line);
-    // assert(crn::linear_diophantine::interpolate(p2, r1) == line);
-    // assert(crn::linear_diophantine::interpolate(p1, r2) == line);
-    // assert(crn::linear_diophantine::interpolate(p2, r2) == line);
-    // assert(crn::linear_diophantine::interpolate(r2, r1) == line);
+    CryptoPP::AutoSeededRandomPool rng;
 
+    // crn::math::free_coordinates p1{5, -7}, p2{8, -12};
+    // crn::math::free_coordinates p1{0, 8}, p2{5, 7};
+    crn::math::free_coordinates p1{5, 1}, p2{3, 4};
+    auto line = crn::math::diophantine::interpolate(p1, p2);
+
+    while(true){
+        auto r1 = line.random(rng, 50000);
+        while(p1 == r1 || p2 == r1){
+            r1 = line.random(rng, 50000);
+        }
+        auto r2 = line.random(rng, 50000);
+        while(r1 == r2 || p1 == r2 || p2 == r2){
+            r2 = line.random(rng, 50000);
+        }
+
+        std::cout << line << std::endl;
+        std::cout << r1 << std::endl;
+        std::cout << crn::math::diophantine::interpolate(p1, r1) << std::endl;
+        std::cout << r2 << std::endl;
+
+        assert(crn::math::diophantine::interpolate(p1, r1) == line);
+        assert(crn::math::diophantine::interpolate(p2, r1) == line);
+        assert(crn::math::diophantine::interpolate(p1, r2) == line);
+        assert(crn::math::diophantine::interpolate(p2, r2) == line);
+        assert(crn::math::diophantine::interpolate(r2, r1) == line);
+        assert(line.eval(r1.x()) == r1.y());
+        assert(line.eval(r2.x()) == r2.y());
+    }
 //    CryptoPP::Integer s = -17, d = -3;
 //    CryptoPP::Integer min = (2-s) / d;
 //    CryptoPP::Integer max = (100-s) / d;
@@ -87,12 +98,12 @@ int main(int argc, char** argv){
 //    CryptoPP::Integer r(rng, std::min(min, max), std::max(min, max));
 //    std::cout << (s + (r * d)) << std::endl;
 
-    CryptoPP::Integer input("186633539891002931657903750944036618999121140963084441002216962744063819191747778554251739081222280194591114477120837017347391135685014884998818270812356287863278733776657004536784711864987844059518625183113291316963478075992615428701873885603882558519838236649371224041513368881332877284661694696234762507103618674240516886679599578991724726024224533261887533319966030600727820886568027737247883559933896208827396126093239144545827918042186634278635947001842854676887680983235599222536135945517403491220345489274779478737751808274681116360");
-    std::string shex = crn::utils::eHex(input, CryptoPP::Integer::SIGNED);
-    std::string uhex = crn::utils::eHex(input, CryptoPP::Integer::UNSIGNED);
-    std::cout << shex << std::endl << uhex << std::endl;
-    std::cout << crn::utils::dHex(uhex, CryptoPP::Integer::SIGNED) << std::endl;
-    // std::cout << crn::utils::dHex(hex, true) << std::endl;
+    // CryptoPP::Integer input("186633539891002931657903750944036618999121140963084441002216962744063819191747778554251739081222280194591114477120837017347391135685014884998818270812356287863278733776657004536784711864987844059518625183113291316963478075992615428701873885603882558519838236649371224041513368881332877284661694696234762507103618674240516886679599578991724726024224533261887533319966030600727820886568027737247883559933896208827396126093239144545827918042186634278635947001842854676887680983235599222536135945517403491220345489274779478737751808274681116360");
+    // std::string shex = crn::utils::hex::encode(input, CryptoPP::Integer::SIGNED);
+    // std::string uhex = crn::utils::hex::encode(input, CryptoPP::Integer::UNSIGNED);
+    // std::cout << shex << std::endl << uhex << std::endl;
+    // std::cout << crn::utils::hex::decode(uhex, CryptoPP::Integer::SIGNED) << std::endl;
+    // std::cout << crn::utils::hex::decode(hex, true) << std::endl;
 
 
 }

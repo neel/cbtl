@@ -32,6 +32,7 @@ struct free_coordinates {
 };
 
 bool operator==(const free_coordinates& l, const free_coordinates& r);
+bool operator!=(const free_coordinates& l, const free_coordinates& r);
 free_coordinates operator*(const free_coordinates& c, const CryptoPP::Integer& s);
 free_coordinates operator+(const free_coordinates& l, const free_coordinates& r);
 
@@ -47,15 +48,15 @@ namespace nlohmann {
     template <>
     struct adl_serializer<crn::math::free_coordinates> {
         static crn::math::free_coordinates from_json(const json& j) {
-            CryptoPP::Integer x = crn::utils::dHex(j["x"].get<std::string>(), CryptoPP::Integer::SIGNED);
-            CryptoPP::Integer y = crn::utils::dHex(j["y"].get<std::string>(), CryptoPP::Integer::SIGNED);
+            CryptoPP::Integer x = crn::utils::hex::decode(j["x"].get<std::string>(), CryptoPP::Integer::SIGNED);
+            CryptoPP::Integer y = crn::utils::hex::decode(j["y"].get<std::string>(), CryptoPP::Integer::SIGNED);
             return crn::math::free_coordinates{x, y};
         }
 
         static void to_json(json& j, const crn::math::free_coordinates& c) {
             j = nlohmann::json {
-                {"x", crn::utils::eHex(c.x(), CryptoPP::Integer::SIGNED)},
-                {"y", crn::utils::eHex(c.y(), CryptoPP::Integer::SIGNED)}
+                {"x", crn::utils::hex::encode(c.x(), CryptoPP::Integer::SIGNED)},
+                {"y", crn::utils::hex::encode(c.y(), CryptoPP::Integer::SIGNED)}
             };
         }
     };

@@ -20,7 +20,7 @@ crn::keys::view_key::view_key(const std::string& name){
 
 void crn::keys::view_key::save(const std::string& name) const{
     std::ofstream access(name+".view");
-    access << crn::utils::eHex(_secret, CryptoPP::Integer::UNSIGNED);
+    access << crn::utils::hex::encode(_secret, CryptoPP::Integer::UNSIGNED);
     access.close();
 }
 
@@ -32,5 +32,5 @@ void crn::keys::view_key::load(const std::string& name){
     std::string hexed;
     view >> hexed;
     view.close();
-    _secret = crn::utils::dHex(hexed, CryptoPP::Integer::UNSIGNED);
+    _secret = crn::utils::hex::decode(hexed, CryptoPP::Integer::UNSIGNED);
 }

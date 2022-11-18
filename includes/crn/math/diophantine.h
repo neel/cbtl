@@ -26,7 +26,14 @@ class diophantine{
     diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const crn::math::free_coordinates& delta, const crn::math::free_coordinates& shift);
     public:
         static diophantine interpolate(const crn::math::free_coordinates& l, const crn::math::free_coordinates& r);
-        crn::math::free_coordinates random(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, bool force_noninvertible = true) const;
+        /**
+         * Gives a random coordinate on the line that has a non-invertible x value in Z/Zp-1
+         */
+        crn::math::free_coordinates random_nix(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G) const;
+        /**
+         * Gives a random coordinate on that line such that x value of that coordinate is less than n
+         */
+        crn::math::free_coordinates random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& n) const;
         CryptoPP::Integer eval(const CryptoPP::Integer& x) const;
 };
 

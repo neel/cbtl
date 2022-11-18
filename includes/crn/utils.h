@@ -10,14 +10,22 @@
 namespace crn{
 namespace utils{
 
-std::string eHex(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness/* = CryptoPP::Integer::UNSIGNED*/);
-CryptoPP::Integer dHex(const std::string& str, CryptoPP::Integer::Signedness signedness/* = CryptoPP::Integer::UNSIGNED*/);
-std::string SHA512(const CryptoPP::Integer& value);
-std::string SHA256(const CryptoPP::Integer& value);
-std::string SHA512(const std::string& value);
-CryptoPP::Integer sha256(const CryptoPP::Integer& value);
-CryptoPP::Integer sha512(const CryptoPP::Integer& value);
-CryptoPP::Integer sha512(const std::string& value);
+namespace hex{
+    std::string encode(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness);
+    CryptoPP::Integer decode(const std::string& str, CryptoPP::Integer::Signedness signedness);
+}
+
+namespace sha512{
+    CryptoPP::Integer digest(const CryptoPP::Integer& value);
+    CryptoPP::Integer digest(const std::string& value);
+    std::string str(const CryptoPP::Integer& value);
+    std::string str(const std::string& value);
+}
+
+namespace sha256{
+    CryptoPP::Integer digest(const CryptoPP::Integer& value);
+    std::string str(const CryptoPP::Integer& value);
+}
 
 }
 }
