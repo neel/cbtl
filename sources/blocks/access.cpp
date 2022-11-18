@@ -113,7 +113,4 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
     return last;
 }
 
-void crn::blocks::access::line(const CryptoPP::Integer& xu, const CryptoPP::Integer& xv) const{
-    CryptoPP::Integer delta_x, delta_y;
-}
 

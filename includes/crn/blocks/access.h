@@ -37,7 +37,6 @@ struct access{
     static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master);
     static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const crn::keys::view_key& view);
 
-    void line(const CryptoPP::Integer& xu, const CryptoPP::Integer& xv) const;
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
         access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body);
