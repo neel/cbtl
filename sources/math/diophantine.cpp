@@ -7,21 +7,21 @@
 
 crn::math::diophantine::diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const crn::math::free_coordinates& delta, const crn::math::free_coordinates& shift): _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
 
-crn::math::diophantine crn::math::diophantine::interpolate(const crn::math::free_coordinates& l, const crn::math::free_coordinates& r){
-    assert(l != r);
-    CryptoPP::Integer dx  = l.x()-r.x(), dy = r.y() - l.y();
-    CryptoPP::Integer c   = (r.y() * l.x()) - (r.x() * l.y());
+crn::math::diophantine crn::math::diophantine::interpolate(const crn::math::free_coordinates& u, const crn::math::free_coordinates& v){
+    assert(u != v);
+    CryptoPP::Integer dx  = u.x() - v.x(), dy = v.y() - u.y();
+    CryptoPP::Integer c   = (v.y() * u.x()) - (v.x() * u.y());
     CryptoPP::Integer gcd = CryptoPP::Integer::Gcd(dx, dy);
     assert(!gcd.IsZero());
     CryptoPP::Integer res = c / gcd;
     assert(!res.IsZero());
     auto a = dy / gcd, b = dx / gcd;
     c = res;
-    free_coordinates shift{l.x(), l.y()};
+    free_coordinates shift{u.x(), u.y()};
     free_coordinates delta{b, -a};
     auto line = crn::math::diophantine(a, b, c, delta, shift);
-    assert(line.eval(l.x()) == l.y());
-    assert(line.eval(r.x()) == r.y());
+    assert(line.eval(u.x()) == u.y());
+    assert(line.eval(v.x()) == v.y());
     return line;
 }
 

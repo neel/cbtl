@@ -33,8 +33,9 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     auto G = master.G();
     auto Gp = G.Gp();
 
-    CryptoPP::Integer random;
+    CryptoPP::Integer random;   // r_{u}
     auto active  = parts::active::construct(rng, p.a(), master, random);
+    // TODO if SHA256(active_request) is Odd then SHA256(g^{\pi_{v} r_{u}}) has to be Even or vice versa
     auto passive = parts::passive::construct(rng, p.p(), master);
 
     if(active_request.IsZero()){

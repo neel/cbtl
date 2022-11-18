@@ -46,9 +46,9 @@ struct header{
 };
 
 struct request{
-    std::string last;
-    CryptoPP::Integer y;
-    CryptoPP::Integer token;
+    std::string last;           // \tau_{u}^{(0)}
+    CryptoPP::Integer y;        // g^{\pi_{u}}
+    CryptoPP::Integer token;    // g^{\pi_{u} r_{u}^{(0)}}
 
     static request construct(const crn::blocks::access& block, const crn::keys::identity::pair& keys);
     static request construct(crn::storage& db, const crn::keys::identity::pair& keys);

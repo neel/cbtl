@@ -33,9 +33,9 @@ namespace crn{
 
 class session: public boost::enable_shared_from_this<session>, private boost::noncopyable{
   struct challenge_data{
-    CryptoPP::Integer last;
-    CryptoPP::Integer y;
-    CryptoPP::Integer token;
+    CryptoPP::Integer last;     // \tau_{u}^{(0)}
+    CryptoPP::Integer y;        // g^{\pi_{u}}
+    CryptoPP::Integer token;    // g^{\pi_{u} r_{u}^{(0)}}
     bool challenged;
     CryptoPP::Integer forward;
     CryptoPP::Integer rho;
