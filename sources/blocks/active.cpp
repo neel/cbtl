@@ -8,17 +8,10 @@
 
 crn::blocks::parts::active::active(const CryptoPP::Integer& forward, const CryptoPP::Integer& backward, const CryptoPP::Integer& checksum): _forward(forward), _backward(backward), _checksum(checksum) {}
 
-
-
-// crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t){
-//     CryptoPP::Integer random;
-//     return construct(rng, G, y, w, t, random);
-// }
-crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t, CryptoPP::Integer& random){
+crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t, const CryptoPP::Integer& random){
     auto g  = G.g();
     auto Gp = G.Gp();
 
-    random        = G.random(rng, false);
     auto forward  = Gp.Exponentiate(g, random);
     auto token    = Gp.Exponentiate(y, random);
     auto token_w  = Gp.Exponentiate(token, w);
@@ -27,14 +20,10 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoS
     crn::blocks::parts::active part(forward, t, hash);
     return part;
 }
-crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& token, CryptoPP::Integer& random) {
+crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& token, const CryptoPP::Integer& random) {
     return construct(rng, pub.G(), pub.y(), master.x(), token, random);
 }
-crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::keys::identity::private_key& master, CryptoPP::Integer& random){
-    return crn::blocks::parts::active::construct(rng, p.pub(), master, p.token(), random);
-}
-crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::keys::identity::private_key& master){
-    CryptoPP::Integer random;
+crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& random){
     return crn::blocks::parts::active::construct(rng, p.pub(), master, p.token(), random);
 }
 

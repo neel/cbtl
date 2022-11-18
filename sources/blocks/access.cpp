@@ -17,7 +17,20 @@ crn::blocks::access::access(const parts::active& active, const parts::passive& p
 
 crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master){
     if(p.a().genesis() == p.p().genesis() && p.a().genesis()){
-        CryptoPP::Integer random;
+        auto G = master.G();
+        auto Gp = G.Gp();
+
+        CryptoPP::Integer random = G.random(rng, false);   // r_{u}
+        CryptoPP::Integer dux = crn::utils::sha256::digest(0);
+        while(true){
+            random = G.random(rng, false);   // r_{u}
+            CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random));
+            if((dux.IsEven() && dvx.IsOdd()) || (dux.IsOdd() && dvx.IsEven())){
+                assert((dux - dvx).IsOdd());
+                break;
+            }
+        }
+
         auto active  = parts::active::construct(rng, p.a(), master, random);
         auto passive = parts::passive::construct(rng, p.p(), master);
 
@@ -33,17 +46,26 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     auto G = master.G();
     auto Gp = G.Gp();
 
-    CryptoPP::Integer random;   // r_{u}
-    auto active  = parts::active::construct(rng, p.a(), master, random);
-    // TODO if SHA256(active_request) is Odd then SHA256(g^{\pi_{v} r_{u}}) has to be Even or vice versa
-    auto passive = parts::passive::construct(rng, p.p(), master);
-
     if(active_request.IsZero()){
         throw std::invalid_argument("active_request must not be zero unless it is a genesis block (use genesis function in that case)");
     }
     if(p.a().genesis() == p.p().genesis() && p.a().genesis()){
         throw std::invalid_argument("genesis parms not accepted (use genesis function)");
     }
+
+    CryptoPP::Integer random = G.random(rng, false);   // r_{u}
+    CryptoPP::Integer dux = crn::utils::sha256::digest(active_request);
+    while(true){
+        random = G.random(rng, false);   // r_{u}
+        CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random));
+        if((dux.IsEven() && dvx.IsOdd()) || (dux.IsOdd() && dvx.IsEven())){
+            assert((dux - dvx).IsOdd());
+            break;
+        }
+    }
+
+    auto active  = parts::active::construct(rng, p.a(), master, random);
+    auto passive = parts::passive::construct(rng, p.p(), master);
 
     auto suffix = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(G.g(), view.secret()),  gaccess), master.x());
 
@@ -91,7 +113,4 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
     return last;
 }
 
-void crn::blocks::access::line(const CryptoPP::Integer& xu, const CryptoPP::Integer& xv) const{
-    CryptoPP::Integer delta_x, delta_y;
-}
 
