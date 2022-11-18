@@ -14,9 +14,6 @@ crn::blocks::contents::contents(const crn::keys::identity::public_key& pub, cons
     auto G = pub.G();
     auto Gp = G.Gp();
     CryptoPP::Integer xv = crn::utils::sha256::digest(Gp.Exponentiate(pub.y(), random)), yv = addr.active();
-
-    // std::cout << "coordinates:" << std::endl << xv << yv << std::endl;
-
     CryptoPP::Integer xu = crn::utils::sha256::digest(active_req), yu = addr.passive();
     compute(crn::math::free_coordinates{xu, yu}, crn::math::free_coordinates{xv, yv}, msg, G, super);
 }

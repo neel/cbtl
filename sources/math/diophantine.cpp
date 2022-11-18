@@ -52,6 +52,9 @@ crn::math::free_coordinates crn::math::diophantine::random_nix(CryptoPP::AutoSee
         //              Which requires factorization of (p-1) which can be expensive
         if(_shift.x().IsEven() && _delta.x().IsOdd() && !r.IsEven()) r = r + 1;
         if(_shift.x().IsOdd()  && _delta.x().IsOdd() && !r.IsOdd() ) r = r + 1;
+        if(_delta.x().IsEven()){
+            throw std::runtime_error("Unexpected: found delta to be Even");
+        }
         auto coordinate = _shift + (_delta * r);
         if(coordinate.x() >= 2 && coordinate.x() <= (G.p()-1)){
             auto x_inv = Gp1.MultiplicativeInverse(coordinate.x());
