@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
         while(i++ < at){
             std::string address = is_active
                                     ? last.active().next(user.pub().G(), last.address().id(), user.pri().x())
-                                    : last.passive().next(user.pub().G(), last.address().id(), master.y(), user.pri().x());
+                                    : last.passive().next(user.pub().G(), last.address().id(), user.pri().x());
             if(db.exists(address, true)){
                 CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
                 std::string block_id = db.id(address);

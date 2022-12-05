@@ -102,7 +102,7 @@ crn::blocks::access crn::blocks::last::active(crn::storage& db, const crn::keys:
 crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& secret){
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
-        std::string address = last.passive().next(pub.G(), last.address().id(), pub.y(), secret.x());
+        std::string address = last.passive().next(pub.G(), last.address().id(), secret.x());
         if(db.exists(address, true)){
             std::string block_id = db.id(address);
             last = db.fetch(block_id);
@@ -112,5 +112,21 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
     }
     return last;
 }
+
+crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess){
+    CryptoPP::Integer h = crn::utils::sha512::digest(gaccess);
+    crn::blocks::access last = crn::blocks::genesis(db, pub);
+    while(true){
+        std::string address = last.passive().next_by_hash(pub.G(), last.address().id(), h);
+        if(db.exists(address, true)){
+            std::string block_id = db.id(address);
+            last = db.fetch(block_id);
+        }else{
+            break;
+        }
+    }
+    return last;
+}
+
 
 

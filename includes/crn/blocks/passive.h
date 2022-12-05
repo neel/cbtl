@@ -23,11 +23,12 @@ struct passive{
     inline CryptoPP::Integer forward() const { return _forward; }
     inline CryptoPP::Integer cipher() const { return _cipher; }
 
-    CryptoPP::Integer token(const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const;
+    // CryptoPP::Integer token(const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const;
     /**
      * @brief Calculate the next block's $c_{u}$ using the current block's id and passive user's secret.
      */
-    std::string next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const;
+    std::string next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const;
+    std::string next_by_hash(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& h) const;
     /**
      * @brief Calculate the previous block's $\tau$ using the current block's id and passive user's secret.
      */

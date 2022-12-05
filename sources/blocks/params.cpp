@@ -36,17 +36,18 @@ bool crn::blocks::params::passive::genesis() const{ return _token.IsZero(); }
 CryptoPP::Integer crn::blocks::params::passive::address() const{
     return _pub.Gp().Multiply(_last, crn::utils::sha512::digest(_token));
 }
-crn::blocks::params::passive crn::blocks::params::passive::construct(const crn::blocks::access& last, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri){
-    auto secret  = pub.Gp().Exponentiate(pub.y(), pri.x());
-    auto rho_inv = pub.Gp().Divide(last.passive().cipher(), secret);
-    auto token   = pub.Gp().Exponentiate(last.passive().forward(), rho_inv);
+crn::blocks::params::passive crn::blocks::params::passive::construct(const crn::blocks::access& last, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess){
+    CryptoPP::Integer h = crn::utils::sha512::digest(gaccess);
+    auto Gp = pub.G().Gp(), Gp1 = pub.G().Gp1();
+    auto h_inverse = Gp1.MultiplicativeInverse(h);
+    auto token     = Gp.Exponentiate(last.passive().cipher(), h_inverse);
     return crn::blocks::params::passive(last.address().id(), pub, token);
 }
 
 
 
 crn::blocks::params::params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master): _active(active), _passive(passive), _master(master) { }
-crn::blocks::params::params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master): params(active, params::passive::construct(passive_last, passive_pub, master), master) { }
+crn::blocks::params::params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& gaccess): params(active, params::passive::construct(passive_last, passive_pub, gaccess), master) { }
 
 crn::blocks::params crn::blocks::params::genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& pub){
     return crn::blocks::params(crn::blocks::params::active::genesis(pub), crn::blocks::params::passive::genesis(pub), master);
