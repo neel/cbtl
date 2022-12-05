@@ -7,7 +7,7 @@
 #include <cryptopp/integer.h>
 #include <cryptopp/osrng.h>
 #include <nlohmann/json.hpp>
-#include "crn/group.h"
+#include "crn/math/group.h"
 #include "crn/utils.h"
 #include "crn/keys.h"
 
@@ -24,13 +24,13 @@ struct params{
 
         static active genesis(const crn::keys::identity::public_key& pub);
 
-        inline const CryptoPP::Integer& id() const { return _id; }
+        inline const CryptoPP::Integer& last() const { return _last; }
         inline const crn::keys::identity::public_key& pub() const { return _pub; }
         inline const CryptoPP::Integer& token() const { return _token; }
         protected:
             active(const crn::keys::identity::public_key& pub);
         private:
-            CryptoPP::Integer _id;
+            CryptoPP::Integer _last;
             crn::keys::identity::public_key _pub;
             CryptoPP::Integer _token;    ///< $ g^{\pi_{u}^{-1}r_{u}^{(0)}} $
     };
@@ -42,28 +42,30 @@ struct params{
         static passive genesis(const crn::keys::identity::public_key& pub);
         static passive construct(const crn::blocks::access& last, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri);
 
-        inline const CryptoPP::Integer& id() const { return _id; }
+        inline const CryptoPP::Integer& last() const { return _last; }
         inline const crn::keys::identity::public_key& pub() const { return _pub; }
         inline const CryptoPP::Integer& token() const { return _token; }
         protected:
             passive(const crn::keys::identity::public_key& pub);
         private:
-            CryptoPP::Integer _id;
+            CryptoPP::Integer _last;
             crn::keys::identity::public_key _pub;
             CryptoPP::Integer _token;    ///< $ g^{\pi_{v}r_{v}^{(0)}} $
     };
 
-    active  _active;
-    passive _passive;
-    crn::keys::identity::private_key  _master;
-
     params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master);
     params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master);
 
-    // inline const active& active() const { return _active; }
-    // inline const passive& passive() const { return _passive; }
+    inline const params::active& a() const { return _active; }
+    inline const params::passive& p() const { return _passive; }
+    inline const crn::keys::identity::private_key& master() const { return _master; }
 
     static params genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& passive_pub);
+
+    private:
+        active  _active;
+        passive _passive;
+        crn::keys::identity::private_key  _master;
 };
 
 }

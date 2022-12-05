@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
         ("secret,s", boost::program_options::value<std::string>(), "path to the secret key")
         ("access,a", boost::program_options::value<std::string>(), "path to the access key")
         ("master,m", boost::program_options::value<std::string>(), "path to the trusted server's public key")
-        ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
+        // ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
         ;
 
     boost::program_options::variables_map map;
@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
                 secret_key = map["secret"].as<std::string>(),
                 access_key = map["access"].as<std::string>(),
                 master_key = map["master"].as<std::string>();
-
-    std::uint64_t record = map["record"].as<std::uint64_t>();
+/*
+    std::uint64_t record = map["record"].as<std::uint64_t>();*/
 
     crn::storage db;
 
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     crn::keys::identity::public_key master_pub(master_key);
     crn::keys::access_key access(access_key);
 
-    crn::group G = user.pub();
+    crn::math::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
 
     boost::asio::io_context io_context;
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
         response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
         response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
         response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
-        response.access = access.prepare(user.pri(), record, lambda);
+        response.access = access.prepare(user.pri(), lambda);
 
         // send the challenge
         nlohmann::json response_json = challenge;

@@ -13,38 +13,52 @@ SET(INCLUDE_DIRS
 )
 
 SET(SOURCES
-    sources/group.cpp
     sources/utils.cpp
     sources/blocks/active.cpp
     sources/blocks/passive.cpp
     sources/blocks/params.cpp
     sources/blocks/access.cpp
+    sources/blocks/contents.cpp
+    sources/blocks/addresses.cpp
+    sources/math/group.cpp
+    sources/math/diophantine.cpp
+    sources/math/vector.cpp
+    sources/math/coordinates.cpp
+    sources/keys/dsa.cpp
+    sources/keys/private.cpp
+    sources/keys/public.cpp
+    sources/keys/pair.cpp
+    sources/keys/access.cpp
+    sources/keys/view.cpp
     sources/storage.cpp
     sources/server.cpp
     sources/session.cpp
     sources/packets.cpp
-    sources/keys.cpp
 )
+
+FILE(GLOB_RECURSE LibFiles "includes/*.h")
+add_custom_target(headers SOURCES ${LibFiles})
 
 add_library(crn SHARED ${SOURCES})
 
 add_executable(crn-init    init.cpp)
-add_executable(crn-manager manager.cpp)
+add_executable(crn-request request.cpp)
 add_executable(crn-server  main.cpp)
+add_executable(crn-read    read.cpp)
+add_executable(rough       rough.cpp)
 
 target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 
 target_link_libraries(crn-server     crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 target_link_libraries(crn-init       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(crn-manager    crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(crn-request    crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(crn-read       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(rough          crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 
 target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
-
-# target_include_directories(crn-server     PUBLIC ${INCLUDE_DIRS})
-# target_include_directories(crn-init       PUBLIC ${INCLUDE_DIRS})
-# target_include_directories(crn-manager    PUBLIC ${INCLUDE_DIRS})
 
 install(TARGETS crn         RUNTIME DESTINATION lib)
 install(TARGETS crn-server  RUNTIME DESTINATION bin)
 install(TARGETS crn-init    RUNTIME DESTINATION bin)
-install(TARGETS crn-manager RUNTIME DESTINATION bin)
+install(TARGETS crn-request RUNTIME DESTINATION bin)
+install(TARGETS crn-read    RUNTIME DESTINATION bin)
