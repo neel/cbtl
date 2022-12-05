@@ -15,7 +15,7 @@
 
 crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body): _active(active), _passive(passive), _address(addr), _contents(body){}
 
-crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master){
+crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& h){
     if(p.a().genesis() == p.p().genesis() && p.a().genesis()){
         auto G = master.G();
         auto Gp = G.Gp();
@@ -32,7 +32,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
         }
 
         auto active  = parts::active::construct(rng, p.a(), master, random);
-        auto passive = parts::passive::construct(rng, p.p(), master);
+        auto passive = parts::passive::construct(rng, p.p(), h, 0, 0);
 
         crn::blocks::addresses addr(p.a().pub().y(), p.p().pub().y());
         crn::blocks::contents contents(p.p().pub(), random, 0, addr, "genesis", 0);
@@ -42,7 +42,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
     }
 }
 
-crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const crn::keys::view_key& view) {
+crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& rv, const crn::keys::view_key& view) {
     auto G = master.G();
     auto Gp = G.Gp();
 
@@ -65,7 +65,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     }
 
     auto active  = parts::active::construct(rng, p.a(), master, random);
-    auto passive = parts::passive::construct(rng, p.p(), master);
+    auto passive = parts::passive::construct(rng, p.p(), crn::utils::sha512::digest(gaccess), random, rv);
 
     auto suffix = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(G.g(), view.secret()),  gaccess), master.x());
 

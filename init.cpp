@@ -60,14 +60,20 @@ int main(int argc, char** argv) {
     crn::keys::identity::pair trusted_server(rng, key_size);
     trusted_server.save(master);
 
-    CryptoPP::Integer theta = trusted_server.pub().random(rng, false), phi = trusted_server.pub().random(rng, false);
-
-    crn::keys::view_key view(phi);
-    view.save("master");
-
     crn::math::group G = trusted_server.pub();
     auto Gp = G.Gp();
     auto Gp1 = G.Gp1();
+
+    CryptoPP::Integer phi = trusted_server.pub().random(rng, false);
+    CryptoPP::Integer theta = 0, h = 0, h_inverse = 0;
+    while(h_inverse == 0 || Gp.Exponentiate(Gp.Exponentiate(G.g(), h_inverse), h) != G.g()){
+        theta = trusted_server.pub().random(rng, false);
+        h = crn::utils::sha512::digest(Gp.Exponentiate(G.g(), theta));
+        h_inverse = Gp1.MultiplicativeInverse(h);
+    }
+
+    crn::keys::view_key view(phi);
+    view.save("master");
 
     crn::storage db;
     for(std::uint32_t i = 0; i < managers; ++i){
@@ -77,7 +83,7 @@ int main(int argc, char** argv) {
         auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
         access.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
-        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
     }
 
@@ -90,7 +96,7 @@ int main(int argc, char** argv) {
         auto view   = crn::keys::view_key::construct(phi, key.pub(), trusted_server.pri());
         view.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
-        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
     }
 
@@ -99,7 +105,7 @@ int main(int argc, char** argv) {
         crn::keys::identity::pair key(rng, trusted_server.pri());
         key.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
-        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
     }
 

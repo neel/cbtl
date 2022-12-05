@@ -37,9 +37,9 @@ struct passive{
      * Trapdoor t = $g^{\pi_{v} r_{v}^{(0)}}$ is provided by the caller which is expected to be verified before calling the constructor.
      * y is the public key of the passive user
      */
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t);
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& t);
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::keys::identity::private_key& master);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv);
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::parts::passive>;
