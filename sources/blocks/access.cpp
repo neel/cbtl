@@ -32,7 +32,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
         }
 
         auto active  = parts::active::construct(rng, p.a(), master, random);
-        auto passive = parts::passive::construct(rng, p.p(), h, 0, 0);
+        auto passive = parts::passive::construct(rng, p.p(), h, random, 0);
 
         crn::blocks::addresses addr(p.a().pub().y(), p.p().pub().y());
         crn::blocks::contents contents(p.p().pub(), random, 0, addr, "genesis", 0);
