@@ -83,34 +83,14 @@ int main(int argc, char** argv) {
                     x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
                 }
 
-                // std::cout << "coordinates:" << std::endl << x << y << std::endl;
-
                 auto body = last.body();
                 crn::math::free_coordinates random = body.random();
                 auto line = crn::math::diophantine::interpolate(crn::math::free_coordinates{x, y}, random);
                 CryptoPP::Integer delta = line.eval(body.gamma());
                 std::string ciphertext = body.ciphertext();
-
-                std::vector<CryptoPP::byte> bytes;
-                bytes.resize(delta.MinEncodedSize(CryptoPP::Integer::SIGNED));
-                delta.Encode(&bytes[0], bytes.size(), CryptoPP::Integer::SIGNED);
-                CryptoPP::SHA256 hash;
-                CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
-                hash.CalculateDigest(digest, bytes.data(), bytes.size());
-
-                CryptoPP::HexEncoder encoder;
-                std::string hash_str;
-                encoder.Attach(new CryptoPP::StringSink(hash_str));
-                encoder.Put(digest, sizeof(digest));
-                encoder.MessageEnd();
-
-                std::cout << "H(secret): " << hash_str << std::endl;
-
-                CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
-                dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
                 std::string plaintext;
                 try{
-                    CryptoPP::StringSource s(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext)))); // StringSource
+                    plaintext = crn::utils::aes::decrypt(ciphertext, delta, CryptoPP::Integer::SIGNED);
                 }catch(const CryptoPP::InvalidCiphertext&){
                     std::cout << "invalid ciphertext" << std::endl;
                     plaintext = "failed";
@@ -156,9 +136,8 @@ int main(int argc, char** argv) {
 
             CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
             pswdh.Encode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-            CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
-            dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-            CryptoPP::StringSource s(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext))));
+
+            plaintext = crn::utils::aes::decrypt(ciphertext, digest);
         }catch(const CryptoPP::InvalidCiphertext&){
             std::cout << "invalid ciphertext" << std::endl;
         }

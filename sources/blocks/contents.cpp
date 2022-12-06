@@ -52,14 +52,6 @@ void crn::blocks::contents::compute(const crn::math::free_coordinates& p1, const
     CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
     hash.CalculateDigest(digest, bytes.data(), bytes.size());
 
-    // CryptoPP::HexEncoder encoder;
-    // std::string hash_str;
-    // encoder.Attach(new CryptoPP::StringSink(hash_str));
-    // encoder.Put(digest, sizeof(digest));
-    // encoder.MessageEnd();
-    //
-    // std::cout << "H(secret): " << hash_str << std::endl;
-
     auto Gp = G.Gp();
     CryptoPP::Integer hash_int;
     hash_int.Decode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
