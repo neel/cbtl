@@ -21,10 +21,10 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
         auto Gp = G.Gp();
 
         CryptoPP::Integer random = G.random(rng, false);   // r_{u}
-        CryptoPP::Integer dux = crn::utils::sha256::digest(0);
+        CryptoPP::Integer dux = crn::utils::sha256::digest(0, CryptoPP::Integer::UNSIGNED);
         while(true){
             random = G.random(rng, false);   // r_{u}
-            CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random));
+            CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random), CryptoPP::Integer::UNSIGNED);
             if((dux.IsEven() && dvx.IsOdd()) || (dux.IsOdd() && dvx.IsEven())){
                 assert((dux - dvx).IsOdd());
                 break;
@@ -54,10 +54,10 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     }
 
     CryptoPP::Integer random = G.random(rng, false);   // r_{u}
-    CryptoPP::Integer dux = crn::utils::sha256::digest(active_request);
+    CryptoPP::Integer dux = crn::utils::sha256::digest(active_request, CryptoPP::Integer::UNSIGNED);
     while(true){
         random = G.random(rng, false);   // r_{u}
-        CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random));
+        CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random), CryptoPP::Integer::UNSIGNED);
         if((dux.IsEven() && dvx.IsOdd()) || (dux.IsOdd() && dvx.IsEven())){
             assert((dux - dvx).IsOdd());
             break;
@@ -65,7 +65,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     }
 
     auto active  = parts::active::construct(rng, p.a(), master, random);
-    auto passive = parts::passive::construct(rng, p.p(), crn::utils::sha512::digest(gaccess), random, rv);
+    auto passive = parts::passive::construct(rng, p.p(), crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED), random, rv);
 
     auto suffix = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(G.g(), view.secret()),  gaccess), master.x());
 
@@ -114,7 +114,7 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
 }
 
 crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess){
-    CryptoPP::Integer h = crn::utils::sha512::digest(gaccess);
+    CryptoPP::Integer h = crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED);
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
         std::string address = last.passive().next(pub.G(), last.address().id(), h);

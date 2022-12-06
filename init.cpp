@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     CryptoPP::Integer theta = 0, h = 0, h_inverse = 0;
     while(h_inverse == 0 || Gp.Exponentiate(Gp.Exponentiate(G.g(), h_inverse), h) != G.g()){
         theta = trusted_server.pub().random(rng, false);
-        h = crn::utils::sha512::digest(Gp.Exponentiate(G.g(), theta));
+        h = crn::utils::sha512::digest(Gp.Exponentiate(G.g(), theta), CryptoPP::Integer::UNSIGNED);
         h_inverse = Gp1.MultiplicativeInverse(h);
     }
 

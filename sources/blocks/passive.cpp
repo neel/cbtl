@@ -9,7 +9,7 @@ crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::Aut
     auto r = G.random(rng, false);
     auto Gp = G.Gp();
     auto forward  = Gp.Exponentiate(G.g(), r);
-    auto backward = (ru == 0 || rv == 0) ? CryptoPP::Integer::Zero() : Gp.Multiply( crn::utils::sha512::digest( Gp.Exponentiate(y, ru) ), rv );
+    auto backward = (ru == 0 || rv == 0) ? CryptoPP::Integer::Zero() : Gp.Multiply( crn::utils::sha512::digest( Gp.Exponentiate(y, ru), CryptoPP::Integer::UNSIGNED ), rv );
     auto cipher   = Gp.Exponentiate(Gp.Exponentiate(y, r), h);
     return crn::blocks::parts::passive(forward, backward, cipher);
 }
@@ -26,7 +26,7 @@ crn::blocks::parts::passive::passive(const CryptoPP::Integer& forward, const Cry
 std::string crn::blocks::parts::passive::next(const crn::math::group& G, const CryptoPP::Integer& id, const crn::keys::identity::private_key& pri) const{
     auto Gp = G.Gp();
     auto token = Gp.Exponentiate(_forward, pri.x());
-    auto hash = crn::utils::sha512::digest(token);
+    auto hash = crn::utils::sha512::digest(token, CryptoPP::Integer::UNSIGNED);
     auto addr = G.Gp().Multiply(id, hash);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
@@ -35,7 +35,7 @@ std::string crn::blocks::parts::passive::next(const crn::math::group& G, const C
     auto Gp = G.Gp(), Gp1 = G.Gp1();
     auto h_inverse = Gp1.MultiplicativeInverse(h);
     auto token     = Gp.Exponentiate(_cipher, h_inverse);
-    auto hash      = crn::utils::sha512::digest(token);
+    auto hash      = crn::utils::sha512::digest(token, CryptoPP::Integer::UNSIGNED);
     auto addr      = Gp.Multiply(id, hash);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
@@ -43,8 +43,8 @@ std::string crn::blocks::parts::passive::next(const crn::math::group& G, const C
 
 std::string crn::blocks::parts::passive::prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& gru, const crn::keys::identity::private_key& pri) const{
     auto Gp = G.Gp();
-    auto hash    = crn::utils::sha512::digest( Gp.Exponentiate(gru, pri.x()) );
-    auto suffix  = crn::utils::sha512::digest( Gp.Exponentiate( Gp.Divide(_backward, hash), pri.x() ) );
+    auto hash    = crn::utils::sha512::digest( Gp.Exponentiate(gru, pri.x()), CryptoPP::Integer::UNSIGNED );
+    auto suffix  = crn::utils::sha512::digest( Gp.Exponentiate( Gp.Divide(_backward, hash), pri.x() ), CryptoPP::Integer::UNSIGNED );
     auto addr    = Gp.Divide(_backward, suffix);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }

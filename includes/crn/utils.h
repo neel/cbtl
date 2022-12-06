@@ -22,15 +22,15 @@ namespace hex{
 }
 
 namespace sha512{
-    CryptoPP::Integer digest(const CryptoPP::Integer& value);
+    CryptoPP::Integer digest(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness);
     CryptoPP::Integer digest(const std::string& value);
-    std::string str(const CryptoPP::Integer& value);
+    std::string str(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness);
     std::string str(const std::string& value);
 }
 
 namespace sha256{
-    CryptoPP::Integer digest(const CryptoPP::Integer& value);
-    std::string str(const CryptoPP::Integer& value);
+    CryptoPP::Integer digest(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness);
+    std::string str(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness);
 }
 
 

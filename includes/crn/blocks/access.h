@@ -29,7 +29,7 @@ struct access{
     inline const parts::passive& passive() const { return _passive; }
     inline const addresses& address() const { return _address; }
     inline bool genesis() const { return _address.active() == _address.passive(); }
-    inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::hex::encode(crn::utils::sha512::digest(y), CryptoPP::Integer::UNSIGNED); }
+    inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::hex::encode(crn::utils::sha512::digest(y, CryptoPP::Integer::UNSIGNED), CryptoPP::Integer::UNSIGNED); }
     inline const boost::posix_time::ptime& requested() const { return _requested;}
     inline const boost::posix_time::ptime& created() const { return _created;}
     inline const contents& body() const { return _contents; }

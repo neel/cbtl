@@ -15,7 +15,7 @@ bool crn::keys::identity::public_key::initialize() {
 }
 
 std::string crn::keys::identity::public_key::genesis_id() const{
-    return crn::utils::hex::encode(crn::utils::sha512::digest(_y), CryptoPP::Integer::UNSIGNED);
+    return crn::utils::hex::encode(crn::utils::sha512::digest(_y, CryptoPP::Integer::UNSIGNED), CryptoPP::Integer::UNSIGNED);
 }
 crn::keys::identity::public_key::public_key(const nlohmann::json& json, bool){
     auto p = CryptoPP::MakeParameters

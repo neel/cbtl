@@ -75,12 +75,12 @@ int main(int argc, char** argv) {
                                     ? last.active().next(user.pub().G(), last.address().id(), user.pri())
                                     : last.passive().next(user.pub().G(), last.address().id(), user.pri());
             if(db.exists(address, true)){
-                CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
+                CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 std::string block_id = db.id(address);
                 last = db.fetch(block_id);
                 CryptoPP::Integer y = is_active ? last.address().passive() : last.address().active();
                 if(!is_active){
-                    x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
+                    x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 }
 
                 auto body = last.body();
@@ -136,7 +136,6 @@ int main(int argc, char** argv) {
 
             CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
             pswdh.Encode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-
             plaintext = crn::utils::aes::decrypt(ciphertext, digest);
         }catch(const CryptoPP::InvalidCiphertext&){
             std::cout << "invalid ciphertext" << std::endl;
