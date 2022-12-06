@@ -71,7 +71,8 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       void run();
       void do_read();
       void handle_read_header(const boost::system::error_code& error, std::size_t bytes_transferred);
-      void handle_read_data(const boost::system::error_code& error, std::size_t bytes_transferred) ;
+      void handle_read_data(const boost::system::error_code& error, std::size_t bytes_transferred);
+      void handle_storage_data(const boost::system::error_code& error, std::size_t bytes_transferred);
       void write_handler();
       inline socket_type& socket(){ return _socket; }
   private:

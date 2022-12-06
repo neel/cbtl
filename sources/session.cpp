@@ -34,39 +34,70 @@ void crn::session::handle_read_header(const boost::system::error_code& error, st
     std::copy_n(_header.cbegin(), bytes_transferred, reinterpret_cast<std::uint8_t*>(&_head));
     _head.size = ntohl(_head.size);
     std::cout << "expecting data " << _head.size << std::endl;
-    boost::asio::async_read(
-        _socket,
-        boost::asio::buffer(_data, _head.size),
-        boost::bind(
-            &session::handle_read_data,
-            shared_from_this(),
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred
-        )
-    );
+    if(_head.type == (int) crn::packets::type::add){
+        boost::asio::async_read(
+            _socket,
+            boost::asio::buffer(_data, _head.size),
+            boost::bind(
+                &session::handle_storage_data,
+                shared_from_this(),
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred
+            )
+        );
+    }else{
+        boost::asio::async_read(
+            _socket,
+            boost::asio::buffer(_data, _head.size),
+            boost::bind(
+                &session::handle_read_data,
+                shared_from_this(),
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred
+            )
+        );
+    }
 }
 void crn::session::handle_read_data(const boost::system::error_code& error, std::size_t bytes_transferred) {
     if (error) {
         std::cout << error.message() << std::endl;
         return;
     }
-    std::string req_str;
-    req_str.reserve(bytes_transferred);
-    std::copy_n(_data.cbegin(), bytes_transferred, std::back_inserter(req_str));
-    nlohmann::json req_json = nlohmann::json::parse(req_str);
+    std::string data_str;
+    data_str.reserve(bytes_transferred);
+    std::copy_n(_data.cbegin(), bytes_transferred, std::back_inserter(data_str));
+    nlohmann::json data_json = nlohmann::json::parse(data_str);
     crn::packets::type type = static_cast<crn::packets::type>(_head.type);
-    std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
+    std::cout << "<< " << std::endl << data_json.dump(4) << std::endl;
 
     if(type == crn::packets::type::request){
-        crn::packets::request req = req_json;
+        crn::packets::request req = data_json;
         handle_request(req);
     }else if(type == crn::packets::type::response && _challenge_data.challenged){
-        crn::packets::response response = req_json;
+        crn::packets::response response = data_json;
         handle_challenge_response(response);
     }
 
     do_read();
 }
+
+void crn::session::handle_storage_data(const boost::system::error_code& error, std::size_t bytes_transferred) {
+    if (error) {
+        std::cout << error.message() << std::endl;
+        return;
+    }
+    std::string data_str;
+    data_str.reserve(bytes_transferred);
+    std::copy_n(_data.cbegin(), bytes_transferred, std::back_inserter(data_str));
+    nlohmann::json data_json = nlohmann::json::parse(data_str);
+    crn::packets::type type = static_cast<crn::packets::type>(_head.type);
+    std::cout << "<< " << std::endl << data_json.dump(4) << std::endl;
+
+    // start storage add protocol
+
+    do_read();
+}
+
 void crn::session::write_handler(){
 
 }

@@ -34,7 +34,8 @@ enum class type{
     unknown,
     request,
     challenge,
-    response
+    response,
+    add
 };
 
 struct header{
