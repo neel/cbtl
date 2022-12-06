@@ -110,3 +110,43 @@ CryptoPP::Integer crn::utils::sha512::digest(const std::string& value){
     return ret;
 }
 
+std::string crn::utils::aes::encrypt(const std::string& plaintext, CryptoPP::byte (&digest)[CryptoPP::SHA256::DIGESTSIZE]){
+    std::string ciphertext;
+    CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
+    enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+    CryptoPP::StringSource(plaintext, true, new CryptoPP::StreamTransformationFilter(enc, new CryptoPP::Base64Encoder(new CryptoPP::StringSink(ciphertext), false)));
+    return ciphertext;
+}
+
+std::string crn::utils::aes::encrypt(const std::string& plaintext, const CryptoPP::Integer& password, CryptoPP::Integer::Signedness signedness){
+    std::vector<CryptoPP::byte> bytes;
+    bytes.resize(password.MinEncodedSize(signedness));
+    password.Encode(&bytes[0], bytes.size(), signedness);
+    CryptoPP::SHA256 hash;
+    CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
+    hash.CalculateDigest(digest, bytes.data(), bytes.size());
+    return encrypt(plaintext, digest);
+}
+
+std::string crn::utils::aes::decrypt(const std::string& ciphertext, CryptoPP::byte (&digest)[CryptoPP::SHA256::DIGESTSIZE]){
+    CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
+    dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+    std::string plaintext;
+    CryptoPP::StringSource(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext))));
+    return plaintext;
+}
+
+std::string crn::utils::aes::decrypt(const std::string& ciphertext, const CryptoPP::Integer& password, CryptoPP::Integer::Signedness signedness){
+    std::vector<CryptoPP::byte> bytes;
+    bytes.resize(password.MinEncodedSize(signedness));
+    password.Encode(&bytes[0], bytes.size(), signedness);
+    CryptoPP::SHA256 hash;
+    CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
+    hash.CalculateDigest(digest, bytes.data(), bytes.size());
+
+    return decrypt(ciphertext, digest);
+}
+
+
+
+

@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
         crn::blocks::access last = crn::blocks::genesis(db, user.pub());
         while(i++ < at){
             std::string address = is_active
-                                    ? last.active().next(user.pub().G(), last.address().id(), user.pri().x())
-                                    : last.passive().next(user.pub().G(), last.address().id(), user.pri().x());
+                                    ? last.active().next(user.pub().G(), last.address().id(), user.pri())
+                                    : last.passive().next(user.pub().G(), last.address().id(), user.pri());
             if(db.exists(address, true)){
                 CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
                 std::string block_id = db.id(address);
@@ -88,10 +88,6 @@ int main(int argc, char** argv) {
                 auto body = last.body();
                 crn::math::free_coordinates random = body.random();
                 auto line = crn::math::diophantine::interpolate(crn::math::free_coordinates{x, y}, random);
-                // std::cout << "p: " << std::endl << crn::math::free_coordinates{x, y} << std::endl;
-                // std::cout << "random: " << std::endl << random << std::endl;
-                // std::cout << "line: " << line << std::endl;
-                // std::cout << "random: " << random.x() << random.y() << std::endl;
                 CryptoPP::Integer delta = line.eval(body.gamma());
                 std::string ciphertext = body.ciphertext();
 

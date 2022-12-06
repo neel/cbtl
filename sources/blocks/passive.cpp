@@ -23,21 +23,15 @@ crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::Aut
 
 crn::blocks::parts::passive::passive(const CryptoPP::Integer& forward, const CryptoPP::Integer& backward, const CryptoPP::Integer& cipher): _forward(forward), _backward(backward), _cipher(cipher){}
 
-// CryptoPP::Integer crn::blocks::parts::passive::token(const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const{
-//     auto rho_inv = G.Gp().Divide(_cipher, G.Gp().Exponentiate(y, secret) );
-//     return G.Gp().Exponentiate(_forward, rho_inv);
-// }
-
-
-std::string crn::blocks::parts::passive::next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const{
+std::string crn::blocks::parts::passive::next(const crn::math::group& G, const CryptoPP::Integer& id, const crn::keys::identity::private_key& pri) const{
     auto Gp = G.Gp();
-    auto token = Gp.Exponentiate(_forward, secret);
+    auto token = Gp.Exponentiate(_forward, pri.x());
     auto hash = crn::utils::sha512::digest(token);
     auto addr = G.Gp().Multiply(id, hash);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
-std::string crn::blocks::parts::passive::next_by_hash(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& h) const{
+std::string crn::blocks::parts::passive::next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& h) const{
     auto Gp = G.Gp(), Gp1 = G.Gp1();
     auto h_inverse = Gp1.MultiplicativeInverse(h);
     auto token     = Gp.Exponentiate(_cipher, h_inverse);
@@ -47,11 +41,11 @@ std::string crn::blocks::parts::passive::next_by_hash(const crn::math::group& G,
 }
 
 
-std::string crn::blocks::parts::passive::prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const{
-    auto rho_inv = G.Gp().Divide(_cipher, G.Gp().Exponentiate(y, secret) );
-    auto link    = G.Gp().Exponentiate(_backward, rho_inv);
-    auto hash    = crn::utils::sha512::digest(link);
-    auto addr    = G.Gp().Divide(id, hash);
+std::string crn::blocks::parts::passive::prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& gru, const crn::keys::identity::private_key& pri) const{
+    auto Gp = G.Gp();
+    auto hash    = crn::utils::sha512::digest( Gp.Exponentiate(gru, pri.x()) );
+    auto suffix  = crn::utils::sha512::digest( Gp.Exponentiate( Gp.Divide(_backward, hash), pri.x() ) );
+    auto addr    = Gp.Divide(_backward, suffix);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
