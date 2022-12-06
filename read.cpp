@@ -70,11 +70,25 @@ int main(int argc, char** argv) {
 
         std::size_t i = 0;
         crn::blocks::access last = crn::blocks::genesis(db, user.pub());
+        bool forward = true;
+        if(map.count("id")){
+            std::string id = map["id"].as<std::string>();
+            last = db.fetch(id);
+            forward = false;
+        }
+        std::cout << "last.id: " << last.address().id() << std::endl;
         while(i++ < at){
-            std::string address = is_active
-                                    ? last.active().next(user.pub().G(), last.address().id(), user.pri())
-                                    : last.passive().next(user.pub().G(), last.address().id(), user.pri());
-            if(db.exists(address, true)){
+            std::string address;
+            if(forward){
+                address = is_active
+                                ? last.active().next(user.pub().G(), last.address().id(), user.pri())
+                                : last.passive().next(user.pub().G(), last.address().id(), user.pri());
+            }else{
+                address = is_active
+                                ? last.active().prev(user.pub().G(), last.address().id(), user.pri())
+                                : last.passive().prev(user.pub().G(), last.address().id(), last.active().forward(), user.pri());
+            }
+            if(db.exists(address, forward)){
                 CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 std::string block_id = db.id(address);
                 last = db.fetch(block_id);
