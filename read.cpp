@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
         ("master,m",  boost::program_options::value<std::string>(), "path to the master public key")
         ("access,a",  boost::program_options::value<std::string>(), "path to the supervisors access key")
         ("view,w",    boost::program_options::value<std::string>(), "path to the supervisors view key")
-        ("at,i",      boost::program_options::value<std::uint64_t>(), "traverse till i^th block")
+        ("limit,l",   boost::program_options::value<std::uint64_t>(), "traverse till l^th block")
         ("id,t",      boost::program_options::value<std::string>(),   "read the specified block")
         ("active,u",  boost::program_options::bool_switch()->default_value(false), "traverse active")
         ("passive,v", boost::program_options::bool_switch()->default_value(false), "traverse passive")
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     if(map["active"].as<bool>() || map["passive"].as<bool>()){
-        if(!map.count("public") || !map.count("secret") || !map.count("master") || !map.count("at")){
+        if(!map.count("public") || !map.count("secret") || !map.count("master") || !map.count("limit")){
             if(map["active"].as<bool>()) std::cout << "active";
             if(map["passive"].as<bool>()) std::cout << "passive";
             std::cout << " traversal requires -p public_key -s secret_key -m master_key -a limit" << std::endl;
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
                     secret_key = map["secret"].as<std::string>(),
                     master_key = map["master"].as<std::string>();
 
-        std::uint64_t at = map["at"].as<std::uint64_t>();
+        std::uint64_t limit = map["limit"].as<std::uint64_t>();
 
         crn::storage db;
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
             forward = false;
         }
         std::cout << "last.id: " << last.address().id() << std::endl;
-        while(i++ < at){
+        while(i++ < limit){
             std::string address;
             if(forward){
                 address = is_active
@@ -89,18 +89,20 @@ int main(int argc, char** argv) {
                                 : last.passive().prev(user.pub().G(), last.address().passive(), last.active().forward(), user.pri());
             }
             if(db.exists(address, forward)){
-                CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 std::string block_id = forward ? db.id(address) : address;
-                last = db.fetch(block_id);
-
-                if(!forward){
-                    x = crn::utils::sha256::digest(Gp.Exponentiate(Gp.Exponentiate(last.active().backward(), user.pri().x()), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                crn::blocks::access current = db.fetch(block_id);
+                CryptoPP::Integer x;
+                if(is_active){
+                    if(forward){
+                        x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                    }else{
+                        x = crn::utils::sha256::digest(Gp.Exponentiate(Gp.Exponentiate(current.active().backward(), user.pri().x()), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                    }
+                }else{
+                    x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 }
-
-                CryptoPP::Integer y = is_active ? last.address().passive() : last.address().active();
-                if(!is_active){
-                    x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
-                }
+                CryptoPP::Integer y = is_active ? current.address().passive() : current.address().active();
+                last = current;
 
                 auto body = last.body();
                 crn::math::free_coordinates random = body.random();
