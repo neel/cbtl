@@ -85,13 +85,18 @@ int main(int argc, char** argv) {
                                 : last.passive().next(user.pub().G(), last.address().id(), user.pri());
             }else{
                 address = is_active
-                                ? last.active().prev(user.pub().G(), last.address().id(), user.pri())
-                                : last.passive().prev(user.pub().G(), last.address().id(), last.active().forward(), user.pri());
+                                ? last.active().prev(user.pub().G(), last.address().active(), user.pri())
+                                : last.passive().prev(user.pub().G(), last.address().passive(), last.active().forward(), user.pri());
             }
             if(db.exists(address, forward)){
                 CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
-                std::string block_id = db.id(address);
+                std::string block_id = forward ? db.id(address) : address;
                 last = db.fetch(block_id);
+
+                if(!forward){
+                    x = crn::utils::sha256::digest(Gp.Exponentiate(Gp.Exponentiate(last.active().backward(), user.pri().x()), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                }
+
                 CryptoPP::Integer y = is_active ? last.address().passive() : last.address().active();
                 if(!is_active){
                     x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);

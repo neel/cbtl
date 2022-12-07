@@ -45,7 +45,7 @@ std::string crn::blocks::parts::passive::prev(const crn::math::group& G, const C
     auto Gp = G.Gp();
     auto hash    = crn::utils::sha512::digest( Gp.Exponentiate(gru, pri.x()), CryptoPP::Integer::UNSIGNED );
     auto suffix  = crn::utils::sha512::digest( Gp.Exponentiate( Gp.Divide(_backward, hash), pri.x() ), CryptoPP::Integer::UNSIGNED );
-    auto addr    = Gp.Divide(_backward, suffix);
+    auto addr    = Gp.Divide(id, suffix);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
