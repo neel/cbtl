@@ -34,11 +34,11 @@ std::string crn::blocks::parts::active::next(const crn::math::group& G, const Cr
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
-std::string crn::blocks::parts::active::prev(const crn::math::group& G, const CryptoPP::Integer& id, const crn::keys::identity::private_key& pri) const{
+std::string crn::blocks::parts::active::prev(const crn::math::group& G, const CryptoPP::Integer& address, const crn::keys::identity::private_key& pri) const{
     auto link = G.Gp().Exponentiate(_backward, pri.x());
          link = G.Gp().Exponentiate(link, pri.x());
     auto hash = crn::utils::sha512::digest(link, CryptoPP::Integer::UNSIGNED);
-    auto addr = G.Gp().Divide(id, hash);
+    auto addr = G.Gp().Divide(address, hash);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 

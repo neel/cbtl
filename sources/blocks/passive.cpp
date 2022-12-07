@@ -41,11 +41,11 @@ std::string crn::blocks::parts::passive::next(const crn::math::group& G, const C
 }
 
 
-std::string crn::blocks::parts::passive::prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& gru, const crn::keys::identity::private_key& pri) const{
+std::string crn::blocks::parts::passive::prev(const crn::math::group& G, const CryptoPP::Integer& address, const CryptoPP::Integer& gru, const crn::keys::identity::private_key& pri) const{
     auto Gp = G.Gp();
     auto hash    = crn::utils::sha512::digest( Gp.Exponentiate(gru, pri.x()), CryptoPP::Integer::UNSIGNED );
     auto suffix  = crn::utils::sha512::digest( Gp.Exponentiate( Gp.Divide(_backward, hash), pri.x() ), CryptoPP::Integer::UNSIGNED );
-    auto addr    = Gp.Divide(id, suffix);
+    auto addr    = Gp.Divide(address, suffix);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 

@@ -43,7 +43,7 @@ struct passive{
     /**
      * @brief Calculate the previous block's $\tau$ using the current block's id and passive user's secret.
      */
-    std::string prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& gru, const crn::keys::identity::private_key& pri) const;
+    std::string prev(const crn::math::group& G, const CryptoPP::Integer& address, const CryptoPP::Integer& gru, const crn::keys::identity::private_key& pri) const;
     /**
      * @brief constructs the passive part of a generic access block
      * Trapdoor t = $g^{\pi_{v} r_{v}^{(0)}}$ is provided by the caller which is expected to be verified before calling the constructor.
