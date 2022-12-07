@@ -15,12 +15,12 @@
 #include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
 #include <db_cxx.h>
-
 #include "crn/keys.h"
 #include "crn/utils.h"
 #include "crn/storage.h"
 #include "crn/blocks.h"
 #include "crn/blocks/io.h"
+#include <pqxx/pqxx>
 
 constexpr static const std::uint32_t key_size = 1024;
 
