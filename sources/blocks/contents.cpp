@@ -13,8 +13,8 @@ crn::blocks::contents::contents(const crn::math::free_coordinates& random, const
 crn::blocks::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::addresses& addr, const std::string& msg, const CryptoPP::Integer& super) {
     auto G = pub.G();
     auto Gp = G.Gp();
-    CryptoPP::Integer xv = crn::utils::sha256::digest(Gp.Exponentiate(pub.y(), random)), yv = addr.active();
-    CryptoPP::Integer xu = crn::utils::sha256::digest(active_req), yu = addr.passive();
+    CryptoPP::Integer xv = crn::utils::sha256::digest(Gp.Exponentiate(pub.y(), random), CryptoPP::Integer::UNSIGNED), yv = addr.active();
+    CryptoPP::Integer xu = crn::utils::sha256::digest(active_req, CryptoPP::Integer::UNSIGNED), yu = addr.passive();
     compute(crn::math::free_coordinates{xu, yu}, crn::math::free_coordinates{xv, yv}, msg, G, super);
 }
 
@@ -45,32 +45,25 @@ void crn::blocks::contents::compute(const crn::math::free_coordinates& p1, const
     assert(crn::math::diophantine::interpolate(p2, _random).eval(_gamma) == delta);
 
     // { TODO encrypt msg with delta;
-    std::vector<CryptoPP::byte> bytes;
-    bytes.resize(delta.MinEncodedSize(CryptoPP::Integer::SIGNED));
-    delta.Encode(&bytes[0], bytes.size(), CryptoPP::Integer::SIGNED);
-    CryptoPP::SHA256 hash;
-    CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
-    hash.CalculateDigest(digest, bytes.data(), bytes.size());
-
-    CryptoPP::HexEncoder encoder;
-    std::string hash_str;
-    encoder.Attach(new CryptoPP::StringSink(hash_str));
-    encoder.Put(digest, sizeof(digest));
-    encoder.MessageEnd();
-
-    std::cout << "H(secret): " << hash_str << std::endl;
+    // std::vector<CryptoPP::byte> bytes;
+    // bytes.resize(delta.MinEncodedSize(CryptoPP::Integer::SIGNED));
+    // delta.Encode(&bytes[0], bytes.size(), CryptoPP::Integer::SIGNED);
+    // CryptoPP::SHA256 hash;
+    // CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
+    // hash.CalculateDigest(digest, bytes.data(), bytes.size());
 
     auto Gp = G.Gp();
-    CryptoPP::Integer hash_int;
-    hash_int.Decode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-    _super = Gp.Multiply(hash_int, Gp.Exponentiate(super, _gamma));
+    // CryptoPP::Integer hash_int;
+    // hash_int.Decode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+    // _super = Gp.Multiply(hash_int, Gp.Exponentiate(super, _gamma));
+    _super = Gp.Multiply(crn::utils::sha256::digest(delta, CryptoPP::Integer::SIGNED), Gp.Exponentiate(super, _gamma));
 
-    std::string ciphertext;
-    CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
-    enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-    CryptoPP::StringSource(msg, true, new CryptoPP::StreamTransformationFilter(enc, new CryptoPP::Base64Encoder(new CryptoPP::StringSink(ciphertext), false))); // StringSource
+    // std::string ciphertext;
+    // CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
+    // enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
+    // CryptoPP::StringSource(msg, true, new CryptoPP::StreamTransformationFilter(enc, new CryptoPP::Base64Encoder(new CryptoPP::StringSink(ciphertext), false))); // StringSource
 
     // }
-    _message = ciphertext;
-
+    // _message = ciphertext;
+    _message = crn::utils::aes::encrypt(msg, delta, CryptoPP::Integer::SIGNED);
 }

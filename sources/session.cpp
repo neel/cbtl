@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 Neel Basu <email>
+// SPDX-FileCopyrightText: 2022 Sunanda Bose <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "crn/session.h"
@@ -129,11 +129,11 @@ void crn::session::handle_challenge_response(const crn::packets::response& respo
 
             crn::keys::identity::public_key passive_pub("patient-0.pub");
             // passive.init();
-            crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, _master.pri());
+            crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, access);
             crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
-            crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive_pub, _master.pri());
+            crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive_pub, _master.pri(), access);
             CryptoPP::AutoSeededRandomPool rng;
-            crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, access, _view);
+            crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, access, last_passive.passive().forward(), _view);
             std::cout << "written new block: " << block.address().hash() << std::endl;
             if(_db.exists(block.address().hash())){
                 // TODO abort

@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
         ("master,m",  boost::program_options::value<std::string>(), "path to the master public key")
         ("access,a",  boost::program_options::value<std::string>(), "path to the supervisors access key")
         ("view,w",    boost::program_options::value<std::string>(), "path to the supervisors view key")
-        ("at,i",      boost::program_options::value<std::uint64_t>(), "traverse till i^th block")
+        ("limit,l",   boost::program_options::value<std::uint64_t>(), "traverse till l^th block")
         ("id,t",      boost::program_options::value<std::string>(),   "read the specified block")
         ("active,u",  boost::program_options::bool_switch()->default_value(false), "traverse active")
         ("passive,v", boost::program_options::bool_switch()->default_value(false), "traverse passive")
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     if(map["active"].as<bool>() || map["passive"].as<bool>()){
-        if(!map.count("public") || !map.count("secret") || !map.count("master") || !map.count("at")){
+        if(!map.count("public") || !map.count("secret") || !map.count("master") || !map.count("limit")){
             if(map["active"].as<bool>()) std::cout << "active";
             if(map["passive"].as<bool>()) std::cout << "passive";
             std::cout << " traversal requires -p public_key -s secret_key -m master_key -a limit" << std::endl;
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
                     secret_key = map["secret"].as<std::string>(),
                     master_key = map["master"].as<std::string>();
 
-        std::uint64_t at = map["at"].as<std::uint64_t>();
+        std::uint64_t limit = map["limit"].as<std::uint64_t>();
 
         crn::storage db;
 
@@ -70,51 +70,48 @@ int main(int argc, char** argv) {
 
         std::size_t i = 0;
         crn::blocks::access last = crn::blocks::genesis(db, user.pub());
-        while(i++ < at){
-            std::string address = is_active
-                                    ? last.active().next(user.pub().G(), last.address().id(), user.pri().x())
-                                    : last.passive().next(user.pub().G(), last.address().id(), master.y(), user.pri().x());
-            if(db.exists(address, true)){
-                CryptoPP::Integer x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
-                std::string block_id = db.id(address);
-                last = db.fetch(block_id);
-                CryptoPP::Integer y = is_active ? last.address().passive() : last.address().active();
-                if(!is_active){
-                    x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()));
+        bool forward = true;
+        if(map.count("id")){
+            std::string id = map["id"].as<std::string>();
+            last = db.fetch(id);
+            forward = false;
+        }
+        std::cout << "last.id: " << last.address().id() << std::endl;
+        while(i++ < limit){
+            std::string address;
+            if(forward){
+                address = is_active
+                                ? last.active().next(user.pub().G(), last.address().id(), user.pri())
+                                : last.passive().next(user.pub().G(), last.address().id(), user.pri());
+            }else{
+                address = is_active
+                                ? last.active().prev(user.pub().G(), last.address().active(), user.pri())
+                                : last.passive().prev(user.pub().G(), last.address().passive(), last.active().forward(), user.pri());
+            }
+            if(db.exists(address, forward)){
+                std::string block_id = forward ? db.id(address) : address;
+                crn::blocks::access current = db.fetch(block_id);
+                CryptoPP::Integer x;
+                if(is_active){
+                    if(forward){
+                        x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                    }else{
+                        x = crn::utils::sha256::digest(Gp.Exponentiate(Gp.Exponentiate(current.active().backward(), user.pri().x()), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                    }
+                }else{
+                    x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 }
-
-                // std::cout << "coordinates:" << std::endl << x << y << std::endl;
+                CryptoPP::Integer y = is_active ? current.address().passive() : current.address().active();
+                last = current;
 
                 auto body = last.body();
                 crn::math::free_coordinates random = body.random();
                 auto line = crn::math::diophantine::interpolate(crn::math::free_coordinates{x, y}, random);
-                // std::cout << "p: " << std::endl << crn::math::free_coordinates{x, y} << std::endl;
-                // std::cout << "random: " << std::endl << random << std::endl;
-                // std::cout << "line: " << line << std::endl;
-                // std::cout << "random: " << random.x() << random.y() << std::endl;
                 CryptoPP::Integer delta = line.eval(body.gamma());
                 std::string ciphertext = body.ciphertext();
-
-                std::vector<CryptoPP::byte> bytes;
-                bytes.resize(delta.MinEncodedSize(CryptoPP::Integer::SIGNED));
-                delta.Encode(&bytes[0], bytes.size(), CryptoPP::Integer::SIGNED);
-                CryptoPP::SHA256 hash;
-                CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
-                hash.CalculateDigest(digest, bytes.data(), bytes.size());
-
-                CryptoPP::HexEncoder encoder;
-                std::string hash_str;
-                encoder.Attach(new CryptoPP::StringSink(hash_str));
-                encoder.Put(digest, sizeof(digest));
-                encoder.MessageEnd();
-
-                std::cout << "H(secret): " << hash_str << std::endl;
-
-                CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
-                dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
                 std::string plaintext;
                 try{
-                    CryptoPP::StringSource s(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext)))); // StringSource
+                    plaintext = crn::utils::aes::decrypt(ciphertext, delta, CryptoPP::Integer::SIGNED);
                 }catch(const CryptoPP::InvalidCiphertext&){
                     std::cout << "invalid ciphertext" << std::endl;
                     plaintext = "failed";
@@ -160,9 +157,7 @@ int main(int argc, char** argv) {
 
             CryptoPP::byte digest[CryptoPP::SHA256::DIGESTSIZE];
             pswdh.Encode(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-            CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
-            dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
-            CryptoPP::StringSource s(ciphertext, true, new CryptoPP::Base64Decoder(new CryptoPP::StreamTransformationFilter(dec, new CryptoPP::StringSink(plaintext))));
+            plaintext = crn::utils::aes::decrypt(ciphertext, digest);
         }catch(const CryptoPP::InvalidCiphertext&){
             std::cout << "invalid ciphertext" << std::endl;
         }
