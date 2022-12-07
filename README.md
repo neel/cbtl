@@ -19,13 +19,13 @@ Initilization process includes the following operations
 - Create genesis blocks for all these users to the blocks database
 
 ```
-crn-init -M5 -S4 -P7
+./crn-init -M5 -S4 -P7
 ```
 
 will create 5 managers, 4 supervisors and 7 patients.
 
 ```
-crn-init
+./crn-init
 ```
 
 without any parameters it will create 2 users of each type.
@@ -34,7 +34,7 @@ without any parameters it will create 2 users of each type.
 # Server
 
 ```
-crn-server -p master.pub -s master -v master.view
+./crn-server -p master.pub -s master -v master.view
 ```
 
 
@@ -51,13 +51,13 @@ crn-server -p master.pub -s master -v master.view
 # Read Blocks
 
 ```
-crn-read -u -p manager-0.pub -s manager-0 -m master.pub -i 5
+./crn-read -u -p manager-0.pub -s manager-0 -m master.pub -l 5
 ```
 
 ```
-crn-read -v -p patient-0.pub -s patient-0 -m master.pub -i 5
+./crn-read -v -p patient-0.pub -s patient-0 -m master.pub -l 5
 ```
 
 ```
-crn-read -x -s super-0 -a super-0.access -w super-0.view -t A53D040D85C9DBA35F7FD2A5B8C0A535AC2EF91452E63A05CA8F1331CC40F96E9B8EE3514F5C1777DB26D538A35A101C98BDA55EA43A4862ECB6353528A88004
+./crn-read -x -s super-0 -a super-0.access -w super-0.view -t A53D040D85C9DBA35F7FD2A5B8C0A535AC2EF91452E63A05CA8F1331CC40F96E9B8EE3514F5C1777DB26D538A35A101C98BDA55EA43A4862ECB6353528A88004
 ```
