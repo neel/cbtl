@@ -80,20 +80,23 @@ int main(int argc, char** argv) {
         crn::packets::challenge challenge = challenge_json;
         CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
 
-        crn::packets::response response;
+        // crn::packets::response response;
+        //
+        // // construct response for the challenge
+        // CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(user.pri().x());
+        // response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
+        // response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
+        // response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
+        // response.access = access.prepare(user.pri(), lambda);
 
-        // construct response for the challenge
-        CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(user.pri().x());
-        response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
-        response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
-        response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
-        response.access = access.prepare(user.pri(), lambda);
+        auto action = crn::packets::action<crn::packets::actions::identify>("shsjahshaushu");
+        auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
 
         // send the challenge
         nlohmann::json response_json = challenge;
         std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
         {
-            crn::packets::envelop<crn::packets::response> envelop(crn::packets::type::response, response);
+            crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>> envelop(crn::packets::type::response, response);
             envelop.write(socket);
         }
     }

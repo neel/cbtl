@@ -61,8 +61,24 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         crn::packets::request req = req_json;
         handle_request(req);
     }else if(type == crn::packets::type::response && _challenge_data.challenged){
-        crn::packets::response response = req_json;
-        handle_challenge_response(response);
+        crn::packets::actions action = static_cast<crn::packets::actions>(req_json["action"]["type"].get<std::uint32_t>());
+        if(action == crn::packets::actions::identify){
+            using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>;
+            response_type response = req_json;
+            handle_challenge_response(response);
+        }else if(action == crn::packets::actions::fetch){
+            using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::fetch>>;
+            response_type response = req_json;
+            handle_challenge_response(response);
+        }else if(action == crn::packets::actions::insert){
+            using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::insert>>;
+            response_type response = req_json;
+            handle_challenge_response(response);
+        }else if(action == crn::packets::actions::remove){
+            using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::remove>>;
+            response_type response = req_json;
+            handle_challenge_response(response);
+        }
     }
 
     do_read();
@@ -104,24 +120,24 @@ void crn::session::handle_request(const crn::packets::request& req){
 }
 
 
-void crn::session::handle_challenge_response(const crn::packets::response& response){
+void crn::session::handle_challenge_response(const crn::packets::basic_response& response){
     auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
     auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
     auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
-    if(c2_d != response.c2){
+    if(c2_d != response.c2()){
         std::cout << "Error matching c2" << std::endl;
         // TODO abort
     }else{
-        auto alpha = Gp.Exponentiate(Gp.Divide(response.c1, _challenge_data.forward), rho_inv);
-        auto beta  = Gp.Multiply(response.c3, Gp.Divide(response.c2, c2_d));
+        auto alpha = Gp.Exponentiate(Gp.Divide(response.c1(), _challenge_data.forward), rho_inv);
+        auto beta  = Gp.Multiply(response.c3(), Gp.Divide(response.c2(), c2_d));
 
-        if(alpha != beta || beta != response.c3 || alpha != response.c3){
+        if(alpha != beta || beta != response.c3() || alpha != response.c3()){
             std::cout << "Verification failed" << std::endl;
             // TODO abort
         }else{
             std::cout << "Verification Successful" << std::endl;
 
-            auto access = crn::keys::access_key::reconstruct(response.access, _challenge_data.lambda, _master.pri());
+            auto access = crn::keys::access_key::reconstruct(response.access(), _challenge_data.lambda, _master.pri());
 
             // auto sup_suffix = Gp.Multiply(Gp.Exponentiate(_master.pub().y(), _view.secret()),  Gp.Exponentiate(access, _master.pri().x()));
 
@@ -131,7 +147,7 @@ void crn::session::handle_challenge_response(const crn::packets::response& respo
             // passive.init();
             crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, access);
             crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
-            crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3), last_passive, passive_pub, _master.pri(), access);
+            crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3()), last_passive, passive_pub, _master.pri(), access);
             CryptoPP::AutoSeededRandomPool rng;
             crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, access, last_passive.passive().forward(), _view);
             std::cout << "written new block: " << block.address().hash() << std::endl;

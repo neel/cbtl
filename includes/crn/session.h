@@ -76,7 +76,7 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       inline socket_type& socket(){ return _socket; }
   private:
       void handle_request(const crn::packets::request& req);
-      void handle_challenge_response(const crn::packets::response& response);
+      void handle_challenge_response(const crn::packets::basic_response& response);
 };
 
 }
