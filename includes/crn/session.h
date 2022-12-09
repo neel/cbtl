@@ -76,7 +76,8 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       inline socket_type& socket(){ return _socket; }
   private:
       void handle_request(const crn::packets::request& req);
-      void handle_challenge_response(const crn::packets::basic_response& response);
+      CryptoPP::Integer handle_challenge_response(const crn::packets::basic_response& response);
+      std::string handle_action(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess);
 };
 
 }

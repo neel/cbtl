@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "crn/session.h"
+#include "crn/packets.h"
+#include <pqxx/pqxx>
+#include <pqxx/transaction>
 
 crn::session::session(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()), _db(db), _master(master), _view(view) { }
 
@@ -73,7 +76,8 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         }else if(action == crn::packets::actions::insert){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::insert>>;
             response_type response = req_json;
-            handle_challenge_response(response);
+            CryptoPP::Integer gaccess = handle_challenge_response(response);
+            handle_action(response.action(), gaccess);
         }else if(action == crn::packets::actions::remove){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::remove>>;
             response_type response = req_json;
@@ -120,7 +124,7 @@ void crn::session::handle_request(const crn::packets::request& req){
 }
 
 
-void crn::session::handle_challenge_response(const crn::packets::basic_response& response){
+CryptoPP::Integer crn::session::handle_challenge_response(const crn::packets::basic_response& response){
     auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
     auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
     auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
@@ -156,7 +160,57 @@ void crn::session::handle_challenge_response(const crn::packets::basic_response&
                 std::cout << "block already exist" << std::endl;
             }else{
                 _db.add(block);
+                return access;
             }
         }
     }
+    return 0;
 }
+
+std::string crn::session::handle_action(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess){
+    pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
+    pqxx::work transaction{conn};
+
+    conn.prepare("fetch_pv","SELECT encode(random, 'hex') FROM persons where y = (decode($1, 'hex');");
+    conn.prepare("fetch_record","SELECT encode(random, 'hex') FROM records where anchor = $1;");
+    conn.prepare("insert_record","INSERT INTO records(anchor, hint, random, \"case\") VALUES ($1, decode($2, 'hex'), decode($3, 'hex'), $4);");
+
+    std::string y_hex = crn::utils::hex::encode(action.y(), CryptoPP::Integer::UNSIGNED);
+    pqxx::result res_ident = transaction.exec_prepared("fetch_pv", y_hex);
+    if(res_ident.size() != 1){
+        std::cout << "patient not found " << y_hex << std::endl;
+        return "";
+    }
+    CryptoPP::Integer pv = crn::utils::hex::decode(res_ident[0][0].c_str(), CryptoPP::Integer::UNSIGNED);
+    CryptoPP::Integer random = pv;
+    auto Gp = _master.pub().Gp();
+    std::string last;
+    while(true){
+        CryptoPP::Integer pass = crn::utils::sha256::digest(Gp.Exponentiate(gaccess, random), CryptoPP::Integer::UNSIGNED);
+        std::string anchor = crn::utils::aes::encrypt(y_hex, pass, CryptoPP::Integer::UNSIGNED);
+        pqxx::result res_record = transaction.exec_prepared("fetch_record", anchor);
+        if(res_record.size() == 1){
+            random = crn::utils::hex::decode(res_record[0][0].c_str(), CryptoPP::Integer::UNSIGNED);
+        }else{
+            std::cout << "found last " << anchor << std::endl;
+            last = anchor;
+        }
+    }
+
+    CryptoPP::AutoSeededRandomPool rng;
+
+    using action_type = crn::packets::action_data<crn::packets::actions::insert>;
+    for(action_type::collection::const_iterator i = action.begin(); i != action.end(); ++i){
+        const action_type::data& d = *i;
+        CryptoPP::Integer pass   = crn::utils::sha256::digest(Gp.Exponentiate(gaccess, random), CryptoPP::Integer::UNSIGNED);
+        CryptoPP::Integer r      = _master.pub().random(rng, false);
+        CryptoPP::Integer suffix = crn::utils::sha512::digest(Gp.Exponentiate(gaccess, r), CryptoPP::Integer::UNSIGNED);
+        std::string hint         = crn::utils::hex::encode(Gp.Multiply(random, suffix), CryptoPP::Integer::UNSIGNED);
+        last                     = crn::utils::aes::encrypt(y_hex, pass, CryptoPP::Integer::UNSIGNED);
+        transaction.exec_prepared("insert_record", last, hint, crn::utils::hex::encode(r, CryptoPP::Integer::UNSIGNED), d);
+        random = r;
+    }
+    transaction.commit();
+    return last;
+}
+

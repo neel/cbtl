@@ -48,7 +48,7 @@ add_executable(crn-server  main.cpp)
 add_executable(crn-read    read.cpp)
 add_executable(rough       rough.cpp)
 
-target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES})
 
 target_link_libraries(crn-server     crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 target_link_libraries(crn-init       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES})

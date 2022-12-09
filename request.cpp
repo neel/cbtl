@@ -12,12 +12,14 @@
 int main(int argc, char** argv) {
     boost::program_options::options_description desc("CLI Frontend for Data Managers");
     desc.add_options()
-        ("help,h", "prints this help message")
-        ("public,p", boost::program_options::value<std::string>(), "path to the public key")
-        ("secret,s", boost::program_options::value<std::string>(), "path to the secret key")
-        ("access,a", boost::program_options::value<std::string>(), "path to the access key")
-        ("master,m", boost::program_options::value<std::string>(), "path to the trusted server's public key")
-        // ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
+        ("help,h",    "prints this help message")
+        ("public,p",  boost::program_options::value<std::string>(),   "path to the public key")
+        ("secret,s",  boost::program_options::value<std::string>(),   "path to the secret key")
+        ("access,a",  boost::program_options::value<std::string>(),   "path to the access key")
+        ("master,m",  boost::program_options::value<std::string>(),   "path to the trusted server's public key")
+        ("anchor,A",  boost::program_options::value<std::string>(), "record anchor to identify")
+        ("patient,P", boost::program_options::value<std::uint64_t>(), "public key of the patient who's record to access")
+        ("insert,I",  boost::program_options::value<std::uint64_t>(),  "records to insert for patient identified by -P")
         ;
 
     boost::program_options::variables_map map;
@@ -33,8 +35,8 @@ int main(int argc, char** argv) {
                 secret_key = map["secret"].as<std::string>(),
                 access_key = map["access"].as<std::string>(),
                 master_key = map["master"].as<std::string>();
-/*
-    std::uint64_t record = map["record"].as<std::uint64_t>();*/
+
+    std::string record = map["record"].as<std::string>();
 
     crn::storage db;
 
@@ -80,16 +82,7 @@ int main(int argc, char** argv) {
         crn::packets::challenge challenge = challenge_json;
         CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
 
-        // crn::packets::response response;
-        //
-        // // construct response for the challenge
-        // CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(user.pri().x());
-        // response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
-        // response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
-        // response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
-        // response.access = access.prepare(user.pri(), lambda);
-
-        auto action = crn::packets::action<crn::packets::actions::identify>("shsjahshaushu");
+        auto action = crn::packets::action<crn::packets::actions::identify>(record);
         auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
 
         // send the challenge
