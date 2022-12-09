@@ -68,7 +68,9 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         if(action == crn::packets::actions::identify){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>;
             response_type response = req_json;
-            handle_challenge_response(response);
+            CryptoPP::Integer gaccess = handle_challenge_response(response);
+            CryptoPP::Integer y = handle_action(response.action(), gaccess);
+            std::cout << "y: " << y << std::endl;
         }else if(action == crn::packets::actions::fetch){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::fetch>>;
             response_type response = req_json;
@@ -166,6 +168,48 @@ CryptoPP::Integer crn::session::handle_challenge_response(const crn::packets::ba
     }
     return 0;
 }
+CryptoPP::Integer crn::session::handle_action(const crn::packets::action_data<crn::packets::actions::identify>& action, const CryptoPP::Integer& gaccess){
+    std::string anchor = action.anchor();
+    pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
+    pqxx::work transaction{conn};
+    conn.prepare("fetch_anchor","SELECT encode(hint, 'hex'), encode(random, 'hex') FROM records where anchor = $1;");
+    pqxx::result res_anchor = transaction.exec_prepared("fetch_anchor", anchor);
+    if(res_anchor.size() != 1){
+        return 0;
+    }
+    CryptoPP::Integer random = crn::utils::hex::decode(res_anchor[0][1].c_str(), CryptoPP::Integer::UNSIGNED);
+    CryptoPP::Integer hint   = crn::utils::hex::decode(res_anchor[0][0].c_str(), CryptoPP::Integer::UNSIGNED);
+
+    std::string public_key_str;
+    CryptoPP::Integer y = 0;
+    nlohmann::json reply;
+
+    try{
+        auto Gp = _master.pub().Gp();
+        CryptoPP::Integer suffix      = crn::utils::sha512::digest(Gp.Exponentiate(gaccess, random), CryptoPP::Integer::UNSIGNED);
+        CryptoPP::Integer random_prev = Gp.Divide(hint, suffix);
+        CryptoPP::Integer pass        = crn::utils::sha256::digest(Gp.Exponentiate(gaccess, random_prev), CryptoPP::Integer::UNSIGNED);
+        public_key_str                = crn::utils::aes::decrypt(anchor, pass, CryptoPP::Integer::UNSIGNED);
+        y                             = crn::utils::hex::decode(public_key_str, CryptoPP::Integer::UNSIGNED);
+    }catch(const std::exception& ex){
+        reply = {
+            {"status", "failure"},
+            {"reason", ex.what()}
+        };
+    }
+
+    if(!y.IsZero()){
+        reply = {
+            {"status", "success"},
+            {"y", public_key_str}
+        };
+    }
+
+    std::cout << reply.dump(4) << std::endl;
+
+    return y;
+}
+
 
 std::string crn::session::handle_action(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess){
     pqxx::connection conn{"postgresql://crn_user@localhost/crn"};

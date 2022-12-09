@@ -17,9 +17,9 @@ int main(int argc, char** argv) {
         ("secret,s",  boost::program_options::value<std::string>(),   "path to the secret key")
         ("access,a",  boost::program_options::value<std::string>(),   "path to the access key")
         ("master,m",  boost::program_options::value<std::string>(),   "path to the trusted server's public key")
-        ("anchor,A",  boost::program_options::value<std::string>(), "record anchor to identify")
+        ("anchor,A",  boost::program_options::value<std::string>(),   "record anchor to identify")
         ("patient,P", boost::program_options::value<std::uint64_t>(), "public key of the patient who's record to access")
-        ("insert,I",  boost::program_options::value<std::uint64_t>(),  "records to insert for patient identified by -P")
+        ("insert,I",  boost::program_options::value<std::uint64_t>(), "records to insert for patient identified by -P")
         ;
 
     boost::program_options::variables_map map;
@@ -35,8 +35,6 @@ int main(int argc, char** argv) {
                 secret_key = map["secret"].as<std::string>(),
                 access_key = map["access"].as<std::string>(),
                 master_key = map["master"].as<std::string>();
-
-    std::string record = map["record"].as<std::string>();
 
     crn::storage db;
 
@@ -82,15 +80,18 @@ int main(int argc, char** argv) {
         crn::packets::challenge challenge = challenge_json;
         CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
 
-        auto action = crn::packets::action<crn::packets::actions::identify>(record);
-        auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
+        if(map.count("anchor")){
+            std::string anchor = map["anchor"].as<std::string>();
+            auto action = crn::packets::action<crn::packets::actions::identify>(anchor);
+            auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
 
-        // send the challenge
-        nlohmann::json response_json = challenge;
-        std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
-        {
-            crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>> envelop(crn::packets::type::response, response);
-            envelop.write(socket);
+            // send the challenge
+            nlohmann::json response_json = challenge;
+            std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+            {
+                crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>> envelop(crn::packets::type::response, response);
+                envelop.write(socket);
+            }
         }
     }
 
