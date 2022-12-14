@@ -94,7 +94,7 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       crn::packets::result process(const crn::packets::action_data<crn::packets::actions::fetch>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
       crn::packets::result process(const crn::packets::action_data<crn::packets::actions::remove>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
       CryptoPP::Integer verify(const crn::packets::basic_response& response);
-      crn::blocks::access make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const std::string& contents);
+      crn::blocks::access make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const nlohmann::json& contents);
 };
 
 }

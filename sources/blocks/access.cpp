@@ -42,7 +42,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
     }
 }
 
-crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& rv, const crn::keys::view_key& view) {
+crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& rv, const crn::keys::view_key& view, const std::string message) {
     auto G = master.G();
     auto Gp = G.Gp();
 
@@ -75,7 +75,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     CryptoPP::Integer addr_passive = p.p().address();
 
     addresses addr(addr_active, addr_passive);
-    crn::blocks::contents contents(p.p().pub(), random, active_request, addr, "Hello World", suffix);
+    crn::blocks::contents contents(p.p().pub(), random, active_request, addr, message, suffix);
 
     return access(active, passive, addr, contents);
 }

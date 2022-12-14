@@ -145,12 +145,12 @@ CryptoPP::Integer crn::session::verify(const crn::packets::basic_response& respo
     return 0;
 }
 
-crn::blocks::access crn::session::make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const std::string& contents){
+crn::blocks::access crn::session::make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const nlohmann::json& contents){
     crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, gaccess);
     crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
     crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, active_back), last_passive, passive_pub, _master.pri(), gaccess);
     CryptoPP::AutoSeededRandomPool rng;
-    return crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, gaccess, last_passive.passive().forward(), _view);
+    return crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, gaccess, last_passive.passive().forward(), _view, contents.dump(4));
 }
 
 
@@ -222,9 +222,14 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
         return crn::packets::result::failure(500, ex.what());
     }
 
-    std::string contents;
-
     crn::keys::identity::public_key passive_pub(y, _master.pub().G());
+    nlohmann::json contents = {
+        {"active",  crn::utils::hex::encode(_challenge_data.y, CryptoPP::Integer::UNSIGNED)},
+        {"passive", crn::utils::hex::encode(y, CryptoPP::Integer::UNSIGNED)},
+        {"anchors", {
+            anchor
+        }}
+    };
     crn::blocks::access block = make(passive_pub, gaccess, active_back, contents);
     if(_db.exists(block.address().hash())){
         return crn::packets::result::failure(403, "block already exists");
@@ -269,7 +274,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
     }
 
     CryptoPP::AutoSeededRandomPool rng;
-
+    std::vector<std::string> anchors;
     using action_type = crn::packets::action_data<crn::packets::actions::insert>;
     for(action_type::collection::const_iterator i = action.begin(); i != action.end(); ++i){
         const action_type::data& d = *i;
@@ -278,13 +283,18 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
         CryptoPP::Integer suffix = crn::utils::sha512::digest(Gp.Exponentiate(gaccess, r), CryptoPP::Integer::UNSIGNED);
         std::string hint         = crn::utils::hex::encode(Gp.Multiply(random, suffix), CryptoPP::Integer::UNSIGNED);
         last                     = crn::utils::aes::encrypt(y_hex, pass, CryptoPP::Integer::UNSIGNED);
+        anchors.push_back(last);
         transaction.exec_prepared("insert_record", last, hint, crn::utils::hex::encode(r, CryptoPP::Integer::UNSIGNED), d);
         std::cout << "inserting " << d << std::endl;
         random = r;
     }
     transaction.commit();
 
-    std::string contents;
+    nlohmann::json contents = {
+        {"active",  crn::utils::hex::encode(_challenge_data.y, CryptoPP::Integer::UNSIGNED)},
+        {"passive", crn::utils::hex::encode(action.y(), CryptoPP::Integer::UNSIGNED)},
+        {"anchors", anchors}
+    };
 
     crn::keys::identity::public_key passive_pub(action.y(), _master.pub().G());
     crn::blocks::access block = make(passive_pub, gaccess, active_back, contents);
@@ -334,7 +344,10 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
     }
     transaction.commit();
 
-    std::string contents;
+    nlohmann::json contents = {
+        {"active",  crn::utils::hex::encode(_challenge_data.y, CryptoPP::Integer::UNSIGNED)},
+        {"passive", crn::utils::hex::encode(action.y(), CryptoPP::Integer::UNSIGNED)}
+    };
 
     crn::keys::identity::public_key passive_pub(action.y(), _master.pub().G());
     crn::blocks::access block = make(passive_pub, gaccess, active_back, contents);
