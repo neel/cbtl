@@ -13,6 +13,15 @@
 #include "crn/blocks/params.h"
 
 namespace crn{
+
+namespace keys{
+namespace identity{
+
+    struct private_key;
+
+}
+}
+
 namespace blocks{
 namespace parts{
 
@@ -23,23 +32,26 @@ struct passive{
     inline CryptoPP::Integer forward() const { return _forward; }
     inline CryptoPP::Integer cipher() const { return _cipher; }
 
-    CryptoPP::Integer token(const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const;
     /**
      * @brief Calculate the next block's $c_{u}$ using the current block's id and passive user's secret.
      */
-    std::string next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const;
+    std::string next(const crn::math::group& G, const CryptoPP::Integer& id, const crn::keys::identity::private_key& pri) const;
+    /**
+     * @brief Calculate the next block's $c_{u}$ using the $H(g^{\theta})$ provided by the Trusted Server.
+     */
+    std::string next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& h) const;
     /**
      * @brief Calculate the previous block's $\tau$ using the current block's id and passive user's secret.
      */
-    std::string prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& y, const CryptoPP::Integer& secret) const;
+    std::string prev(const crn::math::group& G, const CryptoPP::Integer& address, const CryptoPP::Integer& gru, const crn::keys::identity::private_key& pri) const;
     /**
      * @brief constructs the passive part of a generic access block
      * Trapdoor t = $g^{\pi_{v} r_{v}^{(0)}}$ is provided by the caller which is expected to be verified before calling the constructor.
      * y is the public key of the passive user
      */
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t);
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& t);
-    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const crn::keys::identity::private_key& master);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv);
+    static passive construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv);
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::parts::passive>;

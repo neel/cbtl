@@ -15,12 +15,14 @@
 #include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
 #include <db_cxx.h>
-
 #include "crn/keys.h"
 #include "crn/utils.h"
 #include "crn/storage.h"
 #include "crn/blocks.h"
 #include "crn/blocks/io.h"
+#include <pqxx/pqxx>
+#include <pqxx/transaction>
+#include <boost/lexical_cast.hpp>
 
 constexpr static const std::uint32_t key_size = 1024;
 
@@ -60,14 +62,22 @@ int main(int argc, char** argv) {
     crn::keys::identity::pair trusted_server(rng, key_size);
     trusted_server.save(master);
 
-    CryptoPP::Integer theta = trusted_server.pub().random(rng, false), phi = trusted_server.pub().random(rng, false);
+    crn::math::group G = trusted_server.pub();
+    auto g   = G.g();
+    auto Gp  = G.Gp();
+    auto Gp1 = G.Gp1();
+
+    CryptoPP::Integer phi = trusted_server.pub().random(rng, false);
+    CryptoPP::Integer theta = 0, h = 0, h_inverse = 0, gaccess;
+    while(h_inverse == 0 || Gp.Exponentiate(Gp.Exponentiate(g, h_inverse), h) != g){
+        theta = trusted_server.pub().random(rng, false);
+        gaccess = Gp.Exponentiate(g, theta);
+        h = crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED);
+        h_inverse = Gp1.MultiplicativeInverse(h);
+    }
 
     crn::keys::view_key view(phi);
     view.save("master");
-
-    crn::math::group G = trusted_server.pub();
-    auto Gp = G.Gp();
-    auto Gp1 = G.Gp1();
 
     crn::storage db;
     for(std::uint32_t i = 0; i < managers; ++i){
@@ -77,7 +87,7 @@ int main(int argc, char** argv) {
         auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
         access.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
-        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
     }
 
@@ -90,27 +100,59 @@ int main(int argc, char** argv) {
         auto view   = crn::keys::view_key::construct(phi, key.pub(), trusted_server.pri());
         view.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
-        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
     }
+
+    pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
+    pqxx::work transaction{conn};
+    conn.prepare(
+        "insert_person",
+        R"(
+            INSERT INTO persons(y, random, name, age)
+                VALUES (decode($1, 'hex'), decode($2, 'hex'), $3, $4);
+        )"
+    );
+    conn.prepare(
+        "insert_record",
+        R"(
+            INSERT INTO records(anchor, hint, random, "case")
+                VALUES ($1, decode($2, 'hex'), decode($3, 'hex'), $4);
+        )"
+    );
 
     for(std::uint32_t i = 0; i < patients; ++i){
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
         crn::keys::identity::pair key(rng, trusted_server.pri());
         key.save(name);
         crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
-        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri());
+        crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
+
+        CryptoPP::Integer pv = trusted_server.pub().random(rng, false), tv0 = trusted_server.pub().random(rng, false);
+        std::string y_hex = crn::utils::hex::encode(key.pub().y(), CryptoPP::Integer::UNSIGNED);
+        transaction.exec_prepared("insert_person",
+            y_hex,
+            crn::utils::hex::encode(pv, CryptoPP::Integer::UNSIGNED),
+            name,
+            CryptoPP::Integer(rng, 10, 100).ConvertToLong()
+        );
+        CryptoPP::Integer pass   = crn::utils::sha256::digest(Gp.Exponentiate(gaccess, pv), CryptoPP::Integer::UNSIGNED);
+        CryptoPP::Integer suffix = crn::utils::sha512::digest(Gp.Exponentiate(gaccess, tv0), CryptoPP::Integer::UNSIGNED);
+        transaction.exec_prepared("insert_record",
+            crn::utils::aes::encrypt(y_hex, pass, CryptoPP::Integer::UNSIGNED),
+            crn::utils::hex::encode(Gp.Multiply(pv, suffix), CryptoPP::Integer::UNSIGNED),
+            crn::utils::hex::encode(tv0, CryptoPP::Integer::UNSIGNED),
+            "genesis"
+        );
     }
+
+    transaction.commit();
 
     // TODO Distribute those keys
 
     std::cout << "---------------------------------------------------" << std::endl;
-    auto g = G.g();
     std::cout << "g^{\\theta}: " << Gp.Exponentiate(g, theta) << std::endl;
-    std::cout << "g^{w\\theta}: " << Gp.Exponentiate(Gp.Exponentiate(g, theta), trusted_server.pri().x()) << std::endl;
-    std::cout << "g^{\\theta + \\phi}: " << Gp.Multiply(Gp.Exponentiate(g, theta), Gp.Exponentiate(g, phi)) << std::endl;
-    std::cout << "g^{w(\\theta + \\phi)}: " << Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(g, theta), Gp.Exponentiate(g, phi)), trusted_server.pri().x()) << std::endl;
 
     return 0;
 }

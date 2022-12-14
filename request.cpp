@@ -12,12 +12,14 @@
 int main(int argc, char** argv) {
     boost::program_options::options_description desc("CLI Frontend for Data Managers");
     desc.add_options()
-        ("help,h", "prints this help message")
-        ("public,p", boost::program_options::value<std::string>(), "path to the public key")
-        ("secret,s", boost::program_options::value<std::string>(), "path to the secret key")
-        ("access,a", boost::program_options::value<std::string>(), "path to the access key")
-        ("master,m", boost::program_options::value<std::string>(), "path to the trusted server's public key")
-        // ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
+        ("help,h",    "prints this help message")
+        ("public,p",  boost::program_options::value<std::string>(),   "path to the public key")
+        ("secret,s",  boost::program_options::value<std::string>(),   "path to the secret key")
+        ("access,a",  boost::program_options::value<std::string>(),   "path to the access key")
+        ("master,m",  boost::program_options::value<std::string>(),   "path to the trusted server's public key")
+        ("anchor,A",  boost::program_options::value<std::string>(),   "record anchor to identify")
+        ("patient,P", boost::program_options::value<std::string>(),    "public key of the patient who's record to access")
+        ("insert,I",  "records to insert for patient identified by -P")
         ;
 
     boost::program_options::variables_map map;
@@ -33,8 +35,6 @@ int main(int argc, char** argv) {
                 secret_key = map["secret"].as<std::string>(),
                 access_key = map["access"].as<std::string>(),
                 master_key = map["master"].as<std::string>();
-/*
-    std::uint64_t record = map["record"].as<std::uint64_t>();*/
 
     crn::storage db;
 
@@ -80,21 +80,70 @@ int main(int argc, char** argv) {
         crn::packets::challenge challenge = challenge_json;
         CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
 
-        crn::packets::response response;
+        if(map.count("anchor")){
+            std::string anchor = map["anchor"].as<std::string>();
+            auto action = crn::packets::action<crn::packets::actions::identify>(anchor);
+            auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
 
-        // construct response for the challenge
-        CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(user.pri().x());
-        response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
-        response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
-        response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
-        response.access = access.prepare(user.pri(), lambda);
+            // send the challenge
+            nlohmann::json response_json = challenge;
+            std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+            {
+                crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>> envelop(crn::packets::type::response, response);
+                envelop.write(socket);
+            }
+        }else if(map.count("insert")){
+            std::string patient_pub_str = map["patient"].as<std::string>();
+            crn::keys::identity::public_key patient_pub(patient_pub_str);
+            auto action = crn::packets::action<crn::packets::actions::insert>(patient_pub);
+            while(true){
+                std::string line;
+                std::getline(std::cin, line);
+                if(line.empty()){
+                    break;
+                }else{
+                    action.add(line);
+                }
+            }
+            std::cout << action.count() << " cases in action" << std::endl;
+            auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
 
-        // send the challenge
-        nlohmann::json response_json = challenge;
-        std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
-        {
-            crn::packets::envelop<crn::packets::response> envelop(crn::packets::type::response, response);
-            envelop.write(socket);
+            // send the challenge
+            nlohmann::json response_json = challenge;
+            std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+            {
+                crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::insert>>> envelop(crn::packets::type::response, response);
+                envelop.write(socket);
+            }
+        }else if(map.count("patient")){
+            std::string patient_pub_str = map["patient"].as<std::string>();
+            crn::keys::identity::public_key patient_pub(patient_pub_str);
+            auto action = crn::packets::action<crn::packets::actions::fetch>(patient_pub);
+            auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
+
+            // send the challenge
+            nlohmann::json response_json = challenge;
+            std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+            {
+                crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::fetch>>> envelop(crn::packets::type::response, response);
+                envelop.write(socket);
+            }
+        }
+
+        len = socket.read_some(boost::asio::buffer(buff), error);
+        if(!error){
+            assert(len == buff.size());
+            crn::packets::header header;
+            std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
+            header.size = ntohl(header.size);
+            std::cout << "expecting data " << header.size << std::endl;
+
+            len = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(header.size), error);
+            std::string result_str;
+            result_str.reserve(header.size);
+            std::copy_n(data.cbegin(), header.size, std::back_inserter(result_str));
+            nlohmann::json result_json = nlohmann::json::parse(result_str);
+            std::cout << "<< " << std::endl << result_json.dump(4) << std::endl;
         }
     }
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 Neel Basu <email>
+// SPDX-FileCopyrightText: 2022 Sunanda Bose <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
 #ifndef CRN_SESSION_H
@@ -72,12 +72,29 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       void do_read();
       void handle_read_header(const boost::system::error_code& error, std::size_t bytes_transferred);
       void handle_read_data(const boost::system::error_code& error, std::size_t bytes_transferred);
-      void handle_storage_data(const boost::system::error_code& error, std::size_t bytes_transferred);
+      // void handle_storage_data(const boost::system::error_code& error, std::size_t bytes_transferred);
       void write_handler();
       inline socket_type& socket(){ return _socket; }
   private:
       void handle_request(const crn::packets::request& req);
-      void handle_challenge_response(const crn::packets::response& response);
+      // CryptoPP::Integer handle_challenge_response(const crn::packets::basic_response& response);
+      template <typename ActionDataT>
+      void stage2(const crn::packets::response<ActionDataT>& response){
+        CryptoPP::Integer gaccess = verify(response);
+        if(!gaccess.IsZero()){
+          crn::packets::result result = process(response.action(), gaccess, response.c3());
+          crn::packets::envelop<crn::packets::result> envelop(crn::packets::type::result, result);
+          std::size_t bytes = envelop.write(_socket);
+          std::cout << bytes << " sent" << std::endl;
+        }
+      }
+  private:
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::identify>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::fetch>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::remove>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
+      CryptoPP::Integer verify(const crn::packets::basic_response& response);
+      crn::blocks::access make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const std::string& contents);
 };
 
 }

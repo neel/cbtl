@@ -16,7 +16,7 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoS
     auto token    = Gp.Exponentiate(y, random);
     auto token_w  = Gp.Exponentiate(token, w);
     auto checksum = Gp.Multiply(token_w, y);
-    auto hash     = crn::utils::sha512::digest(checksum);
+    auto hash     = crn::utils::sha512::digest(checksum, CryptoPP::Integer::UNSIGNED);
     crn::blocks::parts::active part(forward, t, hash);
     return part;
 }
@@ -27,18 +27,18 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(CryptoPP::AutoS
     return crn::blocks::parts::active::construct(rng, p.pub(), master, p.token(), random);
 }
 
-std::string crn::blocks::parts::active::next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const{
-    auto link = G.Gp().Exponentiate(_forward, secret);
-    auto hash = crn::utils::sha512::digest(link);
+std::string crn::blocks::parts::active::next(const crn::math::group& G, const CryptoPP::Integer& id, const crn::keys::identity::private_key& pri) const{
+    auto link = G.Gp().Exponentiate(_forward, pri.x());
+    auto hash = crn::utils::sha512::digest(link, CryptoPP::Integer::UNSIGNED);
     auto addr = G.Gp().Multiply(id, hash);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
-std::string crn::blocks::parts::active::prev(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& secret) const{
-    auto link = G.Gp().Exponentiate(_forward, secret);
-         link = G.Gp().Exponentiate(link, secret);
-    auto hash = crn::utils::sha512::digest(link);
-    auto addr = G.Gp().Divide(id, hash);
+std::string crn::blocks::parts::active::prev(const crn::math::group& G, const CryptoPP::Integer& address, const crn::keys::identity::private_key& pri) const{
+    auto link = G.Gp().Exponentiate(_backward, pri.x());
+         link = G.Gp().Exponentiate(link, pri.x());
+    auto hash = crn::utils::sha512::digest(link, CryptoPP::Integer::UNSIGNED);
+    auto addr = G.Gp().Divide(address, hash);
     return crn::utils::hex::encode(addr, CryptoPP::Integer::UNSIGNED);
 }
 
@@ -51,7 +51,7 @@ bool crn::blocks::parts::active::verify(const crn::math::group& G, const CryptoP
     auto Gp = G.Gp();
     auto token_w  = Gp.Exponentiate(token, w);
     auto checksum = Gp.Multiply(token_w, y);
-    auto hash     = crn::utils::sha512::digest(checksum);
+    auto hash     = crn::utils::sha512::digest(checksum, CryptoPP::Integer::UNSIGNED);
     return _checksum == hash;
 }
 

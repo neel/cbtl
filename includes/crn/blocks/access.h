@@ -29,13 +29,13 @@ struct access{
     inline const parts::passive& passive() const { return _passive; }
     inline const addresses& address() const { return _address; }
     inline bool genesis() const { return _address.active() == _address.passive(); }
-    inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::hex::encode(crn::utils::sha512::digest(y), CryptoPP::Integer::UNSIGNED); }
+    inline static std::string genesis_id(const CryptoPP::Integer& y) { return crn::utils::hex::encode(crn::utils::sha512::digest(y, CryptoPP::Integer::UNSIGNED), CryptoPP::Integer::UNSIGNED); }
     inline const boost::posix_time::ptime& requested() const { return _requested;}
     inline const boost::posix_time::ptime& created() const { return _created;}
     inline const contents& body() const { return _contents; }
 
-    static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master);
-    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const crn::keys::view_key& view);
+    static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& h);
+    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& rv, const crn::keys::view_key& view);
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
@@ -53,6 +53,7 @@ access genesis(crn::storage& db, const crn::keys::identity::public_key& pub);
 struct last{
     static access active (crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri);
     static access passive(crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& secret);
+    static access passive(crn::storage& db, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess);
 };
 
 }
