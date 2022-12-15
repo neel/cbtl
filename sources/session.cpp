@@ -237,7 +237,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
         _db.add(block);
     }
 
-    return crn::packets::result::success(y, block.address().hash(), {
+    return crn::packets::result::success(_challenge_data.y, y, block.address().hash(), {
         {"anchor",  anchor}
     });
 
@@ -304,7 +304,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
         _db.add(block);
     }
 
-    return crn::packets::result::success(action.y(), block.address().hash(), {
+    return crn::packets::result::success(_challenge_data.y, action.y(), block.address().hash(), {
         {"last",  last}
     });
 }
@@ -357,7 +357,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
         _db.add(block);
     }
 
-    return crn::packets::result::success(action.y(), block.address().hash(), {
+    return crn::packets::result::success(_challenge_data.y, action.y(), block.address().hash(), {
         {"cases", cases},
         {"last",  last}
     });

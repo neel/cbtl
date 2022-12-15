@@ -236,7 +236,7 @@ struct result{
 
    static result failure(std::uint32_t code, const std::string& reason);
    static result success(const CryptoPP::Integer& active, const CryptoPP::Integer& passive, const std::string& block, const nlohmann::json& aux);
-   static result success(const CryptoPP::Integer& passive, const std::string& block, const nlohmann::json& aux);
+   // static result success(const CryptoPP::Integer& passive, const std::string& block, const nlohmann::json& aux);
 };
 
 void to_json(nlohmann::json& j, const result& res);

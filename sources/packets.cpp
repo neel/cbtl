@@ -136,9 +136,9 @@ crn::packets::result crn::packets::result::success(const CryptoPP::Integer& acti
     return res;
 }
 
-crn::packets::result crn::packets::result::success(const CryptoPP::Integer& passive, const std::string& block, const nlohmann::json& aux){
-    return success(0, passive, block, aux);
-}
+// crn::packets::result crn::packets::result::success(const CryptoPP::Integer& passive, const std::string& block, const nlohmann::json& aux){
+//     return success(0, passive, block, aux);
+// }
 
 
 
