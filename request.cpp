@@ -9,6 +9,28 @@
 #include "crn/packets.h"
 #include "crn/keys.h"
 
+boost::system::error_code receive(boost::asio::ip::tcp::socket& socket, nlohmann::json& json){
+    using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
+    buffer_type buff;
+    boost::system::error_code error;
+    std::size_t len = socket.read_some(boost::asio::buffer(buff), error);
+    if(!error){
+        assert(len == buff.size());
+        crn::packets::header header;
+        std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
+        header.size = ntohl(header.size);
+        std::cout << "expecting data " << header.size << std::endl;
+
+        boost::array<char, 4096> data;
+        len = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(header.size), error);
+        std::string data_str;
+        data_str.reserve(header.size);
+        std::copy_n(data.cbegin(), header.size, std::back_inserter(data_str));
+        json = nlohmann::json::parse(data_str);
+    }
+    return error;
+}
+
 int main(int argc, char** argv) {
     boost::program_options::options_description desc("CLI Frontend for Data Managers");
     desc.add_options()
@@ -60,22 +82,9 @@ int main(int argc, char** argv) {
     }
     using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
 
-    boost::system::error_code error;
-    buffer_type buff;
-    std::size_t len = socket.read_some(boost::asio::buffer(buff), error);
+    nlohmann::json challenge_json;
+    boost::system::error_code error = receive(socket, challenge_json);
     if(!error){
-        assert(len == buff.size());
-        crn::packets::header header;
-        std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
-        header.size = ntohl(header.size);
-        std::cout << "expecting data " << header.size << std::endl;
-
-        boost::array<char, 4096> data;
-        len = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(header.size), error);
-        std::string challenge_str;
-        challenge_str.reserve(header.size);
-        std::copy_n(data.cbegin(), header.size, std::back_inserter(challenge_str));
-        nlohmann::json challenge_json = nlohmann::json::parse(challenge_str);
         std::cout << "<< " << std::endl << challenge_json.dump(4) << std::endl;
         crn::packets::challenge challenge = challenge_json;
         CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
@@ -130,19 +139,9 @@ int main(int argc, char** argv) {
             }
         }
 
-        len = socket.read_some(boost::asio::buffer(buff), error);
+        nlohmann::json result_json;
+        error = receive(socket, result_json);
         if(!error){
-            assert(len == buff.size());
-            crn::packets::header header;
-            std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
-            header.size = ntohl(header.size);
-            std::cout << "expecting data " << header.size << std::endl;
-
-            len = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(header.size), error);
-            std::string result_str;
-            result_str.reserve(header.size);
-            std::copy_n(data.cbegin(), header.size, std::back_inserter(result_str));
-            nlohmann::json result_json = nlohmann::json::parse(result_str);
             std::cout << "<< " << std::endl << result_json.dump(4) << std::endl;
         }
     }
