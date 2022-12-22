@@ -40,6 +40,7 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     CryptoPP::Integer forward;
     CryptoPP::Integer rho;
     CryptoPP::Integer lambda;
+    boost::posix_time::ptime requested;
 
     inline challenge_data(): challenged(false) {}
   };

@@ -86,7 +86,8 @@ int main(int argc, char** argv) {
         key.save(name);
         auto access = crn::keys::access_key::construct(theta, key.pub(), trusted_server.pri());
         access.save(name);
-        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
+        auto now = boost::posix_time::microsec_clock::local_time();
+        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub(), now);
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
     }
@@ -99,7 +100,8 @@ int main(int argc, char** argv) {
         access.save(name);
         auto view   = crn::keys::view_key::construct(phi, key.pub(), trusted_server.pri());
         view.save(name);
-        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
+        auto now = boost::posix_time::microsec_clock::local_time();
+        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub(), now);
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
     }
@@ -125,7 +127,8 @@ int main(int argc, char** argv) {
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
         crn::keys::identity::pair key(rng, trusted_server.pri());
         key.save(name);
-        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub());
+        auto now = boost::posix_time::microsec_clock::local_time();
+        crn::blocks::params params = crn::blocks::params::genesis(trusted_server.pri(), key.pub(), now);
         crn::blocks::access genesis = crn::blocks::access::genesis(rng, params, trusted_server.pri(), h);
         db.add(genesis);
 

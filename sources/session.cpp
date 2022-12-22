@@ -111,6 +111,7 @@ void crn::session::handle_request(const crn::packets::request& req){
         _challenge_data.forward    = access.active().forward();
         _challenge_data.rho        = rho;
         _challenge_data.lambda     = lambda;
+        _challenge_data.requested  = boost::posix_time::microsec_clock::local_time();
         // send challenge
         crn::packets::envelop<crn::packets::challenge> envelop(crn::packets::type::challenge, challenge);
         envelop.write(_socket);
@@ -148,7 +149,7 @@ CryptoPP::Integer crn::session::verify(const crn::packets::basic_response& respo
 crn::blocks::access crn::session::make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const nlohmann::json& contents){
     crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, gaccess);
     crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
-    crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, active_back), last_passive, passive_pub, _master.pri(), gaccess);
+    crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, active_back), last_passive, passive_pub, _master.pri(), gaccess, _challenge_data.requested);
     CryptoPP::AutoSeededRandomPool rng;
     return crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, gaccess, last_passive.passive().forward(), _view, contents.dump(4));
 }

@@ -1,6 +1,19 @@
+-- Role: crn_user
+
+DROP ROLE IF EXISTS crn_user;
+
+CREATE ROLE crn_user WITH LOGIN NOSUPERUSER INHERIT NOCREATEROLE;
+
+-- Database: crnr
+
+DROP DATABASE IF EXISTS crn;
+
+CREATE DATABASE crn WITH OWNER crn_user;
+
+
 -- Table: public.persons
 
--- DROP TABLE IF EXISTS public.persons;
+DROP TABLE IF EXISTS public.persons;
 
 CREATE TABLE IF NOT EXISTS public.persons
 (
@@ -13,12 +26,11 @@ CREATE TABLE IF NOT EXISTS public.persons
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.persons
-    OWNER to crn_user;
+ALTER TABLE IF EXISTS public.persons OWNER to crn_user;
 
 -- Table: public.records
 
--- DROP TABLE IF EXISTS public.records;
+DROP TABLE IF EXISTS public.records;
 
 CREATE TABLE IF NOT EXISTS public.records
 (
@@ -32,5 +44,4 @@ CREATE TABLE IF NOT EXISTS public.records
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.records
-    OWNER to crn_user;
+ALTER TABLE IF EXISTS public.records OWNER to crn_user;
