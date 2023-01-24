@@ -90,7 +90,8 @@ namespace nlohmann {
             crn::blocks::parts::passive    passive   = j["passive"].get<crn::blocks::parts::passive>();
             crn::blocks::addresses         addresses = j["address"].get<crn::blocks::addresses>();
             crn::blocks::contents          contents  = j["contents"].get<crn::blocks::contents>();
-            return crn::blocks::access(active, passive, addresses, contents);
+            boost::posix_time::ptime       requested = boost::posix_time::time_from_string(j["requested"].get<std::string>());
+            return crn::blocks::access(active, passive, addresses, contents, requested);
         }
 
         static void to_json(json& j, const crn::blocks::access& block) {
@@ -98,7 +99,8 @@ namespace nlohmann {
                 {"active",   block._active},
                 {"passive",  block._passive},
                 {"address",  block._address},
-                {"contents", block._contents}
+                {"contents", block._contents},
+                {"requested", boost::posix_time::to_simple_string(block._requested)}
             };
         }
     };

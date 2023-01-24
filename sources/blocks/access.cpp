@@ -13,7 +13,7 @@
 #include <cryptopp/modes.h>
 #include <cryptopp/hex.h>
 
-crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body): _active(active), _passive(passive), _address(addr), _contents(body){}
+crn::blocks::access::access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body, const boost::posix_time::ptime& requested): _active(active), _passive(passive), _address(addr), _contents(body), _requested(requested) {}
 
 crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& h){
     if(p.a().genesis() == p.p().genesis() && p.a().genesis()){
@@ -36,7 +36,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
 
         crn::blocks::addresses addr(p.a().pub().y(), p.p().pub().y());
         crn::blocks::contents contents(p.p().pub(), random, 0, addr, "genesis", 0);
-        return access(active, passive, addr, contents);
+        return access(active, passive, addr, contents, p.requested());
     }else{
         throw std::invalid_argument("p is not genesis parameters");
     }
@@ -77,7 +77,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     addresses addr(addr_active, addr_passive);
     crn::blocks::contents contents(p.p().pub(), random, active_request, addr, message, suffix);
 
-    return access(active, passive, addr, contents);
+    return access(active, passive, addr, contents, p.requested());
 }
 
 crn::blocks::access crn::blocks::genesis(crn::storage& db, const crn::keys::identity::public_key& pub){

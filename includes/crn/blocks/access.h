@@ -39,7 +39,7 @@ struct access{
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
-        access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body);
+        access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body, const boost::posix_time::ptime& requested);
     private:
         parts::active     _active;
         parts::passive    _passive;

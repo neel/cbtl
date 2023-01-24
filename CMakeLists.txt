@@ -46,7 +46,7 @@ add_executable(crn-init    init.cpp)
 add_executable(crn-request request.cpp)
 add_executable(crn-server  main.cpp)
 add_executable(crn-read    read.cpp)
-add_executable(rough       rough.cpp)
+# add_executable(rough       rough.cpp)
 
 target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES})
 
@@ -54,7 +54,10 @@ target_link_libraries(crn-server     crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES
 target_link_libraries(crn-init       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES})
 target_link_libraries(crn-request    crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 target_link_libraries(crn-read       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(rough          crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+# target_link_libraries(rough          crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+
+target_compile_features(crn PRIVATE cxx_std_17)
+target_compile_features(crn-init PRIVATE cxx_std_17)
 
 target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
 

@@ -46,10 +46,10 @@ crn::blocks::params::passive crn::blocks::params::passive::construct(const crn::
 
 
 
-crn::blocks::params::params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master): _active(active), _passive(passive), _master(master) { }
-crn::blocks::params::params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& gaccess): params(active, params::passive::construct(passive_last, passive_pub, gaccess), master) { }
+crn::blocks::params::params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master, const boost::posix_time::ptime& requested): _active(active), _passive(passive), _master(master), _requested(requested) { }
+crn::blocks::params::params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& gaccess, const boost::posix_time::ptime& requested): params(active, params::passive::construct(passive_last, passive_pub, gaccess), master, requested) { }
 
-crn::blocks::params crn::blocks::params::genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& pub){
-    return crn::blocks::params(crn::blocks::params::active::genesis(pub), crn::blocks::params::passive::genesis(pub), master);
+crn::blocks::params crn::blocks::params::genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& pub, const boost::posix_time::ptime& requested) {
+    return crn::blocks::params(crn::blocks::params::active::genesis(pub), crn::blocks::params::passive::genesis(pub), master, requested);
 }
 
