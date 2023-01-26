@@ -109,7 +109,6 @@ void crn::session::handle_request(const crn::packets::request& req){
         _challenge_data.last       = access.address().id();
         _challenge_data.challenged = true;
         _challenge_data.forward    = access.active().forward();
-        _challenge_data.rho        = rho;
         _challenge_data.lambda     = lambda;
         _challenge_data.requested  = boost::posix_time::microsec_clock::local_time();
         // send challenge
@@ -125,79 +124,26 @@ void crn::session::handle_request(const crn::packets::request& req){
 
 CryptoPP::Integer crn::session::verify(const crn::packets::basic_response& response){
     auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
-    auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
-    auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
-    if(c2_d == response.c2()){
-        auto alpha = Gp.Exponentiate(Gp.Divide(response.c1(), _challenge_data.forward), rho_inv);
-        auto beta  = Gp.Multiply(response.c3(), Gp.Divide(response.c2(), c2_d));
 
-        if(alpha == beta && beta == response.c3() && alpha == response.c3()){
-            std::cout << "Verification Successful" << std::endl;
-            CryptoPP::Integer active_next = Gp.Multiply(_challenge_data.last, crn::utils::sha512::digest(_challenge_data.token, CryptoPP::Integer::UNSIGNED));
-            if(_db.exists(crn::utils::hex::encode(active_next, CryptoPP::Integer::UNSIGNED), true)){
-                std::cout << "Next active address already exists" << std::endl;
-                return 0;
-            }
-
-            return crn::keys::access_key::reconstruct(response.access(), _challenge_data.lambda, _master.pri());
-        }
-
+    std::cout << "Verification Successful" << std::endl;
+    CryptoPP::Integer active_next = Gp.Multiply(_challenge_data.last, crn::utils::sha512::digest(_challenge_data.token, CryptoPP::Integer::UNSIGNED));
+    if(_db.exists(crn::utils::hex::encode(active_next, CryptoPP::Integer::UNSIGNED), true)){
+        std::cout << "Next active address already exists" << std::endl;
+        return 0;
     }
-    return 0;
+
+    return crn::keys::access_key::reconstruct(response.access(), _challenge_data.lambda, _master.pri());
 }
 
-crn::blocks::access crn::session::make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const nlohmann::json& contents){
-    crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, gaccess);
+crn::blocks::access crn::session::make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const nlohmann::json& contents){
+    crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, gaccess, _master.pri());
     crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
-    crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, active_back), last_passive, passive_pub, _master.pri(), gaccess, _challenge_data.requested);
+    crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, _challenge_data.forward), last_passive, passive_pub, _master.pri(), gaccess, _challenge_data.requested);
     CryptoPP::AutoSeededRandomPool rng;
     return crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, gaccess, last_passive.passive().forward(), _view, contents.dump(4));
 }
 
-
-// CryptoPP::Integer crn::session::handle_challenge_response(const crn::packets::basic_response& response){
-//     auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
-//     auto rho_inv = Gp1.MultiplicativeInverse(_challenge_data.rho);
-//     auto c2_d = Gp.Exponentiate(_challenge_data.forward, rho_inv);
-//     if(c2_d != response.c2()){
-//         std::cout << "Error matching c2" << std::endl;
-//         // TODO abort
-//     }else{
-//         auto alpha = Gp.Exponentiate(Gp.Divide(response.c1(), _challenge_data.forward), rho_inv);
-//         auto beta  = Gp.Multiply(response.c3(), Gp.Divide(response.c2(), c2_d));
-//
-//         if(alpha != beta || beta != response.c3() || alpha != response.c3()){
-//             std::cout << "Verification failed" << std::endl;
-//             // TODO abort
-//         }else{
-//             std::cout << "Verification Successful" << std::endl;
-//
-//             auto access = crn::keys::access_key::reconstruct(response.access(), _challenge_data.lambda, _master.pri());
-//
-//             // auto sup_suffix = Gp.Multiply(Gp.Exponentiate(_master.pub().y(), _view.secret()),  Gp.Exponentiate(access, _master.pri().x()));
-//
-//             std::cout << "computed access key: " << std::endl << access << std::endl;
-//
-//             crn::keys::identity::public_key passive_pub("patient-0.pub");
-//             crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, access);
-//             crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
-//             crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, response.c3()), last_passive, passive_pub, _master.pri(), access);
-//             CryptoPP::AutoSeededRandomPool rng;
-//             crn::blocks::access block = crn::blocks::access::construct(rng, params, _master.pri(), _challenge_data.token, access, last_passive.passive().forward(), _view);
-//             std::cout << "written new block: " << block.address().hash() << std::endl;
-//             if(_db.exists(block.address().hash())){
-//                 // TODO abort
-//                 std::cout << "block already exist" << std::endl;
-//             }else{
-//                 _db.add(block);
-//                 return access;
-//             }
-//         }
-//     }
-//     return 0;
-// }
-
-crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::identify>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back){
+crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::identify>& action, const CryptoPP::Integer& gaccess){
     std::string anchor = action.anchor();
     pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
     pqxx::work transaction{conn};
@@ -231,7 +177,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
             anchor
         }}
     };
-    crn::blocks::access block = make(passive_pub, gaccess, active_back, contents);
+    crn::blocks::access block = make(passive_pub, gaccess, contents);
     if(_db.exists(block.address().hash())){
         return crn::packets::result::failure(403, "block already exists");
     }else{
@@ -245,7 +191,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
 }
 
 
-crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back){
+crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess){
     pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
     pqxx::work transaction{conn};
 
@@ -298,7 +244,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
     };
 
     crn::keys::identity::public_key passive_pub(action.y(), _master.pub().G());
-    crn::blocks::access block = make(passive_pub, gaccess, active_back, contents);
+    crn::blocks::access block = make(passive_pub, gaccess, contents);
     if(_db.exists(block.address().hash())){
         return crn::packets::result::failure(403, "block already exists");
     }else{
@@ -310,7 +256,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
     });
 }
 
-crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::fetch>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back){
+crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::fetch>& action, const CryptoPP::Integer& gaccess){
     pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
     pqxx::work transaction{conn};
 
@@ -351,7 +297,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
     };
 
     crn::keys::identity::public_key passive_pub(action.y(), _master.pub().G());
-    crn::blocks::access block = make(passive_pub, gaccess, active_back, contents);
+    crn::blocks::access block = make(passive_pub, gaccess, contents);
     if(_db.exists(block.address().hash())){
         return crn::packets::result::failure(403, "block already exists");
     }else{
@@ -364,7 +310,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
     });
 }
 
-crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::remove>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back){
+crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::remove>& action, const CryptoPP::Integer& gaccess){
     return crn::packets::result::failure(500, "Not Implemented");
 }
 

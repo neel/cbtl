@@ -53,7 +53,7 @@ access genesis(crn::storage& db, const crn::keys::identity::public_key& pub);
 struct last{
     static access active (crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& pri);
     static access passive(crn::storage& db, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& secret);
-    static access passive(crn::storage& db, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess);
+    static access passive(crn::storage& db, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess, const crn::keys::identity::private_key& master);
 };
 
 }

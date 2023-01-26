@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
                                 : last.passive().next(user.pub().G(), last.address().id(), user.pri());
             }else{
                 address = is_active
-                                ? last.active().prev(user.pub().G(), last.address().active(), user.pri())
+                                ? last.active().prev(user.pub().G(), last.address().active(), last.passive().forward(), user.pri())
                                 : last.passive().prev(user.pub().G(), last.address().passive(), last.active().forward(), user.pri());
             }
             if(db.exists(address, forward)){

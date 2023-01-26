@@ -5,17 +5,14 @@
 #include "crn/blocks/access.h"
 #include "crn/utils.h"
 
-crn::blocks::params::active::active(const CryptoPP::Integer& id, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& token): _last(id), _pub(pub), _token(token) {
+crn::blocks::params::active::active(const CryptoPP::Integer& id, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& last_forward): _last(id), _pub(pub), _last_forward(last_forward) {
     if(id.IsZero()){
         throw std::invalid_argument("last block id cannot be 0 unless it is a genesis block (in that case use genesis function to construct instead of using this constructor)");
     }
-    if(token.IsZero()){
-        throw std::invalid_argument("token id cannot be 0 unless it is a genesis block (in that case use genesis function to construct instead of using this constructor)");
-    }
 }
-crn::blocks::params::active::active(const crn::keys::identity::public_key& pub): _last(CryptoPP::Integer::Zero()), _pub(pub), _token(CryptoPP::Integer::Zero()) {}
+crn::blocks::params::active::active(const crn::keys::identity::public_key& pub): _last(CryptoPP::Integer::Zero()), _pub(pub) {}
 crn::blocks::params::active crn::blocks::params::active::genesis(const crn::keys::identity::public_key& pub){ return crn::blocks::params::active(pub); }
-bool crn::blocks::params::active::genesis() const{ return _token.IsZero(); }
+bool crn::blocks::params::active::genesis() const{ return false; }
 CryptoPP::Integer crn::blocks::params::active::address(const CryptoPP::Integer& request) const{
     return _pub.Gp().Multiply(_last, crn::utils::sha512::digest(request, CryptoPP::Integer::UNSIGNED));
 }

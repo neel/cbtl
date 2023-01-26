@@ -38,7 +38,6 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     CryptoPP::Integer token;    // g^{\pi_{u} r_{u}^{(0)}}
     bool challenged;
     CryptoPP::Integer forward;
-    CryptoPP::Integer rho;
     CryptoPP::Integer lambda;
     boost::posix_time::ptime requested;
 
@@ -83,19 +82,19 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       void stage2(const crn::packets::response<ActionDataT>& response){
         CryptoPP::Integer gaccess = verify(response);
         if(!gaccess.IsZero()){
-          crn::packets::result result = process(response.action(), gaccess, response.c3());
+          crn::packets::result result = process(response.action(), gaccess);
           crn::packets::envelop<crn::packets::result> envelop(crn::packets::type::result, result);
           std::size_t bytes = envelop.write(_socket);
           std::cout << bytes << " sent" << std::endl;
         }
       }
   private:
-      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
-      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::identify>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
-      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::fetch>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
-      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::remove>& action, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back);
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess);
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::identify>& action, const CryptoPP::Integer& gaccess);
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::fetch>& action, const CryptoPP::Integer& gaccess);
+      crn::packets::result process(const crn::packets::action_data<crn::packets::actions::remove>& action, const CryptoPP::Integer& gaccess);
       CryptoPP::Integer verify(const crn::packets::basic_response& response);
-      crn::blocks::access make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& active_back, const nlohmann::json& contents);
+      crn::blocks::access make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const nlohmann::json& contents);
 };
 
 }

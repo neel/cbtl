@@ -87,17 +87,11 @@ void crn::packets::from_json(const nlohmann::json& j, request& q){
 
 void crn::packets::to_json(nlohmann::json& j, const challenge& c){
     j = nlohmann::json {
-        {"c1", crn::utils::hex::encode(c.c1, CryptoPP::Integer::UNSIGNED)},
-        {"c2", crn::utils::hex::encode(c.c2, CryptoPP::Integer::UNSIGNED)},
-        {"c3", crn::utils::hex::encode(c.c3, CryptoPP::Integer::UNSIGNED)},
         {"random", crn::utils::hex::encode(c.random, CryptoPP::Integer::UNSIGNED)}
     };
 }
 
 void crn::packets::from_json(const nlohmann::json& j, challenge& c){
-    c.c1 = crn::utils::hex::decode(j["c1"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
-    c.c2 = crn::utils::hex::decode(j["c2"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
-    c.c3 = crn::utils::hex::decode(j["c3"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
     c.random = crn::utils::hex::decode(j["random"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
 }
 

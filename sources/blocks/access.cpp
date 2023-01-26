@@ -31,8 +31,8 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
             }
         }
 
-        auto active  = parts::active::construct(rng, p.a(), master, random);
-        auto passive = parts::passive::construct(rng, p.p(), h, random, 0);
+        auto active  = parts::active::construct(p.a(), master, random, 0);
+        auto passive = parts::passive::construct(rng, p.p(), h, random, 0, master);
 
         crn::blocks::addresses addr(p.a().pub().y(), p.p().pub().y());
         crn::blocks::contents contents(p.p().pub(), random, 0, addr, "genesis", 0);
@@ -53,19 +53,19 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
         throw std::invalid_argument("genesis parms not accepted (use genesis function)");
     }
 
-    CryptoPP::Integer random = G.random(rng, false);   // r_{u}
+    CryptoPP::Integer ru = G.random(rng, false);   // r_{u}
     CryptoPP::Integer dux = crn::utils::sha256::digest(active_request, CryptoPP::Integer::UNSIGNED);
     while(true){
-        random = G.random(rng, false);   // r_{u}
-        CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random), CryptoPP::Integer::UNSIGNED);
+        ru = G.random(rng, false);   // r_{u}
+        CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), ru), CryptoPP::Integer::UNSIGNED);
         if((dux.IsEven() && dvx.IsOdd()) || (dux.IsOdd() && dvx.IsEven())){
             assert((dux - dvx).IsOdd());
             break;
         }
     }
 
-    auto active  = parts::active::construct(rng, p.a(), master, random);
-    auto passive = parts::passive::construct(rng, p.p(), crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED), random, rv);
+    auto active  = parts::active::construct(p.a(), master, ru, rv);
+    auto passive = parts::passive::construct(rng, p.p(), crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED), ru, rv, master);
 
     auto suffix = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(G.g(), view.secret()),  gaccess), master.x());
 
@@ -75,7 +75,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     CryptoPP::Integer addr_passive = p.p().address();
 
     addresses addr(addr_active, addr_passive);
-    crn::blocks::contents contents(p.p().pub(), random, active_request, addr, message, suffix);
+    crn::blocks::contents contents(p.p().pub(), ru, active_request, addr, message, suffix);
 
     return access(active, passive, addr, contents, p.requested());
 }
@@ -113,11 +113,11 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
     return last;
 }
 
-crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess){
+crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess, const crn::keys::identity::private_key& master){
     CryptoPP::Integer h = crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED);
     crn::blocks::access last = crn::blocks::genesis(db, pub);
     while(true){
-        std::string address = last.passive().next(pub.G(), last.address().id(), h);
+        std::string address = last.passive().next(pub.G(), last.address().id(), h, master);
         if(db.exists(address, true)){
             std::string block_id = db.id(address);
             last = db.fetch(block_id);

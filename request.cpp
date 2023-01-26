@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
         if(map.count("anchor")){
             std::string anchor = map["anchor"].as<std::string>();
             auto action = crn::packets::action<crn::packets::actions::identify>(anchor);
-            auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
+            auto response = crn::packets::respond(action, user.pri(), access, lambda);
 
             // send the challenge
             nlohmann::json response_json = challenge;
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
                 }
             }
             std::cout << action.count() << " cases in action" << std::endl;
-            auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
+            auto response = crn::packets::respond(action, user.pri(), access, lambda);
 
             // send the challenge
             nlohmann::json response_json = challenge;
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
             std::string patient_pub_str = map["patient"].as<std::string>();
             crn::keys::identity::public_key patient_pub(patient_pub_str);
             auto action = crn::packets::action<crn::packets::actions::fetch>(patient_pub);
-            auto response = crn::packets::respond(action, challenge, user.pri(), access, lambda);
+            auto response = crn::packets::respond(action, user.pri(), access, lambda);
 
             // send the challenge
             nlohmann::json response_json = challenge;

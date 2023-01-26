@@ -35,11 +35,11 @@ struct active{
     /**
      * @brief Calculate the previous block's $\tau$ using the current block's id and active user's secret.
      */
-    std::string prev(const crn::math::group& G, const CryptoPP::Integer& address, const crn::keys::identity::private_key& pri) const;
+    std::string prev(const crn::math::group& G, const CryptoPP::Integer& address, const CryptoPP::Integer& passive_forward, const crn::keys::identity::private_key& pri) const;
 
-    static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& token, const CryptoPP::Integer& random);
-    static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& t, const CryptoPP::Integer& random);
-    static active construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::active& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& random);
+    static active construct(const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const CryptoPP::Integer& gru_last);
+    static active construct(const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& w, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const CryptoPP::Integer& gru_last);
+    static active construct(const crn::blocks::params::active& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv);
 
     bool verify(const CryptoPP::Integer& token, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master) const;
     bool verify(const crn::math::group& G, const CryptoPP::Integer& token, const CryptoPP::Integer& y, const CryptoPP::Integer& w) const;

@@ -19,21 +19,21 @@ struct access;
 
 struct params{
     struct active{
-        active(const CryptoPP::Integer& id, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& token);
+        active(const CryptoPP::Integer& id, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& last_forward);
         bool genesis() const;
         CryptoPP::Integer address(const CryptoPP::Integer& request) const;
 
         static active genesis(const crn::keys::identity::public_key& pub);
 
         inline const CryptoPP::Integer& last() const { return _last; }
+        inline const CryptoPP::Integer& last_forward() const { return _last_forward; }
         inline const crn::keys::identity::public_key& pub() const { return _pub; }
-        inline const CryptoPP::Integer& token() const { return _token; }
         protected:
             active(const crn::keys::identity::public_key& pub);
         private:
             CryptoPP::Integer _last;
             crn::keys::identity::public_key _pub;
-            CryptoPP::Integer _token;    ///< $ g^{\pi_{u}^{-1}r_{u}^{(0)}} $
+            CryptoPP::Integer _last_forward;
     };
     struct passive{
         passive(const CryptoPP::Integer& id, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& token);

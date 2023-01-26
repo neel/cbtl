@@ -143,9 +143,6 @@ void to_json(nlohmann::json& j, const request& q);
 void from_json(const nlohmann::json& j, request& q);
 
 struct challenge{
-    CryptoPP::Integer c1;
-    CryptoPP::Integer c2;
-    CryptoPP::Integer c3;
     CryptoPP::Integer random;
 };
 
@@ -153,43 +150,34 @@ void to_json(nlohmann::json& j, const challenge& c);
 void from_json(const nlohmann::json& j, challenge& c);
 
 struct basic_response{
-    CryptoPP::Integer _c1;
-    CryptoPP::Integer _c2;
-    CryptoPP::Integer _c3;
     CryptoPP::Integer _access;
 
-    const CryptoPP::Integer& c1() const { return _c1; }
-    const CryptoPP::Integer& c2() const { return _c2; }
-    const CryptoPP::Integer& c3() const { return _c3; }
     const CryptoPP::Integer& access() const { return _access; }
 
-    basic_response(const challenge& c, const crn::keys::identity::private_key& pri, const crn::keys::access_key& access, const CryptoPP::Integer& lambda) {
+    basic_response(const crn::keys::identity::private_key& pri, const crn::keys::access_key& access, const CryptoPP::Integer& lambda) {
         auto Gp = pri.G().Gp(), Gp1 = pri.G().Gp1();
         CryptoPP::Integer x     = pri.x();
         CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(pri.x());
-        _c1 = Gp.Exponentiate(c.c1, x_inv);
-        _c2 = Gp.Exponentiate(c.c2, x_inv);
-        _c3 = Gp.Exponentiate(c.c3, x_inv);
         _access = access.prepare(pri, lambda);
     }
-    basic_response(const CryptoPP::Integer& c1, const CryptoPP::Integer& c2, const CryptoPP::Integer& c3, const CryptoPP::Integer& access): _c1(c1), _c2(c2), _c3(c3), _access(access) { }
+    basic_response(const CryptoPP::Integer& access): _access(access) { }
 };
 
 template <typename ActionT>
 struct response: public basic_response{
-    response(const ActionT& action, const challenge& c, const crn::keys::identity::private_key& pri, const crn::keys::access_key& access, const CryptoPP::Integer& lambda): basic_response(c, pri, access, lambda), _action(action) { }
+    response(const ActionT& action, const crn::keys::identity::private_key& pri, const crn::keys::access_key& access, const CryptoPP::Integer& lambda): basic_response(pri, access, lambda), _action(action) { }
     const ActionT& action() const { return _action; }
 
     friend struct nlohmann::adl_serializer<crn::packets::response<ActionT>>;
     private:
-        response(const ActionT& action, const CryptoPP::Integer& c1, const CryptoPP::Integer& c2, const CryptoPP::Integer& c3, const CryptoPP::Integer& access): basic_response(c1, c2, c3, access), _action(action) { }
+        response(const ActionT& action, const CryptoPP::Integer& access): basic_response(access), _action(action) { }
     private:
         ActionT _action;
 };
 
 template <typename ActionT>
-response<ActionT> respond(const ActionT& action, const challenge& c, const crn::keys::identity::private_key& pri, const crn::keys::access_key& access, const CryptoPP::Integer& lambda){
-    return response<ActionT>(action, c, pri, access, lambda);
+response<ActionT> respond(const ActionT& action, const crn::keys::identity::private_key& pri, const crn::keys::access_key& access, const CryptoPP::Integer& lambda){
+    return response<ActionT>(action, pri, access, lambda);
 }
 
 // void to_json(nlohmann::json& j, const response& res);
@@ -316,19 +304,13 @@ namespace nlohmann {
     struct adl_serializer<crn::packets::response<ActionT>> {
         static crn::packets::response<ActionT> from_json(const json& j) {
             ActionT action = j["action"];
-            CryptoPP::Integer c1 = crn::utils::hex::decode(j["c1"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
-            CryptoPP::Integer c2 = crn::utils::hex::decode(j["c2"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
-            CryptoPP::Integer c3 = crn::utils::hex::decode(j["c3"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
             CryptoPP::Integer access = crn::utils::hex::decode(j["access"].get<std::string>(), CryptoPP::Integer::UNSIGNED);
-            return crn::packets::response<ActionT>(action, c1, c2, c3, access);
+            return crn::packets::response<ActionT>(action, access);
         }
 
         static void to_json(json& j, const crn::packets::response<ActionT>& res) {
             j = nlohmann::json {
                 {"action",  res.action()},
-                {"c1", crn::utils::hex::encode(res.c1(), CryptoPP::Integer::UNSIGNED)},
-                {"c2", crn::utils::hex::encode(res.c2(), CryptoPP::Integer::UNSIGNED)},
-                {"c3", crn::utils::hex::encode(res.c3(), CryptoPP::Integer::UNSIGNED)},
                 {"access", crn::utils::hex::encode(res.access(), CryptoPP::Integer::UNSIGNED)}
             };
         }
