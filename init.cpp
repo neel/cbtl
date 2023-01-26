@@ -108,6 +108,8 @@ int main(int argc, char** argv) {
 
     pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
     pqxx::work transaction{conn};
+    conn.prepare("truncate_persons", "DELETE FROM public.persons;");
+    conn.prepare("truncate_records", "DELETE FROM public.records;");
     conn.prepare(
         "insert_person",
         R"(
@@ -122,7 +124,8 @@ int main(int argc, char** argv) {
                 VALUES ($1, decode($2, 'hex'), decode($3, 'hex'), $4);
         )"
     );
-
+    transaction.exec_prepared("truncate_persons");
+    transaction.exec_prepared("truncate_records");
     for(std::uint32_t i = 0; i < patients; ++i){
         std::string name = patient+"-"+boost::lexical_cast<std::string>(i);
         crn::keys::identity::pair key(rng, trusted_server.pri());
