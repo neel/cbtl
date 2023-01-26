@@ -35,11 +35,11 @@ struct access{
     inline const contents& body() const { return _contents; }
 
     static access genesis(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& h);
-    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& rv, const crn::keys::view_key& view);
+    static access construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& rv, const crn::keys::view_key& view, const std::string message);
 
     protected:
         friend class nlohmann::adl_serializer<crn::blocks::access>;
-        access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body);
+        access(const parts::active& active, const parts::passive& passive, const addresses& addr, const contents& body, const boost::posix_time::ptime& requested);
     private:
         parts::active     _active;
         parts::passive    _passive;

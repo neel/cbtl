@@ -37,6 +37,18 @@ without any parameters it will create 2 users of each type.
 ./crn-server -p master.pub -s master -v master.view
 ```
 
+# To insert a Record
+
+```
+./crn-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-0.pub -I
+```
+
+# Fetch all Information
+
+```
+./crn-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-0.pub
+```
+
 
 # Request for Access
 

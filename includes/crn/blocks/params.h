@@ -4,6 +4,7 @@
 #ifndef CRN_BLOCKS_PARAMS_H
 #define CRN_BLOCKS_PARAMS_H
 
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <cryptopp/integer.h>
 #include <cryptopp/osrng.h>
 #include <nlohmann/json.hpp>
@@ -53,19 +54,22 @@ struct params{
             CryptoPP::Integer _token;    ///< $ g^{\pi_{v}r_{v}^{(0)}} $
     };
 
-    params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master);
-    params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& gaccess);
+    params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master, const boost::posix_time::ptime& requested);
+    params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& gaccess, const boost::posix_time::ptime& requested);
 
     inline const params::active& a() const { return _active; }
     inline const params::passive& p() const { return _passive; }
     inline const crn::keys::identity::private_key& master() const { return _master; }
+    
+    inline const boost::posix_time::ptime& requested() const { return _requested; }
 
-    static params genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& passive_pub);
+    static params genesis(const crn::keys::identity::private_key& master, const crn::keys::identity::public_key& passive_pub, const boost::posix_time::ptime& requested);
 
     private:
         active  _active;
         passive _passive;
         crn::keys::identity::private_key  _master;
+        boost::posix_time::ptime          _requested;
 };
 
 }
