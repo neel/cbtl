@@ -81,12 +81,15 @@ int main(int argc, char** argv) {
             std::string address;
             if(forward){
                 address = is_active
-                                ? last.active().next(user.pub().G(), last.address().id(), user.pri())
+                                ? last.active().next(user.pub().G(),  last.address().id(), user.pri())
                                 : last.passive().next(user.pub().G(), last.address().id(), user.pri());
             }else{
+                // std::cout << "traversing backward" << std::endl;
+                // std::cout << "last.active().forward(): " << last.active().forward() << std::endl;
+                // std::cout << "last.passive().forward(): " << last.passive().forward() << std::endl;
                 address = is_active
-                                ? last.active().prev(user.pub().G(), last.address().active(), last.passive().forward(), user.pri())
-                                : last.passive().prev(user.pub().G(), last.address().passive(), last.active().forward(), user.pri());
+                                ? last.active().prev (user.pub().G(), last.address().active(),  last.passive().forward(), user.pri())
+                                : last.passive().prev(user.pub().G(), last.address().passive(), last.active().forward(),  user.pri());
             }
             if(db.exists(address, forward)){
                 std::string block_id = forward ? db.id(address) : address;
@@ -94,9 +97,9 @@ int main(int argc, char** argv) {
                 CryptoPP::Integer x;
                 if(is_active){
                     if(forward){
-                        x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                        x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(),   user.pri().x()), CryptoPP::Integer::UNSIGNED);
                     }else{
-                        x = crn::utils::sha256::digest(Gp.Exponentiate(Gp.Exponentiate(current.active().backward(), user.pri().x()), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                        x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                     }
                 }else{
                     x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);

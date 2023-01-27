@@ -20,29 +20,30 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
         auto G = master.G();
         auto Gp = G.Gp();
 
-        CryptoPP::Integer random = G.random(rng, false);   // r_{u}
+        CryptoPP::Integer rv = G.random(rng, false);
+        CryptoPP::Integer ru = G.random(rng, false);   // r_{u}
         CryptoPP::Integer dux = crn::utils::sha256::digest(0, CryptoPP::Integer::UNSIGNED);
         while(true){
-            random = G.random(rng, false);   // r_{u}
-            CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), random), CryptoPP::Integer::UNSIGNED);
+            ru = G.random(rng, false);   // r_{u}
+            CryptoPP::Integer dvx = crn::utils::sha256::digest(Gp.Exponentiate(p.p().pub().y(), ru), CryptoPP::Integer::UNSIGNED);
             if((dux.IsEven() && dvx.IsOdd()) || (dux.IsOdd() && dvx.IsEven())){
                 assert((dux - dvx).IsOdd());
                 break;
             }
         }
 
-        auto active  = parts::active::construct(p.a(), master, random, 0);
-        auto passive = parts::passive::construct(rng, p.p(), h, random, 0, master);
+        auto active  = parts::active::construct(p.a(), master, ru, rv);
+        auto passive = parts::passive::construct(p.p(), h, ru, rv, 0, master);
 
         crn::blocks::addresses addr(p.a().pub().y(), p.p().pub().y());
-        crn::blocks::contents contents(p.p().pub(), random, 0, addr, "genesis", 0);
+        crn::blocks::contents contents(p.p().pub(), ru, 0, addr, "genesis", 0);
         return access(active, passive, addr, contents, p.requested());
     }else{
         throw std::invalid_argument("p is not genesis parameters");
     }
 }
 
-crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& rv, const crn::keys::view_key& view, const std::string message) {
+crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params& p, const crn::keys::identity::private_key& master, const CryptoPP::Integer& active_request, const CryptoPP::Integer& gaccess, const CryptoPP::Integer& passive_forward_last, const crn::keys::view_key& view, const std::string message) {
     auto G = master.G();
     auto Gp = G.Gp();
 
@@ -53,6 +54,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
         throw std::invalid_argument("genesis parms not accepted (use genesis function)");
     }
 
+    CryptoPP::Integer rv = G.random(rng, false);   // r_{v}
     CryptoPP::Integer ru = G.random(rng, false);   // r_{u}
     CryptoPP::Integer dux = crn::utils::sha256::digest(active_request, CryptoPP::Integer::UNSIGNED);
     while(true){
@@ -65,7 +67,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     }
 
     auto active  = parts::active::construct(p.a(), master, ru, rv);
-    auto passive = parts::passive::construct(rng, p.p(), crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED), ru, rv, master);
+    auto passive = parts::passive::construct(p.p(), crn::utils::sha512::digest(gaccess, CryptoPP::Integer::UNSIGNED), ru, rv, passive_forward_last, master);
 
     auto suffix = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(G.g(), view.secret()),  gaccess), master.x());
 

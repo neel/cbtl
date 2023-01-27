@@ -12,7 +12,7 @@ crn::blocks::params::active::active(const CryptoPP::Integer& id, const crn::keys
 }
 crn::blocks::params::active::active(const crn::keys::identity::public_key& pub): _last(CryptoPP::Integer::Zero()), _pub(pub) {}
 crn::blocks::params::active crn::blocks::params::active::genesis(const crn::keys::identity::public_key& pub){ return crn::blocks::params::active(pub); }
-bool crn::blocks::params::active::genesis() const{ return false; }
+bool crn::blocks::params::active::genesis() const{ return _last_forward.IsZero(); }
 CryptoPP::Integer crn::blocks::params::active::address(const CryptoPP::Integer& request) const{
     return _pub.Gp().Multiply(_last, crn::utils::sha512::digest(request, CryptoPP::Integer::UNSIGNED));
 }

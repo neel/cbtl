@@ -17,7 +17,12 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(const crn::math
     auto token_w  = Gp.Exponentiate(token, w);
     auto checksum = Gp.Multiply(token_w, y);
     auto hash     = crn::utils::sha512::digest(checksum, CryptoPP::Integer::UNSIGNED);
-    auto backward = Gp.Multiply(crn::utils::sha512::digest(Gp.Exponentiate(y, rv), CryptoPP::Integer::UNSIGNED), gru_last);
+    auto bhash    = crn::utils::sha512::digest(Gp.Exponentiate(y, rv), CryptoPP::Integer::UNSIGNED);
+    // std::cout << "------" << std::endl;
+    // std::cout << "passive_forward: " << Gp.Exponentiate(g, rv) << std::endl;
+    // std::cout << "prefix: " << Gp.Exponentiate(y, rv) << std::endl;
+    // std::cout << "------" << std::endl;
+    auto backward = Gp.Multiply(bhash, gru_last);
     crn::blocks::parts::active part(forward, backward, hash);
     return part;
 }
@@ -38,7 +43,12 @@ std::string crn::blocks::parts::active::next(const crn::math::group& G, const Cr
 std::string crn::blocks::parts::active::prev(const crn::math::group& G, const CryptoPP::Integer& address, const CryptoPP::Integer& passive_forward, const crn::keys::identity::private_key& pri) const{
     auto link = G.Gp().Exponentiate(passive_forward, pri.x());
     auto hash = crn::utils::sha512::digest(link, CryptoPP::Integer::UNSIGNED);
+    // std::cout << "------" << std::endl;
+    // std::cout << "passive_forward: " << passive_forward << std::endl;
+    // std::cout << "prefix: " << link << std::endl;
+    // std::cout << "------" << std::endl;
     auto active_forward_prev = G.Gp().Divide(_backward, hash);
+    // std::cout << "active_forward_prev: " << active_forward_prev << std::endl;
     auto token = G.Gp().Exponentiate(active_forward_prev, pri.x());
     auto token_hash = crn::utils::sha512::digest(token, CryptoPP::Integer::UNSIGNED);
     auto addr = G.Gp().Divide(address, token_hash);

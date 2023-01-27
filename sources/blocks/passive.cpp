@@ -5,20 +5,20 @@
 #include "crn/utils.h"
 #include "crn/keys.h"
 
-crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const CryptoPP::Integer& w){
-    auto r = G.random(rng, false);
+crn::blocks::parts::passive crn::blocks::parts::passive::construct(const crn::math::group& G, const CryptoPP::Integer& y, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const CryptoPP::Integer& passive_forward_last, const CryptoPP::Integer& w){
+    // auto r = G.random(rng, false);
     auto Gp = G.Gp();
-    auto forward  = Gp.Exponentiate(G.g(), r);
-    auto backward = (ru == 0 || rv == 0) ? CryptoPP::Integer::Zero() : Gp.Multiply( crn::utils::sha512::digest( Gp.Exponentiate(y, ru), CryptoPP::Integer::UNSIGNED ), rv);
+    auto forward  = Gp.Exponentiate(G.g(), rv);
+    auto backward = (ru == 0 || passive_forward_last == 0) ? CryptoPP::Integer::Zero() : Gp.Multiply( crn::utils::sha512::digest( Gp.Exponentiate(y, ru), CryptoPP::Integer::UNSIGNED ), passive_forward_last);
     auto hash     = crn::utils::sha512::digest(Gp.Exponentiate(forward, w), CryptoPP::Integer::UNSIGNED);
-    auto cipher   = Gp.Multiply(hash, Gp.Exponentiate(Gp.Exponentiate(y, r), h));
+    auto cipher   = Gp.Multiply(hash, Gp.Exponentiate(Gp.Exponentiate(y, rv), h));
     return crn::blocks::parts::passive(forward, backward, cipher);
 }
-crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const crn::keys::identity::private_key& pri) {
-    return construct(rng, pub.G(), pub.y(), h, ru, rv, pri.x());
+crn::blocks::parts::passive crn::blocks::parts::passive::construct(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const CryptoPP::Integer& passive_forward_last, const crn::keys::identity::private_key& pri) {
+    return construct(pub.G(), pub.y(), h, ru, rv, passive_forward_last, pri.x());
 }
-crn::blocks::parts::passive crn::blocks::parts::passive::construct(CryptoPP::AutoSeededRandomPool& rng, const crn::blocks::params::passive& p, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const crn::keys::identity::private_key& pri){
-    return crn::blocks::parts::passive::construct(rng, p.pub(), h, ru, rv, pri);
+crn::blocks::parts::passive crn::blocks::parts::passive::construct(const crn::blocks::params::passive& p, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const CryptoPP::Integer& passive_forward_last, const crn::keys::identity::private_key& pri){
+    return crn::blocks::parts::passive::construct(p.pub(), h, ru, rv, passive_forward_last, pri);
 }
 
 
