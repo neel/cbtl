@@ -14,7 +14,7 @@ namespace crn{
 namespace blocks{
 
 struct contents{
-    contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::addresses& addr, const std::string& msg, const CryptoPP::Integer& super);
+    contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& ru, const CryptoPP::Integer& active_req, const crn::blocks::addresses& addr, const std::string& msg, const CryptoPP::Integer& super);
     inline const crn::math::free_coordinates& random() const { return _random; }
     inline const CryptoPP::Integer& gamma() const { return _gamma; }
     inline const std::string& ciphertext() const { return _message; }

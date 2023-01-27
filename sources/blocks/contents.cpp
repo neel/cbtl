@@ -9,11 +9,11 @@
 #include <cryptopp/hex.h>
 #include <iostream>
 
-crn::blocks::contents::contents(const crn::math::free_coordinates& random, const CryptoPP::Integer& gamma, const CryptoPP::Integer& super, const std::string& msg): _random(random), _gamma(gamma), _message(msg), _super(super) { }
-crn::blocks::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& random, const CryptoPP::Integer& active_req, const crn::blocks::addresses& addr, const std::string& msg, const CryptoPP::Integer& super) {
+crn::blocks::contents::contents(const crn::math::free_coordinates& random, const CryptoPP::Integer& gamma, const CryptoPP::Integer& super, const std::string& msg): _random(random), _gamma(gamma), _super(super), _message(msg) { }
+crn::blocks::contents::contents(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& ru, const CryptoPP::Integer& active_req, const crn::blocks::addresses& addr, const std::string& msg, const CryptoPP::Integer& super) {
     auto G = pub.G();
     auto Gp = G.Gp();
-    CryptoPP::Integer xv = crn::utils::sha256::digest(Gp.Exponentiate(pub.y(), random), CryptoPP::Integer::UNSIGNED), yv = addr.active();
+    CryptoPP::Integer xv = crn::utils::sha256::digest(Gp.Exponentiate(pub.y(), ru), CryptoPP::Integer::UNSIGNED), yv = addr.active();
     CryptoPP::Integer xu = crn::utils::sha256::digest(active_req, CryptoPP::Integer::UNSIGNED), yu = addr.passive();
     compute(crn::math::free_coordinates{xu, yu}, crn::math::free_coordinates{xv, yv}, msg, G, super);
 }

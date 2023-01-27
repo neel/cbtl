@@ -99,13 +99,15 @@ int main(int argc, char** argv) {
                     if(forward){
                         x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(),   user.pri().x()), CryptoPP::Integer::UNSIGNED);
                     }else{
+                        std::cout << "current.active().forward(): " << current.active().forward() << std::endl;
+                        std::cout << "Gp.Exponentiate(current.active().forward(), user.pri().x()): " << Gp.Exponentiate(current.active().forward(), user.pri().x()) << std::endl;
                         x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                     }
                 }else{
                     x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 }
                 CryptoPP::Integer y = is_active ? current.address().passive() : current.address().active();
-                last = current;
+                if(forward) last = current;
 
                 auto body = last.body();
                 crn::math::free_coordinates random = body.random();
@@ -119,6 +121,7 @@ int main(int argc, char** argv) {
                     std::cout << "invalid ciphertext" << std::endl;
                     plaintext = "failed";
                 }
+                if(!forward) last = current;
                 std::cout << i << std::endl;
                 std::cout << "block id: " << std::endl << block_id << std::endl;
                 std::cout << "password: " << std::endl << delta << std::endl;

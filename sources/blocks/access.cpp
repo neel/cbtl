@@ -79,6 +79,9 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     addresses addr(addr_active, addr_passive);
     crn::blocks::contents contents(p.p().pub(), ru, active_request, addr, message, suffix);
 
+    std::cout << "active_request: " << active_request << std::endl;
+    std::cout << "id: " << addr.hash() << std::endl;
+
     return access(active, passive, addr, contents, p.requested());
 }
 
