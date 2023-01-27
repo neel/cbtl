@@ -41,7 +41,7 @@ struct params{
         CryptoPP::Integer address() const;
 
         static passive genesis(const crn::keys::identity::public_key& pub);
-        static passive construct(const crn::blocks::access& last, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess);
+        static passive construct(const crn::blocks::access& last, const crn::keys::identity::public_key& pub, const CryptoPP::Integer& gaccess, const crn::keys::identity::private_key& master);
 
         inline const CryptoPP::Integer& last() const { return _last; }
         inline const crn::keys::identity::public_key& pub() const { return _pub; }
@@ -55,7 +55,7 @@ struct params{
     };
 
     params(const params::active& active, const params::passive& passive, const crn::keys::identity::private_key& master, const boost::posix_time::ptime& requested);
-    params(const params::active& active, const crn::blocks::access& passive_last, const crn::keys::identity::public_key& passive_pub, const crn::keys::identity::private_key& master, const CryptoPP::Integer& gaccess, const boost::posix_time::ptime& requested);
+    params(const active& active, const crn::blocks::access& passive_last, const keys::identity::public_key& passive_pub, const keys::identity::private_key& master, const CryptoPP::Integer& gaccess, const boost::posix_time::ptime& requested);
 
     inline const params::active& a() const { return _active; }
     inline const params::passive& p() const { return _passive; }

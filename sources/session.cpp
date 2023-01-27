@@ -137,6 +137,7 @@ CryptoPP::Integer crn::session::verify(const crn::packets::basic_response& respo
 
 crn::blocks::access crn::session::make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const nlohmann::json& contents){
     crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, gaccess, _master.pri());
+    std::cout << "last_pasive: " << last_passive.address().id() << std::endl;
     crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
     crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, _challenge_data.forward), last_passive, passive_pub, _master.pri(), gaccess, _challenge_data.requested);
     CryptoPP::AutoSeededRandomPool rng;

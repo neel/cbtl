@@ -20,7 +20,7 @@ crn::blocks::access crn::blocks::access::genesis(CryptoPP::AutoSeededRandomPool&
         auto G = master.G();
         auto Gp = G.Gp();
 
-        CryptoPP::Integer rv = G.random(rng, false);
+        CryptoPP::Integer rv = G.random(rng, false);   // r_{v}
         CryptoPP::Integer ru = G.random(rng, false);   // r_{u}
         CryptoPP::Integer dux = crn::utils::sha256::digest(0, CryptoPP::Integer::UNSIGNED);
         while(true){
@@ -124,9 +124,11 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
     while(true){
         std::string address = last.passive().next(pub.G(), last.address().id(), h, master);
         if(db.exists(address, true)){
+            std::cout << "crn::blocks::access crn::blocks::last::passive: " << "next" << std::endl;
             std::string block_id = db.id(address);
             last = db.fetch(block_id);
         }else{
+            std::cout << "crn::blocks::access crn::blocks::last::passive: " << "end" << std::endl;
             break;
         }
     }

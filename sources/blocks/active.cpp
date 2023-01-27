@@ -18,11 +18,7 @@ crn::blocks::parts::active crn::blocks::parts::active::construct(const crn::math
     auto checksum = Gp.Multiply(token_w, y);
     auto hash     = crn::utils::sha512::digest(checksum, CryptoPP::Integer::UNSIGNED);
     auto bhash    = crn::utils::sha512::digest(Gp.Exponentiate(y, rv), CryptoPP::Integer::UNSIGNED);
-    // std::cout << "------" << std::endl;
-    // std::cout << "passive_forward: " << Gp.Exponentiate(g, rv) << std::endl;
-    // std::cout << "prefix: " << Gp.Exponentiate(y, rv) << std::endl;
-    // std::cout << "------" << std::endl;
-    auto backward = Gp.Multiply(bhash, gru_last);
+    auto backward = gru_last.IsZero() ? CryptoPP::Integer::Zero() : Gp.Multiply(bhash, gru_last);
     crn::blocks::parts::active part(forward, backward, hash);
     return part;
 }
