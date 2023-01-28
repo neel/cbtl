@@ -99,8 +99,6 @@ int main(int argc, char** argv) {
                     if(forward){
                         x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(),   user.pri().x()), CryptoPP::Integer::UNSIGNED);
                     }else{
-                        std::cout << "current.active().forward(): " << current.active().forward() << std::endl;
-                        std::cout << "Gp.Exponentiate(current.active().forward(), user.pri().x()): " << Gp.Exponentiate(current.active().forward(), user.pri().x()) << std::endl;
                         x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                     }
                 }else{
