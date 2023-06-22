@@ -43,6 +43,10 @@ without any parameters it will create 2 users of each type.
 ./crn-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-0.pub -I
 ```
 
+After initial authentication it asks for plain text medical information.
+Enter one Record and press enter.
+Once all Records are inserted press enter again to finish.
+
 # Fetch all Information
 
 ```
