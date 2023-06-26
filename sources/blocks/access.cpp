@@ -71,7 +71,7 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
 
     auto suffix = Gp.Exponentiate(Gp.Multiply(Gp.Exponentiate(G.g(), view.secret()),  gaccess), master.x());
 
-    std::cout << "suffix: " << suffix << std::endl;
+    // std::cout << "suffix: " << suffix << std::endl;
 
     CryptoPP::Integer addr_active  = p.a().address(active_request);
     CryptoPP::Integer addr_passive = p.p().address();
@@ -79,8 +79,8 @@ crn::blocks::access crn::blocks::access::construct(CryptoPP::AutoSeededRandomPoo
     addresses addr(addr_active, addr_passive);
     crn::blocks::contents contents(p.p().pub(), ru, active_request, addr, message, suffix);
 
-    std::cout << "active_request: " << active_request << std::endl;
-    std::cout << "id: " << addr.hash() << std::endl;
+    // std::cout << "active_request: " << active_request << std::endl;
+    // std::cout << "id: " << addr.hash() << std::endl;
 
     return access(active, passive, addr, contents, p.requested());
 }
@@ -124,11 +124,11 @@ crn::blocks::access crn::blocks::last::passive(crn::storage& db, const crn::keys
     while(true){
         std::string address = last.passive().next(pub.G(), last.address().id(), h, master);
         if(db.exists(address, true)){
-            std::cout << "crn::blocks::access crn::blocks::last::passive: " << "next" << std::endl;
+            // std::cout << "crn::blocks::access crn::blocks::last::passive: " << "next" << std::endl;
             std::string block_id = db.id(address);
             last = db.fetch(block_id);
         }else{
-            std::cout << "crn::blocks::access crn::blocks::last::passive: " << "end" << std::endl;
+            // std::cout << "crn::blocks::access crn::blocks::last::passive: " << "end" << std::endl;
             break;
         }
     }

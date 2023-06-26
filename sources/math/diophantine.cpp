@@ -60,7 +60,7 @@ crn::math::free_coordinates crn::math::diophantine::random_nix(CryptoPP::AutoSee
             auto x_inv = Gp1.MultiplicativeInverse(coordinate.x());
             if(x_inv.IsZero()){
                 assert(eval(coordinate.x()) == coordinate.y());
-                std::cout << "found after retries " << retries << std::endl;
+                // std::cout << "found after retries " << retries << std::endl;
                 return coordinate;
             }
         }

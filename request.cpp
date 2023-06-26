@@ -21,12 +21,23 @@ boost::system::error_code receive(boost::asio::ip::tcp::socket& socket, nlohmann
         header.size = ntohl(header.size);
         std::cout << "expecting data " << header.size << std::endl;
 
-        boost::array<char, 4096> data;
-        len = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(header.size), error);
+        constexpr std::uint32_t buffer_size = 2048;
+        boost::array<char, buffer_size> data;
         std::string data_str;
-        data_str.reserve(header.size);
-        std::copy_n(data.cbegin(), header.size, std::back_inserter(data_str));
-        json = nlohmann::json::parse(data_str);
+        std::uint32_t pending = header.size;
+        while(pending > 0){
+            std::fill(data.begin(), data.end(), 0);
+            std::size_t bytes_read = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(std::min(buffer_size, pending)), error);
+            pending = pending - bytes_read;
+            std::copy_n(data.cbegin(), bytes_read, std::back_inserter(data_str));
+        }
+        try{
+            json = nlohmann::json::parse(data_str);
+        }catch(const nlohmann::json::parse_error& error){
+            std::cout << "JSON parsing error: " << error.what() << std::endl;
+            std::cout << "bytes read: " << header.size << std::endl;
+            std::cout << "data: " << data_str << std::endl;
+        }
     }
     return error;
 }
@@ -71,7 +82,12 @@ int main(int argc, char** argv) {
     boost::asio::ip::tcp::resolver resolver(io_context);
     boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve("127.0.0.1", "9887");
     boost::asio::ip::tcp::socket socket(io_context);
-    boost::asio::connect(socket, endpoints);
+    try{
+        boost::asio::connect(socket, endpoints);
+    }catch(const boost::system::system_error& error){
+        std::cout << "Failed to connect to the Trusted Server " << std::endl << error.what() << std::endl;
+        return 1;
+    }
 
     crn::packets::request request = crn::packets::request::construct(db, user);
     nlohmann::json request_json = request;

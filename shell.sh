@@ -40,8 +40,8 @@ function crn_req_rn(){
     fi
     for i in $(seq 1 $3)
     do
-        x=`shuf -i 1-$1 -n1`
-        y=`shuf -i 1-$2 -n1`
+        x=`shuf -i 0-$1 -n1`
+        y=`shuf -i 0-$2 -n1`
         command="echo M$x""P$y.$i | crn_req $x $y"
         echo "${command}"
         eval $command

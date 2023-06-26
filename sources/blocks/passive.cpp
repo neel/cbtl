@@ -11,9 +11,9 @@ crn::blocks::parts::passive crn::blocks::parts::passive::construct(const crn::ma
     auto backward = passive_forward_last.IsZero() ? CryptoPP::Integer::Zero() : Gp.Multiply( crn::utils::sha512::digest( Gp.Exponentiate(y, ru), CryptoPP::Integer::UNSIGNED ), passive_forward_last);
     auto hash     = crn::utils::sha512::digest(Gp.Exponentiate(forward, w), CryptoPP::Integer::UNSIGNED);
     auto cipher   = Gp.Multiply(hash, Gp.Exponentiate(Gp.Exponentiate(y, rv), h));
-    std::cout << "hash: " << hash << std::endl;
-    std::cout << "cipher_part: " << Gp.Exponentiate(Gp.Exponentiate(y, rv), h) << std::endl;
-    std::cout << "cipher: " << cipher << std::endl;
+    // std::cout << "hash: " << hash << std::endl;
+    // std::cout << "cipher_part: " << Gp.Exponentiate(Gp.Exponentiate(y, rv), h) << std::endl;
+    // std::cout << "cipher: " << cipher << std::endl;
     return crn::blocks::parts::passive(forward, backward, cipher);
 }
 crn::blocks::parts::passive crn::blocks::parts::passive::construct(const crn::keys::identity::public_key& pub, const CryptoPP::Integer& h, const CryptoPP::Integer& ru, const CryptoPP::Integer& rv, const CryptoPP::Integer& passive_forward_last, const crn::keys::identity::private_key& pri) {
@@ -37,9 +37,9 @@ std::string crn::blocks::parts::passive::next(const crn::math::group& G, const C
 std::string crn::blocks::parts::passive::next(const crn::math::group& G, const CryptoPP::Integer& id, const CryptoPP::Integer& h, const crn::keys::identity::private_key& master) const{
     auto Gp = G.Gp(), Gp1 = G.Gp1();
     auto whash     = crn::utils::sha512::digest(Gp.Exponentiate(_forward, master.x()), CryptoPP::Integer::UNSIGNED);
-    std::cout << "whash: " << whash << std::endl;
+    // std::cout << "whash: " << whash << std::endl;
     auto cipher    = Gp.Divide(_cipher, whash);
-    std::cout << "cipher: " << cipher << std::endl;
+    // std::cout << "cipher: " << cipher << std::endl;
     auto h_inverse = Gp1.MultiplicativeInverse(h);
     auto token     = Gp.Exponentiate(cipher, h_inverse);
     auto hash      = crn::utils::sha512::digest(token, CryptoPP::Integer::UNSIGNED);

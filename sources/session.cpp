@@ -5,6 +5,8 @@
 #include "crn/packets.h"
 #include <pqxx/pqxx>
 #include <pqxx/transaction>
+#include <format>
+#include <ctime>
 
 crn::session::session(crn::storage& db, const crn::keys::identity::pair& master, const crn::keys::view_key& view, socket_type socket): _socket(std::move(socket)), _time(boost::posix_time::second_clock::local_time()), _db(db), _master(master), _view(view) { }
 
@@ -14,7 +16,7 @@ void crn::session::run(){
     do_read();
 }
 void crn::session::do_read(){
-    std::cout << "reading from socket" << std::endl;
+    // std::cout << "reading from socket" << std::endl;
     boost::asio::async_read(
         _socket,
         boost::asio::buffer(_header, sizeof(crn::packets::header) ),
@@ -31,35 +33,57 @@ void crn::session::handle_read_header(const boost::system::error_code& error, st
         std::cout << error.message() << std::endl;
         return;
     }
-    std::cout << "reading header" << std::endl;
+    // std::cout << "reading header" << std::endl;
     assert(bytes_transferred == sizeof(crn::packets::header));
 
     std::copy_n(_header.cbegin(), bytes_transferred, reinterpret_cast<std::uint8_t*>(&_head));
     _head.size = ntohl(_head.size);
-    std::cout << "expecting data " << _head.size << std::endl;
-    boost::asio::async_read(
-        _socket,
-        boost::asio::buffer(_data, _head.size),
-        boost::bind(
-            &session::handle_read_data,
-            shared_from_this(),
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred
-        )
-    );
+    // std::cout << "expecting data " << _head.size << std::endl;
+    _body.clear();
+    _body.reserve(_head.size);
+    read_more(boost::system::error_code{}, 0);
 }
-void crn::session::handle_read_data(const boost::system::error_code& error, std::size_t bytes_transferred) {
+
+void crn::session::read_more(const boost::system::error_code& error, std::size_t bytes_transferred) {
     if (error) {
         std::cout << error.message() << std::endl;
         return;
     }
-    std::string req_str;
-    req_str.reserve(bytes_transferred);
-    std::copy_n(_data.cbegin(), bytes_transferred, std::back_inserter(req_str));
-    nlohmann::json req_json = nlohmann::json::parse(req_str);
-    crn::packets::type type = static_cast<crn::packets::type>(_head.type);
-    std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
 
+    // std::cout << "bytes_transferred: " << bytes_transferred << std::endl;
+
+    std::copy_n(_data.cbegin(), bytes_transferred, std::back_inserter(_body));
+    auto pending = (_head.size - _body.size());
+    if(_body.size() < _head.size){
+        boost::asio::async_read(
+            _socket,
+            boost::asio::buffer(_data, pending),
+            boost::bind(
+                &session::read_more,
+                shared_from_this(),
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred
+            )
+        );
+    }else{
+        std::cout << std::format("read {} bytes", _body.size()) << std::endl;
+        read_finished();
+    }
+}
+
+void crn::session::read_finished() {
+    nlohmann::json req_json;
+    try{
+        req_json = nlohmann::json::parse(_body);
+    }catch(const nlohmann::json::parse_error& error){
+        std::cout << "Failed to parse request: " << error.what() << std::endl;
+        std::cout << "length: " << _body.size() << std::endl;
+        std::cout << "str: " << _body << std::endl;
+    }
+    crn::packets::type type = static_cast<crn::packets::type>(_head.type);
+    // std::cout << "<< " << std::endl << req_json.dump(4) << std::endl;
+
+    std::clock_t start = std::clock();
     if(type == crn::packets::type::request){
         crn::packets::request req = req_json;
         handle_request(req);
@@ -68,22 +92,33 @@ void crn::session::handle_read_data(const boost::system::error_code& error, std:
         if(action == crn::packets::actions::identify){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>;
             response_type response = req_json;
-            stage2(response);
+            crn::packets::result result = stage2(response);
+
+            std::clock_t end = std::clock();
+            long double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
+            std::cout << std::format("Identified 1 record in {}us", duration) << std::endl;
         }else if(action == crn::packets::actions::fetch){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::fetch>>;
             response_type response = req_json;
-            stage2(response);
+            crn::packets::result result = stage2(response);
+
+            std::clock_t end = std::clock();
+            long double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
+            std::cout << std::format("Fetched {} records in {}us", result.aux["cases"].size(), duration) << std::endl;
         }else if(action == crn::packets::actions::insert){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::insert>>;
             response_type response = req_json;
-            stage2(response);
+            crn::packets::result result = stage2(response);
+
+            std::clock_t end = std::clock();
+            long double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
+            std::cout << std::format("Inserted {} records in {}us", response.action().count(), duration) << std::endl;
         }else if(action == crn::packets::actions::remove){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::remove>>;
             response_type response = req_json;
-            stage2(response);
+            crn::packets::result result = stage2(response);
         }
     }
-
     do_read();
 }
 void crn::session::write_handler(){
@@ -116,7 +151,7 @@ void crn::session::handle_request(const crn::packets::request& req){
         envelop.write(_socket);
 
         nlohmann::json challenge_json = challenge;
-        std::cout << ">> " << std::endl << challenge_json.dump(4) << std::endl;
+        // std::cout << ">> " << std::endl << challenge_json.dump(4) << std::endl;
     }else{
         std::cout << "failed to verify" << std::endl;
     }
@@ -125,7 +160,7 @@ void crn::session::handle_request(const crn::packets::request& req){
 CryptoPP::Integer crn::session::verify(const crn::packets::basic_response& response){
     auto Gp = _master.pub().G().Gp(), Gp1 = _master.pub().G().Gp1();
 
-    std::cout << "Verification Successful" << std::endl;
+    // std::cout << "Verification Successful" << std::endl;
     CryptoPP::Integer active_next = Gp.Multiply(_challenge_data.last, crn::utils::sha512::digest(_challenge_data.token, CryptoPP::Integer::UNSIGNED));
     if(_db.exists(crn::utils::hex::encode(active_next, CryptoPP::Integer::UNSIGNED), true)){
         std::cout << "Next active address already exists" << std::endl;
@@ -137,7 +172,7 @@ CryptoPP::Integer crn::session::verify(const crn::packets::basic_response& respo
 
 crn::blocks::access crn::session::make(const crn::keys::identity::public_key& passive_pub, const CryptoPP::Integer& gaccess, const nlohmann::json& contents){
     crn::blocks::access last_passive = crn::blocks::last::passive(_db, passive_pub, gaccess, _master.pri());
-    std::cout << "last_pasive: " << last_passive.address().id() << std::endl;
+    // std::cout << "last_pasive: " << last_passive.address().id() << std::endl;
     crn::keys::identity::public_key pub(_challenge_data.y, _master.pub());
     crn::blocks::params params( crn::blocks::params::active(_challenge_data.last, pub, _challenge_data.forward), last_passive, passive_pub, _master.pri(), gaccess, _challenge_data.requested);
     CryptoPP::AutoSeededRandomPool rng;
@@ -191,7 +226,6 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
 
 }
 
-
 crn::packets::result crn::session::process(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess){
     pqxx::connection conn{"postgresql://crn_user@localhost/crn"};
     pqxx::work transaction{conn};
@@ -233,7 +267,7 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
         last                     = crn::utils::aes::encrypt(y_hex, pass, CryptoPP::Integer::UNSIGNED);
         anchors.push_back(last);
         transaction.exec_prepared("insert_record", last, hint, crn::utils::hex::encode(r, CryptoPP::Integer::UNSIGNED), d);
-        std::cout << "inserting " << d << std::endl;
+        // std::cout << "inserting " << d << std::endl;
         random = r;
     }
     transaction.commit();
@@ -280,12 +314,12 @@ crn::packets::result crn::session::process(const crn::packets::action_data<crn::
         pqxx::result res_record = transaction.exec_prepared("fetch_record", anchor);
         if(res_record.size() == 1){
             random = crn::utils::hex::decode(res_record[0][0].c_str(), CryptoPP::Integer::UNSIGNED);
-            std::cout << "random: " << random << std::endl;
+            // std::cout << "random: " << random << std::endl;
             std::string case_str = res_record[0][1].c_str();
             cases.push_back(case_str);
-            std::cout << "case: " << case_str  << std::endl;
+            // std::cout << "case: " << case_str  << std::endl;
         }else{
-            std::cout << "found last " << anchor << std::endl;
+            // std::cout << "found last " << anchor << std::endl;
             last = anchor;
             break;
         }

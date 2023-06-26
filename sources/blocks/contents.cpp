@@ -34,7 +34,7 @@ void crn::blocks::contents::compute(const crn::math::free_coordinates& p1, const
     assert(_gamma.IsPositive());
     assert(_gamma <= G.p()-1);
     CryptoPP::Integer delta = r.y();
-    std::cout << "password: " << delta << std::endl;
+    // std::cout << "password: " << delta << std::endl;
 
     assert(crn::math::diophantine::interpolate(p1, _random) == line);
     assert(crn::math::diophantine::interpolate(p2, _random) == line);

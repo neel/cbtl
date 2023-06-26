@@ -57,6 +57,7 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
     buffer_type                     _header;
     boost::array<char, 4096>        _data;
     crn::packets::header            _head;
+    std::string                     _body;
     crn::storage&                   _db;
     crn::keys::identity::pair       _master;
     crn::keys::view_key             _view;
@@ -71,7 +72,8 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       void run();
       void do_read();
       void handle_read_header(const boost::system::error_code& error, std::size_t bytes_transferred);
-      void handle_read_data(const boost::system::error_code& error, std::size_t bytes_transferred);
+      void read_more(const boost::system::error_code& error, std::size_t bytes_transferred);
+      void read_finished();
       // void handle_storage_data(const boost::system::error_code& error, std::size_t bytes_transferred);
       void write_handler();
       inline socket_type& socket(){ return _socket; }
@@ -79,14 +81,16 @@ class session: public boost::enable_shared_from_this<session>, private boost::no
       void handle_request(const crn::packets::request& req);
       // CryptoPP::Integer handle_challenge_response(const crn::packets::basic_response& response);
       template <typename ActionDataT>
-      void stage2(const crn::packets::response<ActionDataT>& response){
+      crn::packets::result stage2(const crn::packets::response<ActionDataT>& response){
         CryptoPP::Integer gaccess = verify(response);
         if(!gaccess.IsZero()){
           crn::packets::result result = process(response.action(), gaccess);
           crn::packets::envelop<crn::packets::result> envelop(crn::packets::type::result, result);
           std::size_t bytes = envelop.write(_socket);
-          std::cout << bytes << " sent" << std::endl;
+          // std::cout << bytes << " sent" << std::endl;
+          return result;
         }
+        return crn::packets::result::failure(0, "gaccess verification failed");
       }
   private:
       crn::packets::result process(const crn::packets::action_data<crn::packets::actions::insert>& action, const CryptoPP::Integer& gaccess);

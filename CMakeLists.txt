@@ -56,8 +56,10 @@ target_link_libraries(crn-request    crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES
 target_link_libraries(crn-read       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 # target_link_libraries(rough          crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 
-target_compile_features(crn PRIVATE cxx_std_17)
-target_compile_features(crn-init PRIVATE cxx_std_17)
+target_compile_features(crn         PRIVATE cxx_std_20)
+target_compile_features(crn-init    PRIVATE cxx_std_20)
+target_compile_features(crn-server  PRIVATE cxx_std_20)
+target_compile_features(crn-request PRIVATE cxx_std_20)
 
 target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
 
