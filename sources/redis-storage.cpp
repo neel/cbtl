@@ -8,7 +8,7 @@
 #include <boost/filesystem.hpp>
 
 crn::storage::storage(): _opened(false) {
-
+    open();
 }
 
 crn::storage::~storage(){
@@ -30,7 +30,6 @@ void crn::storage::close(){
 
 bool crn::storage::add(const crn::blocks::access& block){
     std::string block_id = block.address().hash();
-    open();
     nlohmann::json json = block;
     std::string block_str = json.dump();
 
@@ -54,12 +53,10 @@ bool crn::storage::add(const crn::blocks::access& block){
         ok = (reply != 0x0);
         if(ok) freeReplyObject(reply);
     }
-    close();
     return ok;
 }
 
 bool crn::storage::exists(const std::string& id, bool index){
-    open();
     std::string prefix = index ? std::string("addr") : std::string("id");
     redisReply* reply = (redisReply*) redisCommand(_context, "EXISTS %s:%s", prefix.c_str(), id.c_str());
     if(reply){
@@ -77,18 +74,15 @@ bool crn::storage::exists(const std::string& id, bool index){
         freeReplyObject(reply);
         reply = 0x0;
     }
-    close();
     return false;
 }
 
 std::string crn::storage::id(const std::string& addr){
-    open();
     redisReply* reply = (redisReply*) redisCommand(_context, "GET addr:%s", addr.c_str());
     if(reply){
         std::cout << "(reply->type == REDIS_REPLY_STRING): " << (reply->type == REDIS_REPLY_STRING) << std::endl;
         if(reply->type == REDIS_REPLY_STRING){
             std::string value(reply->str, reply->len);
-            close();
             if(reply != 0x0){
                 freeReplyObject(reply);
                 reply = 0x0;
@@ -107,7 +101,6 @@ std::string crn::storage::id(const std::string& addr){
 
 
 crn::blocks::access crn::storage::fetch(const std::string& block_id){
-    open();
     redisReply* reply = (redisReply*) redisCommand(_context, "GET id:%s", block_id.c_str());
     if(reply){
         if(reply->type == REDIS_REPLY_STRING){
@@ -118,7 +111,6 @@ crn::blocks::access crn::storage::fetch(const std::string& block_id){
                 freeReplyObject(reply);
                 reply = 0x0;
             }
-            close();
             return block;
         }else{
             throw std::out_of_range("block "+ block_id + " not found");
