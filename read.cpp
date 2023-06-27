@@ -1,11 +1,12 @@
 #include <iostream>
 #include <array>
 #include <string>
+#include <format>
 #include "crn/utils.h"
 #include <boost/program_options.hpp>
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 #include "crn/packets.h"
 #include "crn/keys.h"
 #include "crn/blocks.h"
@@ -77,6 +78,9 @@ int main(int argc, char** argv) {
             forward = false;
         }
         std::cout << "last.id: " << last.address().id() << std::endl;
+
+        std::clock_t start = std::clock();
+
         while(i++ < limit){
             std::string address;
             if(forward){
@@ -130,6 +134,9 @@ int main(int argc, char** argv) {
                 break;
             }
         }
+        std::clock_t end = std::clock();
+        long double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
+        std::cout << std::format("Retrieved {} entries in {}ms", i, duration) << std::endl;
         return 0;
     }else if(map["super"].as<bool>()){
         std::string access_key = map["access"].as<std::string>(),

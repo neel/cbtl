@@ -1,7 +1,7 @@
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 #include "crn/server.h"
 #include "crn/keys.h"
 

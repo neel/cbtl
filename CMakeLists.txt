@@ -5,6 +5,7 @@ project(crn)
 
 find_package(CryptoPP REQUIRED)
 find_package(BerkeleyDB REQUIRED)
+find_package(hiredis REQUIRED)
 find_package(PQXX REQUIRED)
 find_package(nlohmann_json REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS filesystem regex system serialization program_options REQUIRED)
@@ -31,7 +32,8 @@ SET(SOURCES
     sources/keys/pair.cpp
     sources/keys/access.cpp
     sources/keys/view.cpp
-    sources/storage.cpp
+    # sources/bdb-storage.cpp
+    sources/redis-storage.cpp
     sources/server.cpp
     sources/session.cpp
     sources/packets.cpp
@@ -48,7 +50,7 @@ add_executable(crn-server  main.cpp)
 add_executable(crn-read    read.cpp)
 # add_executable(rough       rough.cpp)
 
-target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES})
+target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES} ${HIREDIS_LIBRARIES})
 
 target_link_libraries(crn-server     crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 target_link_libraries(crn-init       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES})
@@ -60,6 +62,7 @@ target_compile_features(crn         PRIVATE cxx_std_20)
 target_compile_features(crn-init    PRIVATE cxx_std_20)
 target_compile_features(crn-server  PRIVATE cxx_std_20)
 target_compile_features(crn-request PRIVATE cxx_std_20)
+target_compile_features(crn-read    PRIVATE cxx_std_20)
 
 target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
 

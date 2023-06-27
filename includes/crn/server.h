@@ -18,7 +18,7 @@
 #include <boost/asio/io_service.hpp>
 #include "crn/session.h"
 #include "crn/keys.h"
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 
 namespace crn{
 

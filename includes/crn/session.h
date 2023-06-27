@@ -23,7 +23,7 @@
 #include <boost/asio/placeholders.hpp>
 #include <arpa/inet.h>
 #include "crn/packets.h"
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 #include "crn/keys.h"
 #include "crn/blocks/io.h"
 

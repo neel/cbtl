@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 #include "crn/packets.h"
 #include "crn/keys.h"
 

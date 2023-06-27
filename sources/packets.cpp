@@ -5,7 +5,7 @@
 #include "crn/utils.h"
 #include "crn/keys.h"
 #include "crn/blocks/access.h"
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 
 crn::packets::request crn::packets::request::construct(const crn::blocks::access& block, const crn::keys::identity::pair& keys){
     crn::packets::request req;

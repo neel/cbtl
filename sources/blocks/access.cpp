@@ -5,7 +5,7 @@
 #include "crn/blocks/contents.h"
 #include "crn/utils.h"
 #include "crn/keys.h"
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 #include <cryptopp/nbtheory.h>
 #include <cryptopp/polynomi.h>
 #include <cryptopp/aes.h>

@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#ifndef CRN_STORAGE_H
-#define CRN_STORAGE_H
+#ifndef CRN_STORAGE_REDIS_H
+#define CRN_STORAGE_REDIS_H
 
 #include <string>
-#include <db_cxx.h>
+#include <hiredis/hiredis.h>
 #include "crn/blocks_fwd.h"
 #include <cryptopp/integer.h>
 
@@ -17,7 +17,6 @@ struct storage{
 
     bool add(const crn::blocks::access& block);
     bool exists(const std::string& id, bool index = false);
-    bool search(const CryptoPP::Integer& address);
 
     std::string id(const std::string& addr);
 
@@ -26,17 +25,13 @@ struct storage{
     protected:
         void open();
         void close();
-        void commit();
-        void abort();
 
     private:
-        Db* _blocks;
-        Db* _index;
-        DbTxn* _transaction;
-        DbEnv _env;
+        redisContext* _context;
         bool _opened;
 };
 
 }
 
-#endif // CRN_STORAGE_H
+#endif // CRN_STORAGE_REDIS_H
+

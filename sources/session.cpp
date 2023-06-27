@@ -96,7 +96,7 @@ void crn::session::read_finished() {
 
             std::clock_t end = std::clock();
             long double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
-            std::cout << std::format("Identified 1 record in {}us", duration) << std::endl;
+            std::cout << std::format("Identified 1 record in {}ms", duration) << std::endl;
         }else if(action == crn::packets::actions::fetch){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::fetch>>;
             response_type response = req_json;
@@ -104,7 +104,7 @@ void crn::session::read_finished() {
 
             std::clock_t end = std::clock();
             long double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
-            std::cout << std::format("Fetched {} records in {}us", result.aux["cases"].size(), duration) << std::endl;
+            std::cout << std::format("Fetched {} records in {}ms", result.aux["cases"].size(), duration) << std::endl;
         }else if(action == crn::packets::actions::insert){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::insert>>;
             response_type response = req_json;
@@ -112,7 +112,7 @@ void crn::session::read_finished() {
 
             std::clock_t end = std::clock();
             long double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
-            std::cout << std::format("Inserted {} records in {}us", response.action().count(), duration) << std::endl;
+            std::cout << std::format("Inserted {} records in {}ms", response.action().count(), duration) << std::endl;
         }else if(action == crn::packets::actions::remove){
             using response_type = crn::packets::response<crn::packets::action_data<crn::packets::actions::remove>>;
             response_type response = req_json;

@@ -17,7 +17,7 @@
 #include <db_cxx.h>
 #include "crn/keys.h"
 #include "crn/utils.h"
-#include "crn/storage.h"
+#include "crn/redis-storage.h"
 #include "crn/blocks.h"
 #include "crn/blocks/io.h"
 #include <pqxx/pqxx>

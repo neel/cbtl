@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/storage.h"
+#include "crn/bdb-storage.h"
 #include "crn/blocks.h"
 #include "crn/blocks/io.h"
 #include <exception>
@@ -45,18 +45,6 @@ void crn::storage::close(){
         delete _index;
         _index = 0x0;
     }
-}
-
-void crn::storage::commit(){
-    _transaction->commit(DB_TXN_SYNC);
-    close();
-    _transaction = 0x0;
-}
-
-void crn::storage::abort(){
-    _transaction->abort();
-    close();
-    _transaction = 0x0;
 }
 
 
@@ -129,15 +117,4 @@ crn::blocks::access crn::storage::fetch(const std::string& block_id){
         close();
         return block;
     }
-}
-
-
-bool crn::storage::search(const CryptoPP::Integer& address){
-    open();
-    std::string addr = crn::utils::hex::encode(address, CryptoPP::Integer::UNSIGNED);
-    Dbt key((void*) addr.c_str(), addr.size());
-    int ret = _blocks->exists(NULL, &key, 0);
-    close();
-
-    return ret != DB_NOTFOUND;
 }
