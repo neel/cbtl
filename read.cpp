@@ -108,13 +108,21 @@ int main(int argc, char** argv) {
                     if(forward){
                         x = crn::utils::sha256::digest(Gp.Exponentiate(last.active().forward(),   user.pri().x()), CryptoPP::Integer::UNSIGNED);
                     }else{
-                        x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                        // current is (n+1)^th block
+                        // in order to decrypt we need to compute $H_{2}\Big(g^{\pi_{u}r_{u}^{(n)}}\Big)$
+                        // which is current.prev
+                        // we refer to that block using block_n
+                        auto block_n_id = current.active().prev (user.pub().G(), current.address().active(),  current.passive().forward(), user.pri());
+                        if(db.exists(block_n_id)){
+                            auto block_n    = db.fetch(block_n_id);
+                            x = crn::utils::sha256::digest(Gp.Exponentiate(block_n.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
+                        }
                     }
                 }else{
                     x = crn::utils::sha256::digest(Gp.Exponentiate(current.active().forward(), user.pri().x()), CryptoPP::Integer::UNSIGNED);
                 }
                 CryptoPP::Integer y = is_active ? current.address().passive() : current.address().active();
-                if(forward) last = current;
+                last = current;
 
                 auto body = last.body();
                 crn::math::free_coordinates random = body.random();
