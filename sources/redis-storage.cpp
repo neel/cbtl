@@ -48,7 +48,7 @@ bool crn::storage::add(const crn::blocks::access& block){
         if(ok) freeReplyObject(reply);
     }
     if(ok){
-        std::string passive_address = crn::utils::hex::encode(block.address().active(), CryptoPP::Integer::UNSIGNED);
+        std::string passive_address = crn::utils::hex::encode(block.address().passive(), CryptoPP::Integer::UNSIGNED);
         reply = (redisReply*) redisCommand(_context, "SET addr:%s %s", passive_address.c_str(), block_id.c_str());
         ok = (reply != 0x0);
         if(ok) freeReplyObject(reply);
@@ -59,6 +59,7 @@ bool crn::storage::add(const crn::blocks::access& block){
 bool crn::storage::exists(const std::string& id, bool index){
     std::string prefix = index ? std::string("addr") : std::string("id");
     redisReply* reply = (redisReply*) redisCommand(_context, "EXISTS %s:%s", prefix.c_str(), id.c_str());
+    printf("EXISTS %s:%s \n", prefix.c_str(), id.c_str());
     if(reply){
         std::cout << "(reply->type == REDIS_REPLY_INTEGER): " << (reply->type == REDIS_REPLY_INTEGER) << std::endl;
         if(reply->type == REDIS_REPLY_INTEGER){

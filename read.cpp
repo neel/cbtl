@@ -10,6 +10,7 @@
 #include "crn/packets.h"
 #include "crn/keys.h"
 #include "crn/blocks.h"
+#include "crn/blocks/io.h"
 #include <cryptopp/aes.h>
 #include <cryptopp/modes.h>
 #include <cryptopp/base64.h>
@@ -71,6 +72,10 @@ int main(int argc, char** argv) {
 
         std::size_t i = 0;
         crn::blocks::access last = crn::blocks::genesis(db, user.pub());
+        // crn::blocks::access aa = db.fetch(last.address().hash());
+        // nlohmann::json aa_json = aa;
+        // std::cout << aa_json << std::endl;
+
         bool forward = true;
         if(map.count("id")){
             std::string id = map["id"].as<std::string>();
