@@ -8,7 +8,7 @@ find_package(CryptoPP REQUIRED)
 find_package(hiredis REQUIRED)
 find_package(PQXX REQUIRED)
 find_package(nlohmann_json REQUIRED)
-FIND_PACKAGE(Boost COMPONENTS filesystem regex system serialization program_options REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 
 SET(INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/includes

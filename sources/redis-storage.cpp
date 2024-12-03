@@ -5,7 +5,7 @@
 #include "cbtl/blocks.h"
 #include "cbtl/blocks/io.h"
 #include <exception>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 cbtl::storage::storage(): _opened(false) {
     open();

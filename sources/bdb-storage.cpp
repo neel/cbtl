@@ -5,12 +5,12 @@
 #include "cbtl/blocks.h"
 #include "cbtl/blocks/io.h"
 #include <exception>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 cbtl::storage::storage(): _env(std::uint32_t(0)), _opened(false) {
-    boost::filesystem::path env_dir("storage");
-    if(!boost::filesystem::exists(env_dir) || !boost::filesystem::is_directory(env_dir)){
-        boost::filesystem::create_directory(env_dir);
+    std::filesystem::path env_dir("storage");
+    if(!std::filesystem::exists(env_dir) || !std::filesystem::is_directory(env_dir)){
+        std::filesystem::create_directory(env_dir);
     }
     _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
 }

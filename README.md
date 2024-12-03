@@ -1,11 +1,29 @@
+Cryptographic Bi-Traversable Ledger (CBTL)
+
 Compiling
 ==========
 
+The project has the following dependencies. 
+
+- Boost
+- CryptoPP
+- HiRedis
+- PQXX
+- nlohmann_json
+
+Once the dependencies are installed compile it using CMake.
+
+```
+cd cbtl
+mkdir build
+cmake ..
+make -j4
+```
 
 Running
 =======
 
-# Initilization
+## Initilization
 
 Initilization process includes the following operations
 
@@ -31,13 +49,13 @@ will create 5 managers, 4 supervisors and 7 patients.
 without any parameters it will create 2 users of each type.
 
 
-# Server
+## Server
 
 ```
 ./cbtl-server -p master.pub -s master -v master.view
 ```
 
-# To insert a Record
+## To insert a Record
 
 ```
 ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-0.pub -I
@@ -47,7 +65,7 @@ After initial authentication it asks for plain text medical information.
 Enter one Record and press enter.
 Once all Records are inserted press enter again to finish.
 
-# Fetch all Information
+## Fetch all Information
 
 ```
 ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-0.pub
