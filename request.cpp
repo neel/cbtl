@@ -1,23 +1,59 @@
 #include <iostream>
 #include <array>
+#include <boost/array.hpp>
 #include <string>
-#include "crn/utils.h"
+#include "cbtl/utils.h"
 #include <boost/program_options.hpp>
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
-#include "crn/storage.h"
-#include "crn/packets.h"
-#include "crn/keys.h"
+#include "cbtl/redis-storage.h"
+#include "cbtl/packets.h"
+#include "cbtl/keys.h"
+
+boost::system::error_code receive(boost::asio::ip::tcp::socket& socket, nlohmann::json& json){
+    using buffer_type = boost::array<std::uint8_t, sizeof(cbtl::packets::header)>;
+    buffer_type buff;
+    boost::system::error_code error;
+    std::size_t len = socket.read_some(boost::asio::buffer(buff), error);
+    if(!error){
+        assert(len == buff.size());
+        cbtl::packets::header header;
+        std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
+        header.size = ntohl(header.size);
+        std::cout << "expecting data " << header.size << std::endl;
+
+        constexpr std::uint32_t buffer_size = 2048;
+        boost::array<char, buffer_size> data;
+        std::string data_str;
+        std::uint32_t pending = header.size;
+        while(pending > 0){
+            std::fill(data.begin(), data.end(), 0);
+            std::size_t bytes_read = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(std::min(buffer_size, pending)), error);
+            pending = pending - bytes_read;
+            std::copy_n(data.cbegin(), bytes_read, std::back_inserter(data_str));
+        }
+        try{
+            json = nlohmann::json::parse(data_str);
+        }catch(const nlohmann::json::parse_error& error){
+            std::cout << "JSON parsing error: " << error.what() << std::endl;
+            std::cout << "bytes read: " << header.size << std::endl;
+            std::cout << "data: " << data_str << std::endl;
+        }
+    }
+    return error;
+}
 
 int main(int argc, char** argv) {
     boost::program_options::options_description desc("CLI Frontend for Data Managers");
     desc.add_options()
-        ("help,h", "prints this help message")
-        ("public,p", boost::program_options::value<std::string>(), "path to the public key")
-        ("secret,s", boost::program_options::value<std::string>(), "path to the secret key")
-        ("access,a", boost::program_options::value<std::string>(), "path to the access key")
-        ("master,m", boost::program_options::value<std::string>(), "path to the trusted server's public key")
-        // ("record,k", boost::program_options::value<std::uint64_t>(), "record number to access")
+        ("help,h",    "prints this help message")
+        ("public,p",  boost::program_options::value<std::string>(),   "path to the public key")
+        ("secret,s",  boost::program_options::value<std::string>(),   "path to the secret key")
+        ("access,a",  boost::program_options::value<std::string>(),   "path to the access key")
+        ("master,m",  boost::program_options::value<std::string>(),   "path to the trusted server's public key")
+        ("anchor,A",  boost::program_options::value<std::string>(),   "record anchor to identify")
+        ("patient,P", boost::program_options::value<std::string>(),    "public key of the patient who's record to access")
+        ("insert,I",  "records to insert for patient identified by -P")
         ;
 
     boost::program_options::variables_map map;
@@ -33,68 +69,97 @@ int main(int argc, char** argv) {
                 secret_key = map["secret"].as<std::string>(),
                 access_key = map["access"].as<std::string>(),
                 master_key = map["master"].as<std::string>();
-/*
-    std::uint64_t record = map["record"].as<std::uint64_t>();*/
 
-    crn::storage db;
+    cbtl::storage db;
 
-    crn::keys::identity::pair user(secret_key, public_key);
-    crn::keys::identity::public_key master_pub(master_key);
-    crn::keys::access_key access(access_key);
+    cbtl::keys::identity::pair user(secret_key, public_key);
+    cbtl::keys::identity::public_key master_pub(master_key);
+    cbtl::keys::access_key access(access_key);
 
-    crn::math::group G = user.pub();
+    cbtl::math::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
 
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::resolver resolver(io_context);
     boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve("127.0.0.1", "9887");
     boost::asio::ip::tcp::socket socket(io_context);
-    boost::asio::connect(socket, endpoints);
+    try{
+        boost::asio::connect(socket, endpoints);
+    }catch(const boost::system::system_error& error){
+        std::cout << "Failed to connect to the Trusted Server " << std::endl << error.what() << std::endl;
+        return 1;
+    }
 
-    crn::packets::request request = crn::packets::request::construct(db, user);
+    cbtl::packets::request request = cbtl::packets::request::construct(db, user);
     nlohmann::json request_json = request;
     std::cout << ">> " << std::endl << request_json.dump(4) << std::endl;
     {
-        crn::packets::envelop<crn::packets::request> envelop(crn::packets::type::request, request);
+        cbtl::packets::envelop<cbtl::packets::request> envelop(cbtl::packets::type::request, request);
         envelop.write(socket);
     }
-    using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
+    using buffer_type = boost::array<std::uint8_t, sizeof(cbtl::packets::header)>;
 
-    boost::system::error_code error;
-    buffer_type buff;
-    std::size_t len = socket.read_some(boost::asio::buffer(buff), error);
+    nlohmann::json challenge_json;
+    boost::system::error_code error = receive(socket, challenge_json);
     if(!error){
-        assert(len == buff.size());
-        crn::packets::header header;
-        std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
-        header.size = ntohl(header.size);
-        std::cout << "expecting data " << header.size << std::endl;
-
-        boost::array<char, 4096> data;
-        len = boost::asio::read(socket, boost::asio::buffer(data), boost::asio::transfer_exactly(header.size), error);
-        std::string challenge_str;
-        challenge_str.reserve(header.size);
-        std::copy_n(data.cbegin(), header.size, std::back_inserter(challenge_str));
-        nlohmann::json challenge_json = nlohmann::json::parse(challenge_str);
         std::cout << "<< " << std::endl << challenge_json.dump(4) << std::endl;
-        crn::packets::challenge challenge = challenge_json;
+        cbtl::packets::challenge challenge = challenge_json;
         CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
 
-        crn::packets::response response;
+        if(map.count("anchor")){
+            std::string anchor = map["anchor"].as<std::string>();
+            auto action = cbtl::packets::action<cbtl::packets::actions::identify>(anchor);
+            auto response = cbtl::packets::respond(action, user.pri(), access, lambda);
 
-        // construct response for the challenge
-        CryptoPP::Integer x_inv = Gp1.MultiplicativeInverse(user.pri().x());
-        response.c1 = Gp.Exponentiate(challenge.c1, x_inv);
-        response.c2 = Gp.Exponentiate(challenge.c2, x_inv);
-        response.c3 = Gp.Exponentiate(challenge.c3, x_inv);
-        response.access = access.prepare(user.pri(), lambda);
+            // send the challenge
+            nlohmann::json response_json = challenge;
+            std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+            {
+                cbtl::packets::envelop<cbtl::packets::response<cbtl::packets::action_data<cbtl::packets::actions::identify>>> envelop(cbtl::packets::type::response, response);
+                envelop.write(socket);
+            }
+        }else if(map.count("insert")){
+            std::string patient_pub_str = map["patient"].as<std::string>();
+            cbtl::keys::identity::public_key patient_pub(patient_pub_str);
+            auto action = cbtl::packets::action<cbtl::packets::actions::insert>(patient_pub);
+            while(true){
+                std::string line;
+                std::getline(std::cin, line);
+                if(line.empty()){
+                    break;
+                }else{
+                    action.add(line);
+                }
+            }
+            std::cout << action.count() << " cases in action" << std::endl;
+            auto response = cbtl::packets::respond(action, user.pri(), access, lambda);
 
-        // send the challenge
-        nlohmann::json response_json = challenge;
-        std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
-        {
-            crn::packets::envelop<crn::packets::response> envelop(crn::packets::type::response, response);
-            envelop.write(socket);
+            // send the challenge
+            nlohmann::json response_json = challenge;
+            std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+            {
+                cbtl::packets::envelop<cbtl::packets::response<cbtl::packets::action_data<cbtl::packets::actions::insert>>> envelop(cbtl::packets::type::response, response);
+                envelop.write(socket);
+            }
+        }else if(map.count("patient")){
+            std::string patient_pub_str = map["patient"].as<std::string>();
+            cbtl::keys::identity::public_key patient_pub(patient_pub_str);
+            auto action = cbtl::packets::action<cbtl::packets::actions::fetch>(patient_pub);
+            auto response = cbtl::packets::respond(action, user.pri(), access, lambda);
+
+            // send the challenge
+            nlohmann::json response_json = challenge;
+            std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
+            {
+                cbtl::packets::envelop<cbtl::packets::response<cbtl::packets::action_data<cbtl::packets::actions::fetch>>> envelop(cbtl::packets::type::response, response);
+                envelop.write(socket);
+            }
+        }
+
+        nlohmann::json result_json;
+        error = receive(socket, result_json);
+        if(!error){
+            std::cout << "<< " << std::endl << result_json.dump(4) << std::endl;
         }
     }
 

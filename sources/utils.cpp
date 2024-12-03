@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/utils.h"
+#include "cbtl/utils.h"
 #include <cryptopp/hex.h>
 #include <cryptopp/sha.h>
 
 
-std::string crn::utils::hex::encode(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
+std::string cbtl::utils::hex::encode(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize(signedness));
     value.Encode(&bytes[0], bytes.size(), signedness);
@@ -18,7 +18,7 @@ std::string crn::utils::hex::encode(const CryptoPP::Integer& value, CryptoPP::In
     return output;
 }
 
-CryptoPP::Integer crn::utils::hex::decode(const std::string& str, CryptoPP::Integer::Signedness signedness){
+CryptoPP::Integer cbtl::utils::hex::decode(const std::string& str, CryptoPP::Integer::Signedness signedness){
     CryptoPP::HexDecoder decoder;
     decoder.Put( (CryptoPP::byte*) str.data(), str.size() );
     decoder.MessageEnd();
@@ -31,7 +31,7 @@ CryptoPP::Integer crn::utils::hex::decode(const std::string& str, CryptoPP::Inte
 }
 
 
-std::string crn::utils::sha512::str(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
+std::string cbtl::utils::sha512::str(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize(signedness));
     value.Encode(&bytes[0], bytes.size(), signedness);
@@ -46,7 +46,7 @@ std::string crn::utils::sha512::str(const CryptoPP::Integer& value, CryptoPP::In
     return output;
 }
 
-std::string crn::utils::sha512::str(const std::string& value){
+std::string cbtl::utils::sha512::str(const std::string& value){
     std::vector<CryptoPP::byte> bytes;
     std::copy(value.begin(), value.end(), std::back_inserter(bytes));
     CryptoPP::SHA512 hash;
@@ -60,7 +60,7 @@ std::string crn::utils::sha512::str(const std::string& value){
     return output;
 }
 
-CryptoPP::Integer crn::utils::sha512::digest(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
+CryptoPP::Integer cbtl::utils::sha512::digest(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize(signedness));
     value.Encode(&bytes[0], bytes.size(), signedness);
@@ -72,7 +72,7 @@ CryptoPP::Integer crn::utils::sha512::digest(const CryptoPP::Integer& value, Cry
     return ret;
 }
 
-CryptoPP::Integer crn::utils::sha512::digest(const std::string& value){
+CryptoPP::Integer cbtl::utils::sha512::digest(const std::string& value){
     std::vector<CryptoPP::byte> bytes;
     std::copy(value.begin(), value.end(), std::back_inserter(bytes));
     CryptoPP::SHA512 hash;
@@ -84,7 +84,7 @@ CryptoPP::Integer crn::utils::sha512::digest(const std::string& value){
 }
 
 
-CryptoPP::Integer crn::utils::sha256::digest(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
+CryptoPP::Integer cbtl::utils::sha256::digest(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize(signedness));
     value.Encode(&bytes[0], bytes.size(), signedness);
@@ -96,7 +96,7 @@ CryptoPP::Integer crn::utils::sha256::digest(const CryptoPP::Integer& value, Cry
     return ret;
 }
 
-std::string crn::utils::sha256::str(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
+std::string cbtl::utils::sha256::str(const CryptoPP::Integer& value, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(value.MinEncodedSize(signedness));
     value.Encode(&bytes[0], bytes.size(), signedness);
@@ -111,7 +111,7 @@ std::string crn::utils::sha256::str(const CryptoPP::Integer& value, CryptoPP::In
     return output;
 }
 
-std::string crn::utils::aes::encrypt(const std::string& plaintext, CryptoPP::byte (&digest)[CryptoPP::SHA256::DIGESTSIZE]){
+std::string cbtl::utils::aes::encrypt(const std::string& plaintext, CryptoPP::byte (&digest)[CryptoPP::SHA256::DIGESTSIZE]){
     std::string ciphertext;
     CryptoPP::ECB_Mode<CryptoPP::AES>::Encryption enc;
     enc.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
@@ -119,7 +119,7 @@ std::string crn::utils::aes::encrypt(const std::string& plaintext, CryptoPP::byt
     return ciphertext;
 }
 
-std::string crn::utils::aes::encrypt(const std::string& plaintext, const CryptoPP::Integer& password, CryptoPP::Integer::Signedness signedness){
+std::string cbtl::utils::aes::encrypt(const std::string& plaintext, const CryptoPP::Integer& password, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(password.MinEncodedSize(signedness));
     password.Encode(&bytes[0], bytes.size(), signedness);
@@ -129,7 +129,7 @@ std::string crn::utils::aes::encrypt(const std::string& plaintext, const CryptoP
     return encrypt(plaintext, digest);
 }
 
-std::string crn::utils::aes::decrypt(const std::string& ciphertext, CryptoPP::byte (&digest)[CryptoPP::SHA256::DIGESTSIZE]){
+std::string cbtl::utils::aes::decrypt(const std::string& ciphertext, CryptoPP::byte (&digest)[CryptoPP::SHA256::DIGESTSIZE]){
     CryptoPP::ECB_Mode<CryptoPP::AES>::Decryption dec;
     dec.SetKey(&digest[0], CryptoPP::SHA256::DIGESTSIZE);
     std::string plaintext;
@@ -137,7 +137,7 @@ std::string crn::utils::aes::decrypt(const std::string& ciphertext, CryptoPP::by
     return plaintext;
 }
 
-std::string crn::utils::aes::decrypt(const std::string& ciphertext, const CryptoPP::Integer& password, CryptoPP::Integer::Signedness signedness){
+std::string cbtl::utils::aes::decrypt(const std::string& ciphertext, const CryptoPP::Integer& password, CryptoPP::Integer::Signedness signedness){
     std::vector<CryptoPP::byte> bytes;
     bytes.resize(password.MinEncodedSize(signedness));
     password.Encode(&bytes[0], bytes.size(), signedness);

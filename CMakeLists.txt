@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-project(crn)
+project(cbtl)
 
 find_package(CryptoPP REQUIRED)
 find_package(BerkeleyDB REQUIRED)
+find_package(hiredis REQUIRED)
+find_package(PQXX REQUIRED)
 find_package(nlohmann_json REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS filesystem regex system serialization program_options REQUIRED)
 
@@ -30,7 +32,8 @@ SET(SOURCES
     sources/keys/pair.cpp
     sources/keys/access.cpp
     sources/keys/view.cpp
-    sources/storage.cpp
+    # sources/bdb-storage.cpp
+    sources/redis-storage.cpp
     sources/server.cpp
     sources/session.cpp
     sources/packets.cpp
@@ -39,26 +42,32 @@ SET(SOURCES
 FILE(GLOB_RECURSE LibFiles "includes/*.h")
 add_custom_target(headers SOURCES ${LibFiles})
 
-add_library(crn SHARED ${SOURCES})
+add_library(cbtl SHARED ${SOURCES})
 
-add_executable(crn-init    init.cpp)
-add_executable(crn-request request.cpp)
-add_executable(crn-server  main.cpp)
-add_executable(crn-read    read.cpp)
-add_executable(rough       rough.cpp)
+add_executable(cbtl-init    init.cpp)
+add_executable(cbtl-request request.cpp)
+add_executable(cbtl-server  main.cpp)
+add_executable(cbtl-read    read.cpp)
+# add_executable(rough       rough.cpp)
 
-target_link_libraries(crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(cbtl ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES} ${HIREDIS_LIBRARIES})
 
-target_link_libraries(crn-server     crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(crn-init       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(crn-request    crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(crn-read       crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
-target_link_libraries(rough          crn ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(cbtl-server     cbtl ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(cbtl-init       cbtl ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json ${PQXX_LIBRARIES})
+target_link_libraries(cbtl-request    cbtl ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(cbtl-read       cbtl ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
+# target_link_libraries(rough          cbtl ${CryptoPP_LIBRARIES} ${Boost_LIBRARIES} ${BerkeleyDB_LIBRARIES} nlohmann_json::nlohmann_json)
 
-target_include_directories(crn PUBLIC ${INCLUDE_DIRS})
+target_compile_features(cbtl         PRIVATE cxx_std_20)
+target_compile_features(cbtl-init    PRIVATE cxx_std_20)
+target_compile_features(cbtl-server  PRIVATE cxx_std_20)
+target_compile_features(cbtl-request PRIVATE cxx_std_20)
+target_compile_features(cbtl-read    PRIVATE cxx_std_20)
 
-install(TARGETS crn         RUNTIME DESTINATION lib)
-install(TARGETS crn-server  RUNTIME DESTINATION bin)
-install(TARGETS crn-init    RUNTIME DESTINATION bin)
-install(TARGETS crn-request RUNTIME DESTINATION bin)
-install(TARGETS crn-read    RUNTIME DESTINATION bin)
+target_include_directories(cbtl PUBLIC ${INCLUDE_DIRS})
+
+install(TARGETS cbtl         RUNTIME DESTINATION lib)
+install(TARGETS cbtl-server  RUNTIME DESTINATION bin)
+install(TARGETS cbtl-init    RUNTIME DESTINATION bin)
+install(TARGETS cbtl-request RUNTIME DESTINATION bin)
+install(TARGETS cbtl-read    RUNTIME DESTINATION bin)
