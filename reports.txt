@@ -1,0 +1,205 @@
+Initialized
+
+./cbtl-init -M5 -S4 -P7
+
+5 managers
+4 supervisors
+7 patients
+
+Bulk Insertion:
+
+cbtl_req_n X Y N
+Inserts N records associated with patient Y as manager X
+
+$ cbtl_req_n 4 1 10
+Inserted 10 records in 16.576000000000000512ms
+Inserted 10 records in 18.04100000000000037ms
+Inserted 10 records in 21.763999999999999346ms
+Inserted 10 records in 24.434999999999998721ms
+Inserted 10 records in 29.961999999999999744ms
+Inserted 10 records in 28.727000000000000313ms
+Inserted 10 records in 32.87599999999999767ms
+Inserted 10 records in 34.945999999999997954ms
+Inserted 10 records in 38.75800000000000267ms
+Inserted 10 records in 42.003000000000000114ms
+Inserted 10 records in 63.46699999999999875ms
+Inserted 10 records in 47.496999999999999886ms
+Inserted 10 records in 49.929000000000002046ms
+Inserted 10 records in 54.152999999999998693ms
+Inserted 10 records in 71.031999999999996476ms
+Inserted 10 records in 59.46600000000000108ms
+Inserted 10 records in 62.771000000000000796ms
+Inserted 10 records in 65.49599999999999511ms
+Inserted 10 records in 68.0660000000000025ms
+Inserted 10 records in 71.700999999999993406ms
+
+
+$ cbtl_req_n 3 2 20
+Inserted 20 records in 23.696000000000001506ms
+Inserted 20 records in 27.001000000000001222ms
+Inserted 20 records in 33.20199999999999818ms
+Inserted 20 records in 38.781999999999996476ms
+Inserted 20 records in 47.073000000000000398ms
+Inserted 20 records in 51.593000000000003524ms
+Inserted 20 records in 57.51500000000000057ms
+Inserted 20 records in 63.771999999999998465ms
+Inserted 20 records in 69.935000000000002274ms
+Inserted 20 records in 75.853999999999999204ms
+Inserted 20 records in 81.08100000000000307ms
+Inserted 20 records in 86.77700000000000102ms
+Inserted 20 records in 92.70399999999999352ms
+Inserted 20 records in 99.51800000000000068ms
+Inserted 20 records in 106.98199999999999932ms
+Inserted 20 records in 113.13800000000000523ms
+Inserted 20 records in 123.04999999999999716ms
+Inserted 20 records in 125.45900000000000318ms
+Inserted 20 records in 130.72700000000000387ms
+Inserted 20 records in 137.61000000000001364ms
+
+
+$ cbtl_req_n 2 3 30
+Inserted 30 records in 31.806000000000000938ms
+Inserted 30 records in 39.109000000000001762ms
+Inserted 30 records in 44.972000000000001307ms
+Inserted 30 records in 54.80700000000000216ms
+Inserted 30 records in 63.45799999999999841ms
+Inserted 30 records in 74.59499999999999886ms
+Inserted 30 records in 81.31799999999999784ms
+Inserted 30 records in 91.09199999999999875ms
+Inserted 30 records in 100.27599999999999625ms
+Inserted 30 records in 108.82500000000000284ms
+Inserted 30 records in 128.66700000000000159ms
+Inserted 30 records in 137.97399999999998954ms
+Inserted 30 records in 136.81299999999998818ms
+Inserted 30 records in 144.507000000000005ms
+Inserted 30 records in 156.47399999999998954ms
+Inserted 30 records in 164.36699999999999022ms
+Inserted 30 records in 171.97100000000000364ms
+Inserted 30 records in 181.74899999999999523ms
+Inserted 30 records in 193.1279999999999859ms
+Inserted 30 records in 200.4509999999999934ms
+
+
+$ cbtl_req_n 1 4 40
+Inserted 40 records in 37.54899999999999949ms
+Inserted 40 records in 46.72599999999999909ms
+Inserted 40 records in 59.079999999999998295ms
+Inserted 40 records in 70.463999999999998636ms
+Inserted 40 records in 81.97400000000000375ms
+Inserted 40 records in 111.625ms
+Inserted 40 records in 105.99599999999999511ms
+Inserted 40 records in 118.191999999999993065ms
+Inserted 40 records in 134.27699999999998681ms
+Inserted 40 records in 145.74100000000001387ms
+Inserted 40 records in 158.54200000000000159ms
+Inserted 40 records in 169.26599999999999113ms
+Inserted 40 records in 179.40100000000001046ms
+Inserted 40 records in 191.47800000000000864ms
+Inserted 40 records in 205.02000000000001023ms
+Inserted 40 records in 215.75ms
+Inserted 40 records in 226.65799999999998704ms
+Inserted 40 records in 238.93199999999998795ms
+Inserted 40 records in 259.44499999999999318ms
+Inserted 40 records in 261.8620000000000232ms
+
+$ cbtl_req_n 0 5 50
+Inserted 50 records in 47.70100000000000051ms
+Inserted 50 records in 66.58299999999999841ms
+Inserted 50 records in 69.66500000000000625ms
+Inserted 50 records in 87.599999999999994316ms
+Inserted 50 records in 100.32699999999999818ms
+Inserted 50 records in 115.986000000000004206ms
+Inserted 50 records in 130.05299999999999727ms
+Inserted 50 records in 150.50200000000000955ms
+Inserted 50 records in 166.09100000000000819ms
+Inserted 50 records in 178.31700000000000728ms
+Inserted 50 records in 192.80699999999998795ms
+Inserted 50 records in 208.46100000000001273ms
+Inserted 50 records in 224.6220000000000141ms
+Inserted 50 records in 236.60300000000000864ms
+Inserted 50 records in 253.73799999999999955ms
+Inserted 50 records in 267.660000000000025ms
+Inserted 50 records in 279.68900000000002137ms
+Inserted 50 records in 298.39100000000001955ms
+Inserted 50 records in 312.95499999999998408ms
+Inserted 50 records in 325.44499999999999318ms
+
+
+Single Insertion
+$ cbtl_req_n 4 1 1
+$ cbtl_req_n 3 2 1
+$ cbtl_req_n 2 3 1
+$ cbtl_req_n 1 4 1
+$ cbtl_req_n 0 5 1
+
+
+Information Retrieval
+
+$ ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-1.pub
+Fetched 201 records in 68.51900000000000546ms
+$ ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-2.pub
+Fetched 401 records in 130.41900000000001114ms
+$ ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-3.pub
+Fetched 601 records in 191.42199999999999704ms
+$ ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-4.pub
+FFetched 801 records in 253.91499999999999204ms
+$ ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub -P patient-5.pub
+Fetched 1001 records in 311.6560000000000059ms
+
+
+Block Traversal
+
+Forward:
+
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -l 50
+Retrieved 51 entries in 53.481999999999999318ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -l 100
+Retrieved 101 entries in 105.23000000000000398ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -l 150
+Retrieved 151 entries in 158.73599999999999ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -l 200
+Retrieved 201 entries in 211.35800000000000409ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -l 250
+Retrieved 251 entries in 263.8439999999999941ms
+
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -l 50
+Retrieved 51 entries in 53.093000000000003524ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -l 100
+Retrieved 101 entries in 106.286000000000001364ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -l 150
+Retrieved 151 entries in 158.19499999999999318ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -l 200
+Retrieved 201 entries in 209.62299999999999045ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -l 250
+Retrieved 251 entries in 263.75ms
+
+Backward:
+
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -t ID -l 50
+Retrieved 51 entries in 97.15200000000000102ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -t ID -l 100
+Retrieved 101 entries in 191.99500000000000455ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -t ID -l 150
+Retrieved 151 entries in 287.55099999999998772ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -t ID -l 200
+Retrieved 201 entries in 381.52499999999997726ms
+$ ./cbtl-read -u -p manager-1.pub -s manager-1 -m master.pub -t ID -l 250
+Retrieved 251 entries in 478.26499999999998636ms
+
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -t ID -l 50
+Retrieved 51 entries in 60.779000000000003467ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -t ID -l 100
+Retrieved 101 entries in 117.45999999999999375ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -t ID -l 150
+Retrieved 151 entries in 175.02299999999999613ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -t ID -l 200
+Retrieved 201 entries in 234.007000000000005ms
+$ ./cbtl-read -v -p patient-5.pub -s patient-5 -m master.pub -t ID -l 250
+Retrieved 251 entries in 294.089999999999975ms
+
+Storage Overhead
+
+1000 events 272,625,664 bytes
+2000 events 1,037,152,256 bytes
+3000 events 2,315,554,816 bytes
+

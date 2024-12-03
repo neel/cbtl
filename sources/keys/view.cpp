@@ -1,30 +1,30 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/keys/view.h"
-#include "crn/utils.h"
-#include "crn/keys/private.h"
+#include "cbtl/keys/view.h"
+#include "cbtl/utils.h"
+#include "cbtl/keys/private.h"
 
 
-crn::keys::view_key crn::keys::view_key::construct(const CryptoPP::Integer& phi, const crn::keys::identity::public_key& pub, const crn::keys::identity::private_key& master){
+cbtl::keys::view_key cbtl::keys::view_key::construct(const CryptoPP::Integer& phi, const cbtl::keys::identity::public_key& pub, const cbtl::keys::identity::private_key& master){
     auto Gp = pub.Gp();
     auto secret = Gp.Exponentiate(Gp.Exponentiate(pub.y(), phi), master.x());
 
-    return crn::keys::view_key(secret);
+    return cbtl::keys::view_key(secret);
 }
 
-crn::keys::view_key::view_key(const std::string& name){
+cbtl::keys::view_key::view_key(const std::string& name){
     load(name);
 }
 
 
-void crn::keys::view_key::save(const std::string& name) const{
+void cbtl::keys::view_key::save(const std::string& name) const{
     std::ofstream access(name+".view");
-    access << crn::utils::hex::encode(_secret, CryptoPP::Integer::UNSIGNED);
+    access << cbtl::utils::hex::encode(_secret, CryptoPP::Integer::UNSIGNED);
     access.close();
 }
 
-void crn::keys::view_key::load(const std::string& name){
+void cbtl::keys::view_key::load(const std::string& name){
     std::ifstream view(name);
     if(!view.is_open()){
         throw std::runtime_error("Failed to open "+name);
@@ -32,5 +32,5 @@ void crn::keys::view_key::load(const std::string& name){
     std::string hexed;
     view >> hexed;
     view.close();
-    _secret = crn::utils::hex::decode(hexed, CryptoPP::Integer::UNSIGNED);
+    _secret = cbtl::utils::hex::decode(hexed, CryptoPP::Integer::UNSIGNED);
 }

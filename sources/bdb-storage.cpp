@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/bdb-storage.h"
-#include "crn/blocks.h"
-#include "crn/blocks/io.h"
+#include "cbtl/bdb-storage.h"
+#include "cbtl/blocks.h"
+#include "cbtl/blocks/io.h"
 #include <exception>
 #include <boost/filesystem.hpp>
 
-crn::storage::storage(): _env(std::uint32_t(0)), _opened(false) {
+cbtl::storage::storage(): _env(std::uint32_t(0)), _opened(false) {
     boost::filesystem::path env_dir("storage");
     if(!boost::filesystem::exists(env_dir) || !boost::filesystem::is_directory(env_dir)){
         boost::filesystem::create_directory(env_dir);
@@ -15,12 +15,12 @@ crn::storage::storage(): _env(std::uint32_t(0)), _opened(false) {
     _env.open("storage", DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN, 0);
 }
 
-crn::storage::~storage(){
+cbtl::storage::~storage(){
     close();
 }
 
 
-void crn::storage::open(){
+void cbtl::storage::open(){
     _blocks = new Db(&_env, 0);
     _index  = new Db(&_env, 0);
     // _env.txn_begin(NULL, &_transaction, 0);
@@ -29,7 +29,7 @@ void crn::storage::open(){
     // _opened = true;
 }
 
-void crn::storage::close(){
+void cbtl::storage::close(){
     if(_opened){
         _blocks->sync(0);
         _blocks->close(0);
@@ -48,7 +48,7 @@ void crn::storage::close(){
 }
 
 
-bool crn::storage::add(const crn::blocks::access& block){
+bool cbtl::storage::add(const cbtl::blocks::access& block){
     std::string block_id = block.address().hash();
     // if(exists(block_id)){
     //     return false;
@@ -66,12 +66,12 @@ bool crn::storage::add(const crn::blocks::access& block){
     }
     if(!block.genesis()){
         {
-            std::string active_address = crn::utils::hex::encode(block.address().active(), CryptoPP::Integer::UNSIGNED);
+            std::string active_address = cbtl::utils::hex::encode(block.address().active(), CryptoPP::Integer::UNSIGNED);
             Dbt key((void*) active_address.c_str(), active_address.size());
             r_addr_active = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
             // std::cout << "r_addr_active: " << r_addr_active << std::endl;
         }{
-            std::string passive_address = crn::utils::hex::encode(block.address().passive(), CryptoPP::Integer::UNSIGNED);
+            std::string passive_address = cbtl::utils::hex::encode(block.address().passive(), CryptoPP::Integer::UNSIGNED);
             Dbt key((void*) passive_address.c_str(), passive_address.size());
             r_addr_passive = _index->put(NULL, &key, &id, DB_NOOVERWRITE);
             // std::cout << "r_addr_passive: " << r_addr_passive << std::endl;
@@ -81,7 +81,7 @@ bool crn::storage::add(const crn::blocks::access& block){
     return r_block == 0 && r_addr_active == 0 && r_addr_passive == 0;
 }
 
-bool crn::storage::exists(const std::string& id, bool index){
+bool cbtl::storage::exists(const std::string& id, bool index){
     open();
     Db* db = index ? _index : _blocks;
     Dbt key((void*) id.c_str(), id.size());
@@ -90,7 +90,7 @@ bool crn::storage::exists(const std::string& id, bool index){
     return ret != DB_NOTFOUND;
 }
 
-std::string crn::storage::id(const std::string& addr){
+std::string cbtl::storage::id(const std::string& addr){
     open();
     Dbt id((void*) addr.c_str(), addr.size()), value;
     int ret = _index->get(NULL, &id, &value, 0);
@@ -104,7 +104,7 @@ std::string crn::storage::id(const std::string& addr){
 }
 
 
-crn::blocks::access crn::storage::fetch(const std::string& block_id){
+cbtl::blocks::access cbtl::storage::fetch(const std::string& block_id){
     open();
     Dbt id((void*) block_id.c_str(), block_id.size()), value;
     int ret = _blocks->get(NULL, &id, &value, 0);
@@ -113,7 +113,7 @@ crn::blocks::access crn::storage::fetch(const std::string& block_id){
     }else{
         std::string json_str((const char*) value.get_data(), value.get_size());
         nlohmann::json json = nlohmann::json::parse(json_str);
-        crn::blocks::access block = json;
+        cbtl::blocks::access block = json;
         close();
         return block;
     }

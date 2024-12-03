@@ -1,9 +1,9 @@
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
-#include "crn/redis-storage.h"
-#include "crn/server.h"
-#include "crn/keys.h"
+#include "cbtl/redis-storage.h"
+#include "cbtl/server.h"
+#include "cbtl/keys.h"
 
 int main(int argc, char** argv){
     boost::program_options::options_description desc("CLI Frontend for Data Managers");
@@ -27,15 +27,15 @@ int main(int argc, char** argv){
                 secret_key = map["secret"].as<std::string>(),
                 view_key   = map["view"].as<std::string>();
 
-    crn::storage db;
+    cbtl::storage db;
 
-    crn::keys::identity::pair master(secret_key, public_key);
-    crn::keys::view_key view(view_key);
+    cbtl::keys::identity::pair master(secret_key, public_key);
+    cbtl::keys::view_key view(view_key);
     // master.init();
 
     boost::asio::io_service io;
 
-    crn::server server(db, master, view, io, 9887);
+    cbtl::server server(db, master, view, io, 9887);
     server.run();
 
     io.run();

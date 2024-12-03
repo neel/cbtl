@@ -1,22 +1,23 @@
 #include <iostream>
 #include <array>
+#include <boost/array.hpp>
 #include <string>
-#include "crn/utils.h"
+#include "cbtl/utils.h"
 #include <boost/program_options.hpp>
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
-#include "crn/redis-storage.h"
-#include "crn/packets.h"
-#include "crn/keys.h"
+#include "cbtl/redis-storage.h"
+#include "cbtl/packets.h"
+#include "cbtl/keys.h"
 
 boost::system::error_code receive(boost::asio::ip::tcp::socket& socket, nlohmann::json& json){
-    using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
+    using buffer_type = boost::array<std::uint8_t, sizeof(cbtl::packets::header)>;
     buffer_type buff;
     boost::system::error_code error;
     std::size_t len = socket.read_some(boost::asio::buffer(buff), error);
     if(!error){
         assert(len == buff.size());
-        crn::packets::header header;
+        cbtl::packets::header header;
         std::copy_n(buff.cbegin(), len, reinterpret_cast<std::uint8_t*>(&header));
         header.size = ntohl(header.size);
         std::cout << "expecting data " << header.size << std::endl;
@@ -69,13 +70,13 @@ int main(int argc, char** argv) {
                 access_key = map["access"].as<std::string>(),
                 master_key = map["master"].as<std::string>();
 
-    crn::storage db;
+    cbtl::storage db;
 
-    crn::keys::identity::pair user(secret_key, public_key);
-    crn::keys::identity::public_key master_pub(master_key);
-    crn::keys::access_key access(access_key);
+    cbtl::keys::identity::pair user(secret_key, public_key);
+    cbtl::keys::identity::public_key master_pub(master_key);
+    cbtl::keys::access_key access(access_key);
 
-    crn::math::group G = user.pub();
+    cbtl::math::group G = user.pub();
     auto Gp = G.Gp(), Gp1 = G.Gp1();
 
     boost::asio::io_context io_context;
@@ -89,38 +90,38 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    crn::packets::request request = crn::packets::request::construct(db, user);
+    cbtl::packets::request request = cbtl::packets::request::construct(db, user);
     nlohmann::json request_json = request;
     std::cout << ">> " << std::endl << request_json.dump(4) << std::endl;
     {
-        crn::packets::envelop<crn::packets::request> envelop(crn::packets::type::request, request);
+        cbtl::packets::envelop<cbtl::packets::request> envelop(cbtl::packets::type::request, request);
         envelop.write(socket);
     }
-    using buffer_type = boost::array<std::uint8_t, sizeof(crn::packets::header)>;
+    using buffer_type = boost::array<std::uint8_t, sizeof(cbtl::packets::header)>;
 
     nlohmann::json challenge_json;
     boost::system::error_code error = receive(socket, challenge_json);
     if(!error){
         std::cout << "<< " << std::endl << challenge_json.dump(4) << std::endl;
-        crn::packets::challenge challenge = challenge_json;
+        cbtl::packets::challenge challenge = challenge_json;
         CryptoPP::Integer lambda = Gp.Divide(challenge.random, Gp.Exponentiate(master_pub.y(), user.pri().x()));
 
         if(map.count("anchor")){
             std::string anchor = map["anchor"].as<std::string>();
-            auto action = crn::packets::action<crn::packets::actions::identify>(anchor);
-            auto response = crn::packets::respond(action, user.pri(), access, lambda);
+            auto action = cbtl::packets::action<cbtl::packets::actions::identify>(anchor);
+            auto response = cbtl::packets::respond(action, user.pri(), access, lambda);
 
             // send the challenge
             nlohmann::json response_json = challenge;
             std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
             {
-                crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::identify>>> envelop(crn::packets::type::response, response);
+                cbtl::packets::envelop<cbtl::packets::response<cbtl::packets::action_data<cbtl::packets::actions::identify>>> envelop(cbtl::packets::type::response, response);
                 envelop.write(socket);
             }
         }else if(map.count("insert")){
             std::string patient_pub_str = map["patient"].as<std::string>();
-            crn::keys::identity::public_key patient_pub(patient_pub_str);
-            auto action = crn::packets::action<crn::packets::actions::insert>(patient_pub);
+            cbtl::keys::identity::public_key patient_pub(patient_pub_str);
+            auto action = cbtl::packets::action<cbtl::packets::actions::insert>(patient_pub);
             while(true){
                 std::string line;
                 std::getline(std::cin, line);
@@ -131,26 +132,26 @@ int main(int argc, char** argv) {
                 }
             }
             std::cout << action.count() << " cases in action" << std::endl;
-            auto response = crn::packets::respond(action, user.pri(), access, lambda);
+            auto response = cbtl::packets::respond(action, user.pri(), access, lambda);
 
             // send the challenge
             nlohmann::json response_json = challenge;
             std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
             {
-                crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::insert>>> envelop(crn::packets::type::response, response);
+                cbtl::packets::envelop<cbtl::packets::response<cbtl::packets::action_data<cbtl::packets::actions::insert>>> envelop(cbtl::packets::type::response, response);
                 envelop.write(socket);
             }
         }else if(map.count("patient")){
             std::string patient_pub_str = map["patient"].as<std::string>();
-            crn::keys::identity::public_key patient_pub(patient_pub_str);
-            auto action = crn::packets::action<crn::packets::actions::fetch>(patient_pub);
-            auto response = crn::packets::respond(action, user.pri(), access, lambda);
+            cbtl::keys::identity::public_key patient_pub(patient_pub_str);
+            auto action = cbtl::packets::action<cbtl::packets::actions::fetch>(patient_pub);
+            auto response = cbtl::packets::respond(action, user.pri(), access, lambda);
 
             // send the challenge
             nlohmann::json response_json = challenge;
             std::cout << ">> " << std::endl << response_json.dump(4) << std::endl;
             {
-                crn::packets::envelop<crn::packets::response<crn::packets::action_data<crn::packets::actions::fetch>>> envelop(crn::packets::type::response, response);
+                cbtl::packets::envelop<cbtl::packets::response<cbtl::packets::action_data<cbtl::packets::actions::fetch>>> envelop(cbtl::packets::type::response, response);
                 envelop.write(socket);
             }
         }

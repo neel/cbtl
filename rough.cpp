@@ -1,11 +1,11 @@
 #include <string>
 #include <iostream>
-#include "crn/utils.h"
-#include "crn/keys.h"
+#include "cbtl/utils.h"
+#include "cbtl/keys.h"
 #include <cryptopp/modarith.h>
 #include <cryptopp/osrng.h>
 #include <cassert>
-#include "crn/math/diophantine.h"
+#include "cbtl/math/diophantine.h"
 
 int main(int argc, char** argv){
     // CryptoPP::Integer x1("59155865408868259425557571612471620428297988408165845346132791388203026665780027334884289790496698975366550859751679098576474914656477108493456088740714638392460074168696957786644452257687431017811952658833178670113578592426217762888790213090753444458649558440508900270736330461377938922007295905864081619510");
@@ -53,17 +53,17 @@ int main(int argc, char** argv){
 
 
     // CryptoPP::Integer a("-24");
-    // std::string hex = crn::utils::hex::encode(a);
-    // CryptoPP::Integer b = crn::utils::hex::decode(hex, true);
+    // std::string hex = cbtl::utils::hex::encode(a);
+    // CryptoPP::Integer b = cbtl::utils::hex::decode(hex, true);
     //
     // std::cout << hex << std::endl << b << std::endl;
 
     CryptoPP::AutoSeededRandomPool rng;
 
-    // crn::math::free_coordinates p1{5, -7}, p2{8, -12};
-    // crn::math::free_coordinates p1{0, 8}, p2{5, 7};
-    crn::math::free_coordinates p1{5, 1}, p2{3, 4};
-    auto line = crn::math::diophantine::interpolate(p1, p2);
+    // cbtl::math::free_coordinates p1{5, -7}, p2{8, -12};
+    // cbtl::math::free_coordinates p1{0, 8}, p2{5, 7};
+    cbtl::math::free_coordinates p1{5, 1}, p2{3, 4};
+    auto line = cbtl::math::diophantine::interpolate(p1, p2);
 
     while(true){
         auto r1 = line.random(rng, 50000);
@@ -77,14 +77,14 @@ int main(int argc, char** argv){
 
         std::cout << line << std::endl;
         std::cout << r1 << std::endl;
-        std::cout << crn::math::diophantine::interpolate(p1, r1) << std::endl;
+        std::cout << cbtl::math::diophantine::interpolate(p1, r1) << std::endl;
         std::cout << r2 << std::endl;
 
-        assert(crn::math::diophantine::interpolate(p1, r1) == line);
-        assert(crn::math::diophantine::interpolate(p2, r1) == line);
-        assert(crn::math::diophantine::interpolate(p1, r2) == line);
-        assert(crn::math::diophantine::interpolate(p2, r2) == line);
-        assert(crn::math::diophantine::interpolate(r2, r1) == line);
+        assert(cbtl::math::diophantine::interpolate(p1, r1) == line);
+        assert(cbtl::math::diophantine::interpolate(p2, r1) == line);
+        assert(cbtl::math::diophantine::interpolate(p1, r2) == line);
+        assert(cbtl::math::diophantine::interpolate(p2, r2) == line);
+        assert(cbtl::math::diophantine::interpolate(r2, r1) == line);
         assert(line.eval(r1.x()) == r1.y());
         assert(line.eval(r2.x()) == r2.y());
     }
@@ -99,11 +99,11 @@ int main(int argc, char** argv){
 //    std::cout << (s + (r * d)) << std::endl;
 
     // CryptoPP::Integer input("186633539891002931657903750944036618999121140963084441002216962744063819191747778554251739081222280194591114477120837017347391135685014884998818270812356287863278733776657004536784711864987844059518625183113291316963478075992615428701873885603882558519838236649371224041513368881332877284661694696234762507103618674240516886679599578991724726024224533261887533319966030600727820886568027737247883559933896208827396126093239144545827918042186634278635947001842854676887680983235599222536135945517403491220345489274779478737751808274681116360");
-    // std::string shex = crn::utils::hex::encode(input, CryptoPP::Integer::SIGNED);
-    // std::string uhex = crn::utils::hex::encode(input, CryptoPP::Integer::UNSIGNED);
+    // std::string shex = cbtl::utils::hex::encode(input, CryptoPP::Integer::SIGNED);
+    // std::string uhex = cbtl::utils::hex::encode(input, CryptoPP::Integer::UNSIGNED);
     // std::cout << shex << std::endl << uhex << std::endl;
-    // std::cout << crn::utils::hex::decode(uhex, CryptoPP::Integer::SIGNED) << std::endl;
-    // std::cout << crn::utils::hex::decode(hex, true) << std::endl;
+    // std::cout << cbtl::utils::hex::decode(uhex, CryptoPP::Integer::SIGNED) << std::endl;
+    // std::cout << cbtl::utils::hex::decode(hex, true) << std::endl;
 
 
 }

@@ -1,26 +1,26 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <email>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/redis-storage.h"
-#include "crn/blocks.h"
-#include "crn/blocks/io.h"
+#include "cbtl/redis-storage.h"
+#include "cbtl/blocks.h"
+#include "cbtl/blocks/io.h"
 #include <exception>
 #include <boost/filesystem.hpp>
 
-crn::storage::storage(): _opened(false) {
+cbtl::storage::storage(): _opened(false) {
     open();
 }
 
-crn::storage::~storage(){
+cbtl::storage::~storage(){
     close();
 }
 
 
-void crn::storage::open(){
+void cbtl::storage::open(){
     _context = redisConnect("127.0.0.1", 6379);
 }
 
-void crn::storage::close(){
+void cbtl::storage::close(){
     if(_opened){
         redisFree(_context);
         _opened = false;
@@ -28,7 +28,7 @@ void crn::storage::close(){
 
 }
 
-bool crn::storage::add(const crn::blocks::access& block){
+bool cbtl::storage::add(const cbtl::blocks::access& block){
     std::string block_id = block.address().hash();
     nlohmann::json json = block;
     std::string block_str = json.dump();
@@ -42,13 +42,13 @@ bool crn::storage::add(const crn::blocks::access& block){
         if(ok) freeReplyObject(reply);
     }
     if(ok){
-        std::string active_address = crn::utils::hex::encode(block.address().active(), CryptoPP::Integer::UNSIGNED);
+        std::string active_address = cbtl::utils::hex::encode(block.address().active(), CryptoPP::Integer::UNSIGNED);
         reply = (redisReply*) redisCommand(_context, "SET addr:%s %s", active_address.c_str(), block_id.c_str());
         ok = (reply != 0x0);
         if(ok) freeReplyObject(reply);
     }
     if(ok){
-        std::string passive_address = crn::utils::hex::encode(block.address().passive(), CryptoPP::Integer::UNSIGNED);
+        std::string passive_address = cbtl::utils::hex::encode(block.address().passive(), CryptoPP::Integer::UNSIGNED);
         reply = (redisReply*) redisCommand(_context, "SET addr:%s %s", passive_address.c_str(), block_id.c_str());
         ok = (reply != 0x0);
         if(ok) freeReplyObject(reply);
@@ -56,7 +56,7 @@ bool crn::storage::add(const crn::blocks::access& block){
     return ok;
 }
 
-bool crn::storage::exists(const std::string& id, bool index){
+bool cbtl::storage::exists(const std::string& id, bool index){
     std::string prefix = index ? std::string("addr") : std::string("id");
     redisReply* reply = (redisReply*) redisCommand(_context, "EXISTS %s:%s", prefix.c_str(), id.c_str());
     printf("EXISTS %s:%s \n", prefix.c_str(), id.c_str());
@@ -78,7 +78,7 @@ bool crn::storage::exists(const std::string& id, bool index){
     return false;
 }
 
-std::string crn::storage::id(const std::string& addr){
+std::string cbtl::storage::id(const std::string& addr){
     redisReply* reply = (redisReply*) redisCommand(_context, "GET addr:%s", addr.c_str());
     if(reply){
         std::cout << "(reply->type == REDIS_REPLY_STRING): " << (reply->type == REDIS_REPLY_STRING) << std::endl;
@@ -101,13 +101,13 @@ std::string crn::storage::id(const std::string& addr){
 }
 
 
-crn::blocks::access crn::storage::fetch(const std::string& block_id){
+cbtl::blocks::access cbtl::storage::fetch(const std::string& block_id){
     redisReply* reply = (redisReply*) redisCommand(_context, "GET id:%s", block_id.c_str());
     if(reply){
         if(reply->type == REDIS_REPLY_STRING){
             std::string json_str(reply->str, reply->len);
             nlohmann::json json = nlohmann::json::parse(json_str);
-            crn::blocks::access block = json;
+            cbtl::blocks::access block = json;
             if(reply != 0x0){
                 freeReplyObject(reply);
                 reply = 0x0;
