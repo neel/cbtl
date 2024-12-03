@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2022 Sunanda Bose <sunanda@simula.no>
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "crn/math/diophantine.h"
+#include "cbtl/math/diophantine.h"
 #include <iostream>
 #include <cryptopp/nbtheory.h>
 
-crn::math::diophantine::diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const crn::math::free_coordinates& delta, const crn::math::free_coordinates& shift): _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
+cbtl::math::diophantine::diophantine(const CryptoPP::Integer& a, const CryptoPP::Integer& b, const CryptoPP::Integer& c, const cbtl::math::free_coordinates& delta, const cbtl::math::free_coordinates& shift): _a(a), _b(b), _c(c), _delta(delta), _shift(shift) { }
 
-crn::math::diophantine crn::math::diophantine::interpolate(const crn::math::free_coordinates& u, const crn::math::free_coordinates& v){
+cbtl::math::diophantine cbtl::math::diophantine::interpolate(const cbtl::math::free_coordinates& u, const cbtl::math::free_coordinates& v){
     assert(u != v);
     CryptoPP::Integer dx  = u.x() - v.x(), dy = v.y() - u.y();
     CryptoPP::Integer c   = (v.y() * u.x()) - (v.x() * u.y());
@@ -19,13 +19,13 @@ crn::math::diophantine crn::math::diophantine::interpolate(const crn::math::free
     c = res;
     free_coordinates shift{u.x(), u.y()};
     free_coordinates delta{b, -a};
-    auto line = crn::math::diophantine(a, b, c, delta, shift);
+    auto line = cbtl::math::diophantine(a, b, c, delta, shift);
     assert(line.eval(u.x()) == u.y());
     assert(line.eval(v.x()) == v.y());
     return line;
 }
 
-crn::math::free_coordinates crn::math::diophantine::random_nix(CryptoPP::AutoSeededRandomPool& rng, const crn::math::group& G) const{
+cbtl::math::free_coordinates cbtl::math::diophantine::random_nix(CryptoPP::AutoSeededRandomPool& rng, const cbtl::math::group& G) const{
     // Generates a random coordinate that satisfies the line
     // The x coordinate must be less that p-1
     // The multiplicative inverse of the x coordinate must not exist in Z_{p-1}
@@ -60,7 +60,7 @@ crn::math::free_coordinates crn::math::diophantine::random_nix(CryptoPP::AutoSee
             auto x_inv = Gp1.MultiplicativeInverse(coordinate.x());
             if(x_inv.IsZero()){
                 assert(eval(coordinate.x()) == coordinate.y());
-                std::cout << "found after retries " << retries << std::endl;
+                // std::cout << "found after retries " << retries << std::endl;
                 return coordinate;
             }
         }
@@ -68,7 +68,7 @@ crn::math::free_coordinates crn::math::diophantine::random_nix(CryptoPP::AutoSee
     }
 }
 
-crn::math::free_coordinates crn::math::diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& n) const{
+cbtl::math::free_coordinates cbtl::math::diophantine::random(CryptoPP::AutoSeededRandomPool& rng, const CryptoPP::Integer& n) const{
     auto min = (2 - _shift.x()) / _delta.x();
     auto max = (n - _shift.x()) / _delta.x();
     while(true){
@@ -82,21 +82,21 @@ crn::math::free_coordinates crn::math::diophantine::random(CryptoPP::AutoSeededR
 }
 
 
-CryptoPP::Integer crn::math::diophantine::eval(const CryptoPP::Integer& x) const{
+CryptoPP::Integer cbtl::math::diophantine::eval(const CryptoPP::Integer& x) const{
     return (_c - (_a * x)) / _b;
 }
 
-bool crn::math::operator==(const crn::math::free_coordinates& l, const crn::math::free_coordinates& r){
+bool cbtl::math::operator==(const cbtl::math::free_coordinates& l, const cbtl::math::free_coordinates& r){
     return l.x() == r.x() && l.y() == r.y();
 }
-bool crn::math::operator!=(const crn::math::free_coordinates& l, const crn::math::free_coordinates& r){
+bool cbtl::math::operator!=(const cbtl::math::free_coordinates& l, const cbtl::math::free_coordinates& r){
     return !operator==(l, r);
 }
 
-crn::math::free_coordinates crn::math::operator+(const crn::math::free_coordinates& l, const crn::math::free_coordinates& r){
-    return crn::math::free_coordinates{l.x() + r.x(), l.y() + r.y()};
+cbtl::math::free_coordinates cbtl::math::operator+(const cbtl::math::free_coordinates& l, const cbtl::math::free_coordinates& r){
+    return cbtl::math::free_coordinates{l.x() + r.x(), l.y() + r.y()};
 }
 
-crn::math::free_coordinates crn::math::operator*(const crn::math::free_coordinates& c, const CryptoPP::Integer& s){
-    return crn::math::free_coordinates{c.x() * s, c.y() * s};
+cbtl::math::free_coordinates cbtl::math::operator*(const cbtl::math::free_coordinates& c, const CryptoPP::Integer& s){
+    return cbtl::math::free_coordinates{c.x() * s, c.y() * s};
 }

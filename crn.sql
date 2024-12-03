@@ -1,14 +1,14 @@
--- Role: crn_user
+-- Role: cbtl_user
 
-DROP ROLE IF EXISTS crn_user;
+DROP ROLE IF EXISTS cbtl_user;
 
-CREATE ROLE crn_user WITH LOGIN NOSUPERUSER INHERIT NOCREATEROLE;
+CREATE ROLE cbtl_user WITH LOGIN NOSUPERUSER INHERIT NOCREATEROLE;
 
--- Database: crnr
+-- Database: cbtlr
 
-DROP DATABASE IF EXISTS crn;
+DROP DATABASE IF EXISTS cbtl;
 
-CREATE DATABASE crn WITH OWNER crn_user;
+CREATE DATABASE cbtl WITH OWNER cbtl_user;
 
 
 -- Table: public.persons
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.persons
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.persons OWNER to crn_user;
+ALTER TABLE IF EXISTS public.persons OWNER to cbtl_user;
 
 -- Table: public.records
 
@@ -44,4 +44,4 @@ CREATE TABLE IF NOT EXISTS public.records
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.records OWNER to crn_user;
+ALTER TABLE IF EXISTS public.records OWNER to cbtl_user;
