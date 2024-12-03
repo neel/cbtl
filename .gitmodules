@@ -1,3 +1,0 @@
-[submodule "3rdparty/azmq"]
-	path = 3rdparty/azmq
-	url = https://github.com/zeromq/azmq.git
