@@ -72,7 +72,7 @@ Once all Records are inserted press enter again to finish.
 ```
 
 
-# Request for Access
+## Request for Access
 
 ```
 ./cbtl-request -p manager-0.pub -s manager-0 -a manager-0.access -m master.pub
@@ -82,7 +82,7 @@ Once all Records are inserted press enter again to finish.
 ./cbtl-request -p super-0.pub -s super-0 -a super-0.access -m master.pub
 ```
 
-# Read Blocks
+## Read Blocks
 
 ```
 ./cbtl-read -u -p manager-0.pub -s manager-0 -m master.pub -l 5
